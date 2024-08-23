@@ -1,0 +1,122 @@
+program listadoblearbol;
+
+type    
+    tArbol = ^recArbol;
+    recArbol = record
+                valor:integer;
+                sig,ant,mayores,menores:tArbol;
+            end;
+
+function crearNodoArbolParaProbar(valor:integer):tArbol;
+var
+    nodo:tArbol;
+begin
+    new(nodo);
+    nodo^.valor := valor;
+    crearNodoArbolParaProbar := nodo;
+end;
+
+procedure cargarCotas(var valor1,valor2:integer);
+begin
+    writeln('ingresar valor1');
+    readln(valor1);
+    writeln('ingresar valor 2');
+    ReadLn(valor2);
+end;
+
+procedure insertarOrdenadoArbol(var arbol:tArbol; nodo:Tarbol);
+begin
+    if (arbol = nil) then
+        arbol := nodo
+    else if (arbol^.valor > nodo^.valor) then
+            insertarOrdenadoArbol(arbol^.menores,nodo)
+        else if (arbol^.valor < nodo^.valor) then
+                insertarOrdenadoArbol(arbol^.mayores,nodo);
+end;
+
+procedure insertarDoblemente(var lista:tArbol; nodo:Tarbol);
+    procedure primerCaso(var lista:tARBOL; nodo:Tarbol);
+        begin
+            nodo^.sig := lista;
+            lista^.ant := nodo;
+            lista := nodo;
+        end;
+    procedure casoMedioFin(lista,nodo:Tarbol);
+        var 
+            cursor:Tarbol;
+        begin
+            cursor :=lista;
+            while (cursor^.sig <> nil) and (cursor^.sig^.valor <= nodo^.valor) do
+                cursor := cursor^.sig;
+            nodo^.sig := cursor^.sig;
+            nodo^.ant := cursor;
+            if (cursor^.sig <> nil) then
+                cursor^.sig^.ant := nodo;
+            cursor^.sig := nodo;
+        end;
+begin
+    if (lista = nil) then
+        lista := nodo
+    else if (lista^.valor >= nodo^.valor) then
+            primerCaso(lista,nodo)
+        else
+            casoMedioFin(lista,nodo);
+end;
+
+procedure creaLista(var lista:Tarbol; arbol:tArbol; valor1,valor2:integer);
+begin
+    if(arbol <> nil) then
+    begin
+        if (arbol^.valor >= valor1) and (arbol^.valor <= valor2) then
+        begin
+            insertarDoblemente(lista,arbol);
+            creaLista(lista,arbol^.menores,valor1,valor2);
+            creaLista(lista,arbol^.mayores,valor1,valor2);
+        end
+        else if (arbol^.valor < valor1) then
+                creaLista(lista,arbol^.mayores,valor1,valor2)
+        else if (arbol^.valor > valor2) then
+                creaLista(lista,arbol^.menores,valor1,valor2);
+    end;
+end;
+
+procedure muestraLista(lista:tArbol);
+begin
+    if (lista <> nil) then
+    begin
+        writeln(lista^.valor);
+        if (lista^.ant <> nil) then
+            writeln('ant',lista^.ant^.valor);
+        muestraLista(lista^.sig);
+    end;
+end;
+
+var
+    nodo,lista,arbol:Tarbol; valor1,valor2:integer;
+begin
+    nodo := crearNodoArbolParaProbar(50);
+    insertarOrdenadoArbol(arbol,nodo);
+    nodo := crearNodoArbolParaProbar(76);
+    insertarOrdenadoArbol(arbol,nodo);
+    nodo := crearNodoArbolParaProbar(17);
+    insertarOrdenadoArbol(arbol,nodo);
+    nodo := crearNodoArbolParaProbar(9);
+    insertarOrdenadoArbol(arbol,nodo);
+    nodo := crearNodoArbolParaProbar(23);
+    insertarOrdenadoArbol(arbol,nodo);
+    nodo := crearNodoArbolParaProbar(54);
+    insertarOrdenadoArbol(arbol,nodo);
+    nodo := crearNodoArbolParaProbar(72);
+    insertarOrdenadoArbol(arbol,nodo);
+    nodo := crearNodoArbolParaProbar(67);
+    insertarOrdenadoArbol(arbol,nodo);
+    nodo := crearNodoArbolParaProbar(14);
+    insertarOrdenadoArbol(arbol,nodo);
+    nodo := crearNodoArbolParaProbar(19);
+    insertarOrdenadoArbol(arbol,nodo);
+    nodo := crearNodoArbolParaProbar(12);
+    insertarOrdenadoArbol(arbol,nodo);
+    cargarCotas(valor1,valor2);
+    creaLista(lista,arbol,valor1,valor2);
+    muestraLista(lista);
+end.
