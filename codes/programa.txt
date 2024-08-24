@@ -1,5 +1,3 @@
-341234.d
-[pene]
-if paqui then
+IF paqui then
 goto
 paqui
