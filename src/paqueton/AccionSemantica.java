@@ -1,5 +1,4 @@
 package paqueton;
-
 public abstract class AccionSemantica {
  
 	public abstract void ejecutar(AnalizadorLexico al);
@@ -22,52 +21,62 @@ public abstract class AccionSemantica {
 	static class ASE1 extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
 	        // Falta letra de ese identificador -> warning y lo tomamos como idr
-	        // HACE AS1
+	    	analizador.addError("Falta letra que inicie el identificador");
 	        new AS1().ejecutar(analizador);
 	    }
 	}
 	static class ASF1 extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
 	        // Devolver el token
-	    	TablaSimbolos ts = analizador.getTablaSimbolos();
+	        new AS1().ejecutar(analizador);
+	    	int numToken = analizador.getNumToken();
+	    	analizador.setNroToken(Integer.toString(numToken));
 	    }
 	}
 
 	static class ASBR extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Avanzar, pero sumar 1 a la línea
-	        //analizador.sumarLinea();
+			// contemplado al manejar el programa por lineas (en el switch break line)
 	    }
 	}
 
 	static class ASBR2 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Concatenar salto de línea y sumar 1 a la línea
+	        analizador.concatenaSaltoLinea();
+			// Concatenar salto de línea y sumar 1 a la línea
 	        //analizador.concatenar("\n");
 	        //analizador.sumarLinea();
 	    }
 	}
 
-	static class ASFBR extends AccionSemantica {
+	static class ASFBR extends AccionSemantica { //cambiarlo para el comparador.
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Sumar 1 línea y devolver el token
-	        //analizador.sumarLinea();
-	        new ASF1().ejecutar(analizador);
+	    	int numToken = analizador.getIdTokens().get("Constantes");
+	    	analizador.setNroToken(Integer.toString(numToken));	        
 	    }
 	}
 
 	static class ASFBR2 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Falta dígito de exponente, sumar 1 a la línea
-	        //analizador.sumarLinea();
+	    	analizador.addError("Falta numero del exponente");
 	    }
 	}
 
 	static class ASFBR3 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-			System.out.println("HOLKAAAA");
-			analizador.setNroToken("14");
-	        // Sumar 1 línea, retroceder uno, devolver token, y buscar en tabla si es palabra clave
+			//primero chequeo palabra reservada
+			if (analizador.esPalabraReservada()) {
+				int numToken = analizador.getTokenReservada();
+		    	analizador.setNroToken(Integer.toString(numToken));
+			}
+			else { 
+				analizador.addTablaSimbolos();
+				int numToken = analizador.getIdTokens().get("ID");
+				analizador.setNroToken(Integer.toString(numToken));
+			}
+			
+			
+			// Sumar 1 línea, retroceder uno, devolver token, y buscar en tabla si es palabra clave
 	        //analizador.sumarLinea();
 	        //analizador.retroceder();
 			// if (analizador.esPalabraClave(analizador.getToken())) {

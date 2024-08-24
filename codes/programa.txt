@@ -1,1 +1,5 @@
+341234.d
+[pene]
+if paqui then
+goto
 paqui

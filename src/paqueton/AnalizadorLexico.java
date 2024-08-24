@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import paqueton.AccionSemantica;
 
 
 public class AnalizadorLexico {
@@ -25,6 +24,7 @@ public class AnalizadorLexico {
 	private Map<String, Integer> idTokens;
 	private TablaSimbolos tablaSimbolos;
 	private AccionSemantica[][] matAcciones;
+	private String errores;
 	
 	
  	public AnalizadorLexico(String ruta, TablaSimbolos ts) {
@@ -32,6 +32,7 @@ public class AnalizadorLexico {
 		this.inicializarIdTokens();
 		this.inicializarMatAcciones();
 		this.saltoLinea = false;
+		this.errores = "";
 		this.setConcatActual("");
 		this.tablaSimbolos = ts;
 		this.archivo = new File(ruta);
@@ -50,11 +51,15 @@ public class AnalizadorLexico {
             e.printStackTrace();
         }
 	}
-
- 	private void inicializarMatTrans() {
+ 	
+ 	public void addError(String e) {
+ 		errores += "linea " + linea + ": " + e + "\n";
+ 	}
+ 	
+ 	private void inicializarMatTrans() { //chequear matriz jeje xD
 		this.matTrans = new Integer[][]{
-				{8,	9,	1,	-1,	0, -1, 11, -1, 12, -1, 10, -1, 13, 2, 0, 15, -1, 16, -1, -1, 1},
-				{-1, -1, 1,	-1, -1, -1, -1, -1, -1, -1,	-1,	-1,	-1,	-1,	1, -1, -1, -1,	5,	3, -1, 1},
+				{8,	9,	1,	8,	0, -1, 11, -1, 12, -1, 10, -1, 13, 2, 0, 15, -1, 16, -1, -1, 1},
+				{-1, -1, 1,	-1, -1, -1, -1, -1, -1, -1,	-1,	-1,	-1,	1, -1, -1, -1,	5,	3, -1, 1},
 				{-1, -1, 4,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	1, -1, -1, -1, -1, 3, -1, 4},
 				{-1, -1, 3, -1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	3, -1, -1, -1,	5,	3,	-1,	3},
 				{-1, -1, -1, -1, -1, -1, -1, -1, -1, 6, -1,	-1,	-1,	4, -1, -1, -1,	-1,	-1,	-1,	4},
@@ -146,7 +151,7 @@ public class AnalizadorLexico {
         idTokens.put("_", 16);
         idTokens.put("/", 17);
         idTokens.put("*", 18);
-        idTokens.put("cadena multilinea", 19);
+        idTokens.put("[", 19);
         idTokens.put("}", 20);
         idTokens.put("{", 21);
         idTokens.put("GOTO", 22);
@@ -168,6 +173,10 @@ public class AnalizadorLexico {
         idTokens.put("RET", 38);
 	}
  	
+	public boolean esPalabraReservada() {
+		return (this.idTokens.containsKey(concatActual.toUpperCase()));
+	}
+	
 	private int getColumna() {
 		Character character = null;
 		if (!finalArchivo()) {
@@ -247,19 +256,29 @@ public class AnalizadorLexico {
  		
  	}
 
+	public void addTablaSimbolos() {
+		if (!tablaSimbolos.estaEnTablaSimbolos(concatActual)){
+			tablaSimbolos.addClave(concatActual);
+		}
+	}
 	
  	public Map<String, Integer> getIdTokens(){
  		return this.idTokens;
  	}
 	
+ 	public int getNumToken() {
+ 		return idTokens.get(Character.toString(concatActual.charAt(0)));
+ 	}
+ 	
+ 	public int getTokenReservada() {
+ 		return idTokens.get(concatActual.toUpperCase());
+ 	}
+ 	
 	public Tupla getToken() {
 		while ((estado != -1)) {
-			System.out.println(finalArchivo());
 			int estado_anterior = estado;
 			int col = getColumna();
 			estado = matTrans[estado][col];
-			System.out.println("Estado anterior: " + estado_anterior);
-			System.out.println("Estado actual: " + estado);
 			matAcciones[estado_anterior][col].ejecutar(this);
 		}
 
@@ -268,8 +287,16 @@ public class AnalizadorLexico {
 		return retorno;
 	}
 	
+	public String getErrores() {
+		return errores;
+	}
+	
 	public void concatenar() {
 		setConcatActual(getConcatActual() + lineasCodigo.get(linea-1).charAt(pos));
+	}
+	
+	public void concatenaSaltoLinea() {
+		setConcatActual(getConcatActual() + "\n");
 	}
 	
 	private void reset() {
@@ -317,7 +344,7 @@ public class AnalizadorLexico {
         	System.out.println(fin.getKey());
         	System.out.println(fin.getValue());
         }
-        
+        System.out.println(anal.getErrores());
     }
 
 	public TablaSimbolos getTablaSimbolos() {
