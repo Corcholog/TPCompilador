@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -25,7 +24,6 @@ public class AnalizadorLexico {
 	private TablaSimbolos tablaSimbolos;
 	private AccionSemantica[][] matAcciones;
 	private String errores;
-	
 	
  	public AnalizadorLexico(String ruta, TablaSimbolos ts) {
 		this.inicializarMatTrans();
@@ -52,28 +50,25 @@ public class AnalizadorLexico {
         }
 	}
  	
- 	public void addError(String e) {
- 		errores += "linea " + linea + ": " + e + "\n";
- 	}
- 	
+ 	// inicializaciones
  	private void inicializarMatTrans() { //chequear matriz jeje xD
 		this.matTrans = new Integer[][]{
-				{8,	9,	1,	8,	0, -1, 11, -1, 12, -1, 10, -1, 13, 2, 0, 15, -1, 16, -1, -1, 1},
-				{-1, -1, 1,	-1, -1, -1, -1, -1, -1, -1,	-1,	-1,	-1,	1, -1, -1, -1,	5,	3, -1, 1},
-				{-1, -1, 4,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	1, -1, -1, -1, -1, 3, -1, 4},
-				{-1, -1, 3, -1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	3, -1, -1, -1,	5,	3,	-1,	3},
-				{-1, -1, -1, -1, -1, -1, -1, -1, -1, 6, -1,	-1,	-1,	4, -1, -1, -1,	-1,	-1,	-1,	4},
-				{-1, -1, 7, -1,	-1,	-1,	-1,	-1,	-1,	6, -1, -1, -1, 7, -1, -1, -1, -1, -1, -1, 7},
-				{-1, -1, 7,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	7, -1, -1, -1, -1, -1, -1, 7},
-				{-1, -1, 7,	-1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1, 7},
-				{8,	8,	8,	8,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	8, -1, -1, -1, 8, -1, -1, 8},
-				{9,	9,	9,	9,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	9,	-1,	-1,	-1,	9,	-1,	-1,	9},
-				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
-				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
-				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
-				{13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 14, 13, 0,	13,	13,	13,	13,	13,	13},
-				{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 0, 14,	14,	14,	14,	14,	14},
-				{15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, -1, 15, 15, 15, 15},
+				{8,	9,	1,	8,	0, -1, 11, -1, 12, -1, 10, -1, 13, 2, 0, 15, -1, 16, -1, -1, 1}, //
+				{-1, -1, 1,	-1, -1, -1, -1, -1, -1, -1,	-1,	-1,	-1,	1, -1, -1, -1,	5,	3, -1, 1}, //
+				{-1, -1, 4,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	1, -1, -1, -1, -1, 3, -1, 4}, //
+				{-1, -1, 3, -1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	3, -1, -1, -1,	5,	3,	-1,	3}, //
+				{-1, -1, -1, -1, -1, -1, -1, -1, -1, 6, -1,	-1,	-1,	4, -1, -1, -1,	-1,	-1,	-1,	4}, //
+				{-1, -1, 7, -1,	-1,	-1,	-1,	-1,	-1,	6, -1, -1, -1, 7, -1, -1, -1, -1, -1, -1, 7}, //
+				{-1, -1, 7,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	7, -1, -1, -1, -1, -1, -1, 7}, //
+				{-1, -1, 7,	-1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	7,	-1,	-1,	-1,	-1,	-1,	-1, 7}, //
+				{8,	8,	8,	8,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	8, -1, -1, -1, 8, -1, -1, 8}, //
+				{9,	9,	9,	9,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	9,	-1,	-1,	-1,	9,	-1,	-1,	9}, //
+				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //
+				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //
+				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //
+				{13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 14, 13, 0,	13,	13,	13,	13,	13,	13}, //
+				{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 0, 14,	14,	14,	14,	14,	14}, //
+				{15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, -1, 15, 15, 15, 15}, //
 				{16, 16, 16, 16, -1, -1, -1, -1, -1, -1, -1, -1, -1, 16, -1, -1, -1, 16, -1, -1, 16}
 		};
 	}
@@ -172,15 +167,49 @@ public class AnalizadorLexico {
         idTokens.put("FUN", 37);
         idTokens.put("RET", 38);
 	}
+
+	// adds
+ 	public void addError(String e) {
+ 		errores += "linea " + linea + ": " + e + "\n";
+ 	}
  	
+	public void addTablaSimbolos() {
+		if (!tablaSimbolos.estaEnTablaSimbolos(concatActual)){
+			tablaSimbolos.addClave(concatActual);
+		}
+	}
+ 	
+	// chequeos
 	public boolean esPalabraReservada() {
 		return (this.idTokens.containsKey(concatActual.toUpperCase()));
+	}
+	
+	public boolean finalArchivo() {
+		return lineasCodigo.size() < linea;
+	}
+	
+	// getters
+	public Tupla getToken() {
+		while ((estado != -1)) {
+			int estado_anterior = estado;
+			int col = getColumna();
+			estado = matTrans[estado][col];
+			matAcciones[estado_anterior][col].ejecutar(this);
+			System.out.println("Voy leyendo: " + concatActual + "\n");
+			System.out.println("Estado: " + estado_anterior + " pasa a: " + estado + "\n");
+			System.out.println("Se ejecuta: " + matAcciones[estado_anterior][col].getClass().getName().split("\\$")[1]);
+			System.out.println("__________________________________________________________ \n");
+		}
+
+		Tupla retorno = new Tupla(nroToken, concatActual);
+		this.reset();
+		return retorno;
 	}
 	
 	private int getColumna() {
 		Character character = null;
 		if (!finalArchivo()) {
-			character = lineasCodigo.get(linea-1).charAt(pos);
+			character = lineasCodigo.get(linea-1).toLowerCase().charAt(pos);
 		}
  		
  		if (saltoLinea) {
@@ -256,12 +285,6 @@ public class AnalizadorLexico {
  		
  	}
 
-	public void addTablaSimbolos() {
-		if (!tablaSimbolos.estaEnTablaSimbolos(concatActual)){
-			tablaSimbolos.addClave(concatActual);
-		}
-	}
-	
  	public Map<String, Integer> getIdTokens(){
  		return this.idTokens;
  	}
@@ -274,23 +297,31 @@ public class AnalizadorLexico {
  		return idTokens.get(concatActual.toUpperCase());
  	}
  	
-	public Tupla getToken() {
-		while ((estado != -1)) {
-			int estado_anterior = estado;
-			int col = getColumna();
-			estado = matTrans[estado][col];
-			matAcciones[estado_anterior][col].ejecutar(this);
-		}
-
-		Tupla retorno = new Tupla(nroToken, concatActual);
-		this.reset();
-		return retorno;
-	}
-	
 	public String getErrores() {
 		return errores;
 	}
 	
+	public TablaSimbolos getTablaSimbolos() {
+		return tablaSimbolos;
+	}
+
+	public String getNroToken() {
+		return nroToken;
+	}
+
+	public String getConcatActual() {
+		return concatActual;
+	}
+
+	
+	// setters
+	public void setConcatActual(String concatActual) {
+		this.concatActual = concatActual;
+	}
+    
+	public void setNroToken(String nroToken) {
+		this.nroToken = nroToken;
+	}	
 	public void concatenar() {
 		setConcatActual(getConcatActual() + lineasCodigo.get(linea-1).charAt(pos));
 	}
@@ -303,10 +334,6 @@ public class AnalizadorLexico {
 		this.concatActual = "";
 		this.estado = 0;
 		this.nroToken = "";
-	}
-	
-	public boolean finalArchivo() {
-		return lineasCodigo.size() < linea;
 	}
 	
 	public void avanzarLinea() {
@@ -325,47 +352,27 @@ public class AnalizadorLexico {
 		
 	public static void main(String[] args) {
         // Crear un objeto Scanner para leer la entrada del usuario
-        Scanner scanner = new Scanner(System.in);
+        //Scanner scanner = new Scanner(System.in);
 
         // Pedir al usuario que elija el nombre del archivo (sin extensión)
-        System.out.print("Ingresa el nombre del archivo (con extensión): ");
-        String nombreArchivo = scanner.nextLine();
-        scanner.close();
+        //System.out.print("Ingresa el nombre del archivo (con extensión): ");
+        //String nombreArchivo = scanner.nextLine();
+        //scanner.close();
        
         // Asumir que la ruta del proyecto es el directorio actual
         String rutaProyecto = System.getProperty("user.dir");
-        String rutaArchivo = rutaProyecto + File.separator + "codes" + File.separator + nombreArchivo;
-        System.out.println(rutaArchivo);
+        String rutaArchivo = rutaProyecto + File.separator + "codes" + File.separator + "programa.txt";
+        System.out.println("Se lee el archivo: " + rutaArchivo);
         TablaSimbolos ts = new TablaSimbolos();
         AnalizadorLexico anal = new AnalizadorLexico(rutaArchivo, ts);
         
         while (!anal.finalArchivo()) {
         	Tupla fin = anal.getToken();
-        	System.out.println(fin.getKey());
-        	System.out.println(fin.getValue());
+        	System.out.println("Se retorna token '" + fin.getKey() + "'  valor '" + fin.getValue() + "' \n");
         }
         System.out.println(anal.getErrores());
     }
 
-	public TablaSimbolos getTablaSimbolos() {
-		return tablaSimbolos;
-	}
 
-	public String getNroToken() {
-		return nroToken;
-	}
-
-	public void setNroToken(String nroToken) {
-		this.nroToken = nroToken;
-	}
-
-	public String getConcatActual() {
-		return concatActual;
-	}
-
-	public void setConcatActual(String concatActual) {
-		this.concatActual = concatActual;
-	}
-    
 }
 
