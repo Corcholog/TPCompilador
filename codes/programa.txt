@@ -1,3 +1,9 @@
-IF paqui then
-goto
+IF paqui = agus then
+43243 hola
+pedro+
+if+
+>=
+a
+x
 paqui
+if  

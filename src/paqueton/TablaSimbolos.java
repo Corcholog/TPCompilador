@@ -15,7 +15,7 @@ public class TablaSimbolos {
 	}
 	
 	public void addClave(String clave) {
-		this.tablaSimbolos.put(clave.toUpperCase(), new HashMap<String, String>());
+		this.tablaSimbolos.put(clave, new HashMap<String, String>());
 	}
 	
 	public void addAtributo(String clave, String claveAtributo, String atributo) {

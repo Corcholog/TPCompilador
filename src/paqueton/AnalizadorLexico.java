@@ -14,6 +14,7 @@ public class AnalizadorLexico {
 	private int linea = 1;
 	private int pos = 0;
 	private int estado = 0;
+	private boolean huboError;
 	private boolean saltoLinea;
 	private String nroToken;
 	private String concatActual;
@@ -30,6 +31,7 @@ public class AnalizadorLexico {
 		this.inicializarIdTokens();
 		this.inicializarMatAcciones();
 		this.saltoLinea = false;
+		this.huboError=false;
 		this.errores = "";
 		this.setConcatActual("");
 		this.tablaSimbolos = ts;
@@ -78,6 +80,8 @@ public class AnalizadorLexico {
 		AccionSemantica.AS1 as1 = new AccionSemantica.AS1();
 		AccionSemantica.ASE1 ase1 = new AccionSemantica.ASE1();
 		AccionSemantica.ASF1 asf1 = new AccionSemantica.ASF1();
+		AccionSemantica.ASF1CONSTANTE asfconstante = new AccionSemantica.ASF1CONSTANTE();
+		AccionSemantica.ASF1OCTAL asfoctal = new AccionSemantica.ASF1OCTAL();
 		AccionSemantica.ASBR asbr = new AccionSemantica.ASBR();
 		AccionSemantica.ASBR2 asbr2 = new AccionSemantica.ASBR2();
 		AccionSemantica.ASFBR asfbr = new AccionSemantica.ASFBR();
@@ -88,9 +92,9 @@ public class AnalizadorLexico {
 		AccionSemantica.ASE2 ase2 = new AccionSemantica.ASE2();
 		AccionSemantica.ASE3 ase3 = new AccionSemantica.ASE3();
 		AccionSemantica.ASF2 asf2 = new AccionSemantica.ASF2();
+		AccionSemantica.ASF2COMP ASF2COMP = new AccionSemantica.ASF2COMP();
 		AccionSemantica.ASE4 ase4 = new AccionSemantica.ASE4();
 		AccionSemantica.ASE5 ase5 = new AccionSemantica.ASE5();
-		AccionSemantica.ASE6 ase6 = new AccionSemantica.ASE6();
 		AccionSemantica.ASE7 ase7 = new AccionSemantica.ASE7();
 		AccionSemantica.ASE8 ase8 = new AccionSemantica.ASE8();
 		AccionSemantica.ASF3 asf3 = new AccionSemantica.ASF3();
@@ -106,17 +110,17 @@ public class AnalizadorLexico {
         
  		this.matAcciones = new AccionSemantica[][]{
 			{as1, as1, as1, ase1, as0, asf1, as1, asf1,	as1, asf1, as1,	asf1, as1, as1, asbr, as1, ase2, as1, asf1, ase3, as1},
-			{asf2, asf2, as1, asf2,	asf1,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	as1,	asfbr,	asf2,	asf2,	ase4,	as1,	asf2,	as1},
-			{asf2,	asf2,	ase5,	asf2,	asf1,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf1,	asfbr ,asf2,	asf2,	ase4, as1,	asf2,	as1},
-			{asf2,	asf2,	as1,	asf2	,asf1	,asf2,	asf2	,asf2	,asf2,	ase6,	asf2	,asf2	,asf2,	as1	,asfbr	,asf2	,asf2	,as1	,ase7,	asf2	,as1},
-			{asf2,	asf2,	ase5,	asf2,	asf1	,asf2	,asf2,	asf2	,asf2	,asf2	,asf2	,asf2,	asf2,	as1,	asfbr	,asf2,	asf2	,asf2,	asf2,	asf2,	as1},
+			{asf2, asf2, as1, asf2,	asfconstante,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	as1,	asfbr,	asf2,	asf2,	ase4,	as1,	asf2,	as1},
+			{asf2,	asf2,	ase5,	asf2,	asfconstante,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asfoctal,	asfbr ,asf2,	asf2,	ase4, as1,	asf2,	as1},
+			{asf2,	asf2,	as1,	asf2	,asfconstante	,asf2,	asf2	,asf2	,asf2,	asf2,	asf2	,asf2	,asf2,	as1	,asfbr	,asf2	,asf2	,as1	,ase7,	asf2	,as1},
+			{asf2,	asf2,	ase5,	asf2,	asfconstante	,asf2	,asf2,	asf2	,asf2	,asf2	,asf2	,asf2,	asf2,	as1,	asfbr	,asf2,	asf2	,asf2,	asf2,	asf2,	as1},
 			{ase8,	ase8, as1	,ase8	,ase8	,ase8,	ase8	,ase8,	ase8	,as1	,ase8,	ase8,	ase8,	as1,	asfbr2,	ase8	,ase8,	ase8	,ase8	,ase8,	as1},
 			{ase8,	ase8,	as1,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	as1,	asfbr2,	ase8,	ase8	,ase8,	ase8,	ase8,	as1},
-			{asf1,	asf1,	as1	,asf1,	asf1,	asf1	,asf1,	asf1	,asf1	,asf1	,asf1	,asf1	,asf1	,as1	,asfbr	,asf1	,asf1	,asf1	,asf1	,asf1	,as1},
+			{asfconstante,	asfconstante,	as1	,asfconstante,	asfconstante,	asfconstante	,asfconstante,	asfconstante	,asfconstante	,asfconstante	,asfconstante	,asfconstante	,asfconstante	,as1	,asfbr	,asfconstante	,asfconstante	,asfconstante	,asfconstante	,asfconstante	,as1},
 			{as1,	as1	,as1	,as1	,asf3	,asf4	,asf4	,asf4	,asf4	,asf4	,asf4	,asf4	,asf4	,as1	,asfbr3,	asf4,	asf4	,as1,	asf4,	asf4	,as1},
 			{as1,	as1	,as1	,as1,	asf5	,asf6,	asf6,	asf6	,asf6	,asf6,	asf6,	asf6	,asf6	,as1,	asfbr4	,asf6	,asf6,	as1,	asf6,	asf6,	as1},
 			{ase9	,ase9	,ase9,	ase9,	ase10,	ase9	,ase9,	asf1,	ase9	,ase9,	ase9,	ase9	,ase9	,ase9	,asfbr6,	ase9,	ase9	,ase9,	ase9,	ase9,	ase9},
-			{asf2,	asf2,	asf2,	asf2	,asf1	,asf2,	asf2	,asf1,	asf2	,asf2,	asf2,	asf2	,asf2	,asf2,	asfbr	,asf2,	asf2,	asf2,	asf2,	asf2,	asf2},
+			{ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP	,asf1	,ASF2COMP,	ASF2COMP	,asf1,	ASF2COMP	,ASF2COMP,	ASF2COMP,	ASF2COMP	,ASF2COMP	,ASF2COMP,	ASF2COMP	,ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP},
 			{ase9,	ase9,	ase9,	ase9,	ase10,	ase9,	ase9	,asf1,	ase9	,ase9	,ase9	,ase9	,ase9	,ase9	,asfbr6,	ase9	,ase9,	ase9	,ase9,	ase9,	ase9},
 			{ase11,	ase11	,ase11,	ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,as1	,ase11	,asbr	,ase11,	ase11,	ase11	,ase11,	ase11,	ase11},
 			{as1,	as1	,as1,	as1,	as1,	as1	,as1,	as1	,as1	,as1	,as1,	as1,	as1,	as1,	asbr,	as1,	as1,	as1,	as1,	as1,	as1},
@@ -128,8 +132,8 @@ public class AnalizadorLexico {
 	private void inicializarIdTokens() {
 		// Crear un mapa para almacenar los pares ID - Valor
         this.idTokens = new HashMap<>();
-        idTokens.put("ID", 1);
-        idTokens.put("Constantes", 2);
+        idTokens.put("id", 1);
+        idTokens.put("constantes", 2);
         idTokens.put("+", 3);
         idTokens.put("-", 4);
         idTokens.put(">", 5);
@@ -149,28 +153,29 @@ public class AnalizadorLexico {
         idTokens.put("[", 19);
         idTokens.put("}", 20);
         idTokens.put("{", 21);
-        idTokens.put("GOTO", 22);
-        idTokens.put("UP", 23);
-        idTokens.put("DOWN", 24);
-        idTokens.put("TRIPLE", 25);
-        idTokens.put("FOR", 26);
+        idTokens.put("goto", 22);
+        idTokens.put("up", 23);
+        idTokens.put("down", 24);
+        idTokens.put("triple", 25);
+        idTokens.put("for", 26);
         idTokens.put("ulongint", 27);
         idTokens.put("double", 28);
-        idTokens.put("IF", 29);
-        idTokens.put("THEN", 30);
-        idTokens.put("ELSE", 31);
-        idTokens.put("BEGIN", 32);
-        idTokens.put("END", 33);
-        idTokens.put("END_IF", 34);
-        idTokens.put("OUTF", 35);
-        idTokens.put("TYPEDEF", 36);
-        idTokens.put("FUN", 37);
-        idTokens.put("RET", 38);
+        idTokens.put("if", 29);
+        idTokens.put("then", 30);
+        idTokens.put("else", 31);
+        idTokens.put("begin", 32);
+        idTokens.put("end", 33);
+        idTokens.put("end_if", 34);
+        idTokens.put("outf", 35);
+        idTokens.put("typedef", 36);
+        idTokens.put("fun", 37);
+        idTokens.put("ret", 38);
 	}
 
 	// adds
  	public void addError(String e) {
  		errores += "linea " + linea + ": " + e + "\n";
+ 		this.huboError=true;
  	}
  	
 	public void addTablaSimbolos() {
@@ -178,10 +183,14 @@ public class AnalizadorLexico {
 			tablaSimbolos.addClave(concatActual);
 		}
 	}
+	
+	public void addAtributoTablaSimbolos(String claveAtributo, String atributo) {
+		this.getTablaSimbolos().addAtributo(concatActual, claveAtributo, atributo);
+	}
  	
 	// chequeos
 	public boolean esPalabraReservada() {
-		return (this.idTokens.containsKey(concatActual.toUpperCase()));
+		return (this.idTokens.containsKey(concatActual));
 	}
 	
 	public boolean finalArchivo() {
@@ -190,17 +199,28 @@ public class AnalizadorLexico {
 	
 	// getters
 	public Tupla getToken() {
+		boolean corta = false;
 		while ((estado != -1)) {
-			int estado_anterior = estado;
-			int col = getColumna();
-			estado = matTrans[estado][col];
-			matAcciones[estado_anterior][col].ejecutar(this);
-			System.out.println("Voy leyendo: " + concatActual + "\n");
-			System.out.println("Estado: " + estado_anterior + " pasa a: " + estado + "\n");
-			System.out.println("Se ejecuta: " + matAcciones[estado_anterior][col].getClass().getName().split("\\$")[1]);
-			System.out.println("__________________________________________________________ \n");
+			if (finalArchivo()) {
+				int sizeLinea = lineasCodigo.get(linea-2).length();
+				corta = lineasCodigo.get(linea-2).charAt(sizeLinea-1) == ' ';	
+			}
+			if (!(finalArchivo() && (corta))) {	
+				int estado_anterior = estado;
+				int col = getColumna();
+				System.out.println(col);
+				estado = matTrans[estado][col];
+				matAcciones[estado_anterior][col].ejecutar(this);
+				
+				System.out.println("Voy leyendo: " + concatActual + "\n");
+				System.out.println("Estado: " + estado_anterior + " pasa a: " + estado + "\n");
+				System.out.println("Se ejecuta: " + matAcciones[estado_anterior][col].getClass().getName().split("\\$")[1]);
+				System.out.println("__________________________________________________________ \n");
+			}
 		}
-
+		if (huboError) {
+			nroToken = "";
+		}
 		Tupla retorno = new Tupla(nroToken, concatActual);
 		this.reset();
 		return retorno;
@@ -211,7 +231,6 @@ public class AnalizadorLexico {
 		if (!finalArchivo()) {
 			character = lineasCodigo.get(linea-1).toLowerCase().charAt(pos);
 		}
- 		
  		if (saltoLinea) {
  			saltoLinea = false;
  			return 14;
@@ -247,7 +266,7 @@ public class AnalizadorLexico {
  	 	    case '+': case '-':
  		        return 9;
  	 	        
- 	 	    case '*': case '/': case '%':
+ 	 	    case '*': case '/':
  	 	        return 5;
  	 	        
  	 	    case '<': case '>':
@@ -276,7 +295,7 @@ public class AnalizadorLexico {
  	 	        
  	 	    case ']':
  	 	        return 16;
-
+ 	 	    
  	 	    default:
  	 	        // Caso: otro (carácter no contemplado en los casos anteriores)
  	 	    	return 19;
@@ -294,7 +313,7 @@ public class AnalizadorLexico {
  	}
  	
  	public int getTokenReservada() {
- 		return idTokens.get(concatActual.toUpperCase());
+ 		return idTokens.get(concatActual);
  	}
  	
 	public String getErrores() {
@@ -316,14 +335,14 @@ public class AnalizadorLexico {
 	
 	// setters
 	public void setConcatActual(String concatActual) {
-		this.concatActual = concatActual;
+		this.concatActual = concatActual.toLowerCase();
 	}
     
 	public void setNroToken(String nroToken) {
 		this.nroToken = nroToken;
 	}	
 	public void concatenar() {
-		setConcatActual(getConcatActual() + lineasCodigo.get(linea-1).charAt(pos));
+		setConcatActual( (getConcatActual() + lineasCodigo.get(linea-1).charAt(pos) ).toLowerCase() );
 	}
 	
 	public void concatenaSaltoLinea() {
@@ -331,6 +350,7 @@ public class AnalizadorLexico {
 	}
 	
 	private void reset() {
+		this.huboError=false;
 		this.concatActual = "";
 		this.estado = 0;
 		this.nroToken = "";

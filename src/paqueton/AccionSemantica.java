@@ -11,7 +11,6 @@ public abstract class AccionSemantica {
 
 	static class AS1 extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
-	    	// Concatenar lo anterior y avanzar 1 en el código fuente
 	    	analizador.concatenar();
 	    	analizador.avanzarPos();
 	        
@@ -20,41 +19,52 @@ public abstract class AccionSemantica {
 
 	static class ASE1 extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
-	        // Falta letra de ese identificador -> warning y lo tomamos como idr
 	    	analizador.addError("Falta letra que inicie el identificador");
 	        new AS1().ejecutar(analizador);
 	    }
 	}
 	static class ASF1 extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
-	        // Devolver el token
 	        new AS1().ejecutar(analizador);
 	    	int numToken = analizador.getNumToken();
 	    	analizador.setNroToken(Integer.toString(numToken));
 	    }
 	}
+	
+	static class ASF1OCTAL extends AccionSemantica {
+	    public void ejecutar(AnalizadorLexico analizador) {
+	        new AS1().ejecutar(analizador);
+	        new ASFBR().ejecutar(analizador);
+	    }
+	}
+	
+	static class ASF1CONSTANTE extends AccionSemantica {
+	    public void ejecutar(AnalizadorLexico analizador) {
+	        new ASFBR().ejecutar(analizador);
+	    }
+	}
 
 	static class ASBR extends AccionSemantica {
+		// contemplado al manejar el programa por lineas (en el switch break line)
 		public void ejecutar(AnalizadorLexico analizador) {
-			// contemplado al manejar el programa por lineas (en el switch break line)
+			
 	    }
 	}
 
 	static class ASBR2 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 	        analizador.concatenaSaltoLinea();
-			// Concatenar salto de línea y sumar 1 a la línea
-	        //analizador.concatenar("\n");
-	        //analizador.sumarLinea();
 	    }
 	}
 
 	static class ASFBR extends AccionSemantica { //cambiarlo para el comparador.
 		public void ejecutar(AnalizadorLexico analizador) {
-	    	int numToken = analizador.getIdTokens().get("Constantes");
+	    	int numToken = analizador.getIdTokens().get("constantes");
 	    	analizador.setNroToken(Integer.toString(numToken));	        
 	    }
 	}
+	
+	
 
 	static class ASFBR2 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
@@ -64,129 +74,107 @@ public abstract class AccionSemantica {
 
 	static class ASFBR3 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-			//primero chequeo palabra reservada
 			if (analizador.esPalabraReservada()) {
 				int numToken = analizador.getTokenReservada();
 		    	analizador.setNroToken(Integer.toString(numToken));
 			}
 			else { 
 				analizador.addTablaSimbolos();
-				int numToken = analizador.getIdTokens().get("ID");
+				int numToken = analizador.getIdTokens().get("id");
 				analizador.setNroToken(Integer.toString(numToken));
 			}
-			
-			
-			// Sumar 1 línea, retroceder uno, devolver token, y buscar en tabla si es palabra clave
-	        //analizador.sumarLinea();
-	        //analizador.retroceder();
-			// if (analizador.esPalabraClave(analizador.getToken())) {
-			//     analizador.devolverToken();
-			// }
 	    }
 	}
 
 	static class ASFBR4 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Es ASFBR3 pero sin chequear palabras clave, y es tipo entero
-			//analizador.sumarLinea();
-			//analizador.retroceder();
-			//analizador.devolverToken();
-	        // No se chequea palabra clave
+			analizador.addTablaSimbolos();
+			analizador.addAtributoTablaSimbolos("tipo","ulongint");
+			int numToken = analizador.getIdTokens().get("id");
+			analizador.setNroToken(Integer.toString(numToken));
 	    }
 	}
 
 	static class ASFBR5 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Es ASFBR4 pero chequea tipo double
-			//analizador.sumarLinea();
-			//analizador.retroceder();
-			//analizador.devolverToken();
-	        // Chequea tipo double
+			analizador.addTablaSimbolos();
+			analizador.addAtributoTablaSimbolos("tipo","double");
+			int numToken = analizador.getIdTokens().get("id");
+			analizador.setNroToken(Integer.toString(numToken));
 	    }
 	}
 
 	static class ASE2 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Faltó el '['
-	        // Manejar el error correspondiente
+	    	analizador.addError("Falta el [ para iniciar la cadena");
+	        new AS1().ejecutar(analizador);
 	    }
 	}
 
 	static class ASE3 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Carácter inesperado (podemos ignorarlo y seguir)
-	        // Ignorar y seguir leyendo
+	    	analizador.addError("Caracter inesperado");
+	    	analizador.avanzarPos();
 	    }
 	}
 
 	static class ASF2 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Devolver el token, pero retrocediendo 1 hacia atrás
-			//analizador.retroceder();
-			//analizador.devolverToken();
+			new ASFBR().ejecutar(analizador);
 	    }
+	}
+	
+	static class ASF2COMP extends AccionSemantica {
+		public void ejecutar(AnalizadorLexico analizador) {
+	    	int numToken = analizador.getNumToken();
+	    	analizador.setNroToken(Integer.toString(numToken));	  
+		}
 	}
 
 	static class ASE4 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Faltó el punto para el elevado, HACE AS1
+	    	analizador.addError("Falto el . para armar el exponente");
 	        new AS1().ejecutar(analizador);
 	    }
 	}
 
 	static class ASE5 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // No es un dígito que entre en los octales (1-7), HACE AS1
-	        new AS1().ejecutar(analizador);
+	    	analizador.addError("No es un digito de los octales");
+	    	analizador.avanzarPos();
 	    }
 	}
 
-	static class ASE6 extends AccionSemantica {
-		public void ejecutar(AnalizadorLexico analizador) {
-	        // Faltó una 'd' del elevado, hace AS1
-	        new AS1().ejecutar(analizador);
-	    }
-	}
 
 	static class ASE7 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Sobra un '.', hace AS1
-	        new AS1().ejecutar(analizador);
+	    	analizador.addError("Sobra un punto");
+	    	analizador.avanzarPos();
 	    }
 	}
 
 	static class ASE8 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Falta dígito del exponente, termina dando error y retrocede uno
-			//analizador.retroceder();
-	        // Manejar error
+	    	analizador.addError("No tiene digitos el exponente");
+	    	analizador.avanzarPos();
 	    }
 	}
 
 	static class ASF3 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Es lo de if palabra clave busca en tabla, etc.
-	      //  if (analizador.esPalabraClave(analizador.getToken())) {
-	      //      analizador.devolverToken();
-	       // }
-	    }
+			new ASFBR3().ejecutar(analizador);
+		}
 	}
 
 	static class ASF4 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Es lo de if palabra clave busca en tabla, etc., pero retrocede uno
-	       // analizador.retroceder();
-	        //if (analizador.esPalabraClave(analizador.getToken())) {
-	        //    analizador.devolverToken();
-	       // }
+			new ASFBR3().ejecutar(analizador);
 	    }
 	}
 
 	static class ASF5 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        // Es ASF3 pero sin chequear palabra clave y tiene un tipo entero
-	       // analizador.devolverToken();
-	        // No se chequea palabra clave
+			new ASFBR4().ejecutar(analizador);
 	    }
 	}
 
