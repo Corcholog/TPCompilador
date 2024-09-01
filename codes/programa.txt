@@ -1,9 +1,15 @@
-IF paqui = agus then
-43243 hola
-pedro+
-if+
->=
-a
-x
-paqui
-if  
+Casos de Prueba
+Se debe incluir, como mínimo, ejemplos que contemplen las siguientes alternativas:
+(Cuando sea posible, agregar un comentario indicando el comportamiento esperado del compilador)
+
+
+- Constantes con el primer y último valor dentro del rango (Para cada tipo de datos asignado).
+- Constantes con el primer y último valor fuera del rango (Para cada tipo de datos asignado).
+- Para números de punto flotante: parte entera con y sin parte decimal, parte decimal con y sin parte entera, con y
+sin exponente, con exponente positivo y negativo.
+- Identificadores de menos y más de 15 caracteres.
+- Identificadores con letras, dígitos y "_".
+- Intento de incluir en el nombre de un identificador un carácter que no sea letra, dígito o “-“.
+- Palabras reservadas escritas en minúsculas y mayúsculas.
+- Comentarios bien y mal escritos.
+- Cadenas bien y mal escritas.
