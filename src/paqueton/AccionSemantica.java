@@ -1,5 +1,9 @@
 package paqueton;
+import java.math.BigInteger;
 public abstract class AccionSemantica {
+	public static final BigInteger MAX_INT = new BigInteger("4294967296");
+    public static final double MIN_DOUBLE = 2.2250738585072014e-308;
+    public static final double MAX_DOUBLE = 1.7976931348623157e+308;
 	
 	public void checkString(AnalizadorLexico analizador) {
 		String concatActual = analizador.getConcatActual();
@@ -8,9 +12,49 @@ public abstract class AccionSemantica {
 			analizador.setConcatActual(concatActual.substring(0, 15));
 		}
 	}
+	
+	public boolean checkLongInt(AnalizadorLexico analizador) {
+		BigInteger actual = new BigInteger(analizador.getConcatActual());
+		if(actual.compareTo(MAX_INT) >= 0 || actual.compareTo(new BigInteger("0")) == -1) {
+			analizador.addError("Constante fuera de rango.");
+			return false;
+		} else {
+			return true;
+		}
+	}
+	
+	public boolean checkDouble(AnalizadorLexico analizador) {
+        try {
+        	String number = analizador.getConcatActual();
+            String normalizedNumber = number.replaceAll("d", "e").replaceAll("D", "e");
+            double value = Double.parseDouble(normalizedNumber);
+            
+            boolean enRango = (value >= MIN_DOUBLE && value <= MAX_DOUBLE) || 
+                    (value <= -MIN_DOUBLE && value >= -MAX_DOUBLE) || 
+                    value == 0.0;
+            if (!enRango) {
+            	analizador.addError("Constante double fuera de rango");
+            }
+            return enRango;
+        } catch (NumberFormatException e) {
+            // Si el formato no es correcto, no es un double válido
+            return false;
+        }
+	}
+	
+	public boolean checkOctal(AnalizadorLexico analizador) {
+		String number = analizador.getConcatActual();
+		BigInteger actual = new BigInteger(number, 8);
+		if(actual.compareTo(MAX_INT) >= 0 || actual.compareTo(new BigInteger("0")) == -1) {
+			analizador.addError("Constante fuera de rango.");
+			return false;
+		} else {
+			return true;
+		}
+	}
  
 	public abstract void ejecutar(AnalizadorLexico al);
-
+	
 	static class AS0 extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
 	        analizador.avanzarPos();
@@ -20,8 +64,7 @@ public abstract class AccionSemantica {
 	static class AS1 extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
 	    	analizador.concatenar();
-	    	analizador.avanzarPos();
-	        
+	    	analizador.avanzarPos();   
 	    }
 	}
 
@@ -39,6 +82,12 @@ public abstract class AccionSemantica {
 	    }
 	}
 	
+	static class ASF1Constante extends AccionSemantica{
+		public void ejecutar(AnalizadorLexico analizador) {
+		
+		}
+	}
+	
 	static class ASF1Comp extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
 	        new AS1().ejecutar(analizador);
@@ -49,14 +98,26 @@ public abstract class AccionSemantica {
 	
 	static class ASF1OCTAL extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
-	        new AS1().ejecutar(analizador);
-	        new ASFBR().ejecutar(analizador);
+	    	if (checkOctal(analizador)) {
+		        new AS1().ejecutar(analizador);
+		        new ASFBR().ejecutar(analizador);
+	    	}
 	    }
 	}
 	
-	static class ASF1CONSTANTE extends AccionSemantica {
+	static class ASF1Double extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
-	        new ASFBR().ejecutar(analizador);
+	    	if(checkDouble(analizador)) {
+		        new ASFBR().ejecutar(analizador);
+	    	}
+	    }
+	}
+	
+	static class ASF1LongInt extends AccionSemantica {
+	    public void ejecutar(AnalizadorLexico analizador) {
+	    	if(checkLongInt(analizador)) {
+		        new ASFBR().ejecutar(analizador);
+	    	}
 	    }
 	}
 
@@ -69,14 +130,14 @@ public abstract class AccionSemantica {
 
 	static class ASBR2 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	        analizador.concatenaSaltoLinea();
+	        analizador.concatenaMultilinea();
 	    }
 	}
 
 	static class ASFBR extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	    	int numToken = analizador.getIdTokens().get("constantes");
-	    	analizador.setNroToken(Integer.toString(numToken));	        
+			int numToken = analizador.getIdTokens().get("constantes");
+	    	analizador.setNroToken(Integer.toString(numToken));	     
 	    }
 	}
 	
@@ -140,6 +201,29 @@ public abstract class AccionSemantica {
 	static class ASF2 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			new ASFBR().ejecutar(analizador);
+	    }
+	}
+	
+	static class ASF2LongInt extends AccionSemantica {
+		public void ejecutar(AnalizadorLexico analizador) {
+			if(checkLongInt(analizador)) {
+				new ASFBR().ejecutar(analizador);
+			}
+	    }
+	}
+	static class ASF2Double extends AccionSemantica {
+		public void ejecutar(AnalizadorLexico analizador) {
+			if(checkDouble(analizador)) {
+				new ASFBR().ejecutar(analizador);
+			}
+	    }
+	}
+	
+	static class ASF2OCTAL extends AccionSemantica {
+	    public void ejecutar(AnalizadorLexico analizador) {
+	    	if (checkOctal(analizador)) {
+		        new ASFBR().ejecutar(analizador);
+	    	}
 	    }
 	}
 	

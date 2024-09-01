@@ -82,8 +82,9 @@ public class AnalizadorLexico {
 		AccionSemantica.ASE1 ase1 = new AccionSemantica.ASE1();
 		AccionSemantica.ASF1 asf1 = new AccionSemantica.ASF1();
 		AccionSemantica.ASF1Comp asf1c = new AccionSemantica.ASF1Comp();
-		AccionSemantica.ASF1CONSTANTE asfconstante = new AccionSemantica.ASF1CONSTANTE();
 		AccionSemantica.ASF1OCTAL asfoctal = new AccionSemantica.ASF1OCTAL();
+		AccionSemantica.ASF2OCTAL asf2octal = new AccionSemantica.ASF2OCTAL();
+		AccionSemantica.ASF1Constante asfconstante = new AccionSemantica.ASF1Constante();
 		AccionSemantica.ASBR asbr = new AccionSemantica.ASBR();
 		AccionSemantica.ASBR2 asbr2 = new AccionSemantica.ASBR2();
 		AccionSemantica.ASFBR asfbr = new AccionSemantica.ASFBR();
@@ -94,6 +95,8 @@ public class AnalizadorLexico {
 		AccionSemantica.ASE2 ase2 = new AccionSemantica.ASE2();
 		AccionSemantica.ASE3 ase3 = new AccionSemantica.ASE3();
 		AccionSemantica.ASF2 asf2 = new AccionSemantica.ASF2();
+		AccionSemantica.ASF2Double asf2double = new AccionSemantica.ASF2Double();
+		AccionSemantica.ASF2LongInt asf2longint = new AccionSemantica.ASF2LongInt();
 		AccionSemantica.ASF2COMP ASF2COMP = new AccionSemantica.ASF2COMP();
 		AccionSemantica.ASE4 ase4 = new AccionSemantica.ASE4();
 		AccionSemantica.ASE5 ase5 = new AccionSemantica.ASE5();
@@ -113,13 +116,13 @@ public class AnalizadorLexico {
         
  		this.matAcciones = new AccionSemantica[][]{
 			{as1, as1, as1, ase1, as0, asf1, as1, asf1,	as1, asf1, as1,	asf1, as1, as1, asbr, as1, ase2, as1, asf1, ase3, as1},
-			{asf2, asf2, as1, asf2,	asfconstante,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	as1,	asfbr,	asf2,	asf2,	ase4,	as1,	asf2,	as1},
-			{asf2,	asf2,	ase5,	asf2,	asfconstante,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asf2,	asfoctal,	asfbr ,asf2,	asf2,	ase4, as1,	asf2,	as1},
-			{asf2,	asf2,	as1,	asf2	,asfconstante	,asf2,	asf2	,asf2	,asf2,	asf2,	asf2	,asf2	,asf2,	as1	,asfbr	,asf2	,asf2	,as1	,ase7,	asf2	,as1},
-			{asf2,	asf2,	ase5,	asf2,	asfconstante	,asf2	,asf2,	asf2	,asf2	,asf2	,asf2	,asf2,	asf2,	as1,	asfbr	,asf2,	asf2	,asf2,	asf2,	asf2,	as1},
+			{asf2longint, asf2longint, as1, asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	as1,	asf2longint,	asf2longint,	asf2longint,	ase4,	as1,	asf2longint,	as1},
+			{asf2octal,	asf2octal,	ase5,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asfoctal,	asf2octal ,asf2octal,	asf2octal,	ase4, as1,	asf2octal,	as1},
+			{asf2double,	asf2double,	as1,	asf2double	,asf2double	,asf2double,	asf2double	,asf2double	,asf2double,	asf2double,	asf2double	,asf2double	,asf2double,	as1	,asf2double	,asf2double	,asf2double	,as1	,ase7,	asf2double	,as1},
+			{asf2octal,	asf2octal,	ase5,	asf2octal,	asf2octal	,asf2octal	,asf2octal,	asf2octal	,asf2octal	,asf2octal	,asf2octal	,asf2octal,	asf2octal,	as1,	asf2octal	,asf2octal,	asf2octal	,asf2octal,	asf2octal,	asf2octal,	as1},
 			{ase8,	ase8, as1	,ase8	,ase8	,ase8,	ase8	,ase8,	ase8	,as1	,ase8,	ase8,	ase8,	as1,	asfbr2,	ase8	,ase8,	ase8	,ase8	,ase8,	as1},
 			{ase8,	ase8,	as1,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	as1,	asfbr2,	ase8,	ase8	,ase8,	ase8,	ase8,	as1},
-			{asfconstante,	asfconstante,	as1	,asfconstante,	asfconstante,	asfconstante	,asfconstante,	asfconstante	,asfconstante	,asfconstante	,asfconstante	,asfconstante	,asfconstante	,as1	,asfbr	,asfconstante	,asfconstante	,asfconstante	,asfconstante	,asfconstante	,as1},
+			{asf2double,	asf2double,	as1	,asf2double,	asf2double,	asf2double	,asf2double,	asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,as1	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,as1},
 			{as1,	as1	,as1	,as1	,asf3	,asf4	,asf4	,asf4	,asf4	,asf4	,asf4	,asf4	,asf4	,as1	,asfbr3,	asf4,	asf4	,as1,	asf4,	asf4	,as1},
 			{as1,	as1	,as1	,as1,	asf5	,asf6,	asf6,	asf6	,asf6	,asf6,	asf6,	asf6	,asf6	,as1,	asfbr4	,asf6	,asf6,	as1,	asf6,	asf6,	as1},
 			{ase9	,ase9	,ase9,	ase9,	ase10,	ase9	,ase9,	asf1,	ase9	,ase9,	ase9,	ase9	,ase9	,ase9	,asfbr6,	ase9,	ase9	,ase9,	ase9,	ase9,	ase9},
@@ -177,15 +180,19 @@ public class AnalizadorLexico {
         idTokens.put("ret", 39);
 	}
 
+	
+	private int getLineaError() {
+ 		return saltoLinea ? linea-1 : linea;
+	}
 	// adds
  	public void addError(String e) {
  		this.cantErrores++;
- 		errores += "Error en linea " + linea + ": " + e + "\n";
+ 		errores += "Error en linea " + getLineaError() + ": " + e + "\n";
  		this.huboError=true;
  	}
  	
  	public void addWarning(String e) {
- 		errores += "Warning en linea " + linea + ": " + e + "\n";
+ 		errores += "Warning en linea " + getLineaError() + ": " + e + "\n";
  	}
  	
 	public void addTablaSimbolos() {
@@ -219,21 +226,31 @@ public class AnalizadorLexico {
 				if (corta ) {
 					return new Tupla(idTokens.get("$").toString(), "$");
 				}
+				if (concatActual.charAt(0) == '[') {
+					this.addWarning("Faltó cerrar cadena multilinea, se agregó ] .");
+					return new Tupla(Integer.toString(getNumToken()), concatActual.concat("]"));
+				}
 			}
-			if (!corta) {	
-				int estado_anterior = estado;
-				int col = getColumna();
-				System.out.println(col);
-				estado = matTrans[estado][col];
-				matAcciones[estado_anterior][col].ejecutar(this);
-				
-				System.out.println("Voy leyendo: " + concatActual + "\n");
-				System.out.println("Estado: " + estado_anterior + " pasa a: " + estado + "\n");
-				System.out.println("Se ejecuta: " + matAcciones[estado_anterior][col].getClass().getName().split("\\$")[1]);
-				System.out.println("__________________________________________________________ \n");
+			if(!finalArchivo() && lineasCodigo.get(linea-1).length() == 0) {
+				this.avanzarLinea();
+			}else {
+				if (!corta) {	
+					int estado_anterior = estado;
+					int col = getColumna();
+					//System.out.println(col);
+					estado = matTrans[estado][col];
+					matAcciones[estado_anterior][col].ejecutar(this);
+					if(col == 14) {
+						saltoLinea = false;
+					}
+					//System.out.println("Voy leyendo: " + concatActual + "\n");
+					//System.out.println("Estado: " + estado_anterior + " pasa a: " + estado + "\n");
+					//System.out.println("Se ejecuta: " + matAcciones[estado_anterior][col].getClass().getName().split("\\$")[1]);
+					//System.out.println("__________________________________________________________ \n");
+				}
 			}
+			
 		}
-		
 		if (huboError) {
 			this.reset();
 			return getToken();
@@ -249,7 +266,6 @@ public class AnalizadorLexico {
 			character = lineasCodigo.get(linea-1).toLowerCase().charAt(pos);
 		}
  		if (saltoLinea) {
- 			saltoLinea = false;
  			return 14;
  		} else {
  			switch (character) {
@@ -330,7 +346,6 @@ public class AnalizadorLexico {
  	}
  	
  	public int getTokenReservada() {
- 		System.out.println(concatActual);
  		return idTokens.get(concatActual);
  	}
  	
@@ -363,8 +378,8 @@ public class AnalizadorLexico {
 		setConcatActual( (getConcatActual() + lineasCodigo.get(linea-1).charAt(pos) ).toLowerCase() );
 	}
 	
-	public void concatenaSaltoLinea() {
-		setConcatActual(getConcatActual() + "\n");
+	public void concatenaMultilinea() {
+		setConcatActual(getConcatActual() + " ");
 	}
 	
 	private void reset() {
@@ -409,7 +424,6 @@ public class AnalizadorLexico {
         	fin = anal.getToken();
         }
         System.out.println("Se retorna token '" + fin.getKey() + "'  valor '" + fin.getValue() + "' \n");
-        
         System.out.println(anal.getErrores());
     }
 
