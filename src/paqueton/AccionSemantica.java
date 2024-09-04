@@ -169,7 +169,7 @@ public abstract class AccionSemantica {
 			super.checkString(analizador);
 			analizador.addTablaSimbolos();
 			analizador.addAtributoTablaSimbolos("tipo","ulongint");
-			int numToken = analizador.getIdTokens().get("id");
+			int numToken = analizador.getIdTokens().get("constantes");
 			analizador.setNroToken(Integer.toString(numToken));
 	    }
 	}
@@ -179,7 +179,7 @@ public abstract class AccionSemantica {
 			super.checkString(analizador);
 			analizador.addTablaSimbolos();
 			analizador.addAtributoTablaSimbolos("tipo","double");
-			int numToken = analizador.getIdTokens().get("id");
+			int numToken = analizador.getIdTokens().get("constantes");
 			analizador.setNroToken(Integer.toString(numToken));
 	    }
 	}
