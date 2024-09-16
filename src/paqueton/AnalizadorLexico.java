@@ -180,6 +180,51 @@ public class AnalizadorLexico {
         idTokens.put("ret", 39);
 	}
 
+	//yylex()
+
+	public int yylex() {
+		boolean corta = false;
+		if(finalArchivo()) {
+			return 0; //end of file
+		}
+		while ((estado != -1)) {
+			if (finalArchivo()) {
+				corta = concatActual.equals("");
+				if (corta ) {
+					return 0;
+				}
+				if (concatActual.charAt(0) == '[') {
+					this.addWarning("Faltó cerrar cadena multilinea, se agregó ] .");
+					return Parser.CADMUL; //cadena multilinea
+				}
+			}
+			if(!finalArchivo() && lineasCodigo.get(linea-1).length() == 0) {
+				this.avanzarLinea();
+			}else {
+				if (!corta) {	
+					int estado_anterior = estado;
+					int col = getColumna();
+					//System.out.println(col);
+					estado = matTrans[estado][col];
+					matAcciones[estado_anterior][col].ejecutar(this);
+					if(col == 14) {
+						saltoLinea = false;
+					}
+					//System.out.println("Voy leyendo: " + concatActual + "\n");
+					//System.out.println("Estado: " + estado_anterior + " pasa a: " + estado + "\n");
+					//System.out.println("Se ejecuta: " + matAcciones[estado_anterior][col].getClass().getName().split("\\$")[1]);
+					//System.out.println("__________________________________________________________ \n");
+				}
+			}
+			
+		}
+		if (huboError) {
+			this.reset();
+			return yylex();
+		}		
+		this.reset();
+		return Integer.parseInt(nroToken);
+	}
 	
 	private int getLineaError() {
  		return saltoLinea ? linea-1 : linea;
@@ -215,50 +260,7 @@ public class AnalizadorLexico {
 	}
 	
 	// getters
-	public Tupla getToken() {
-		boolean corta = false;
-		if(finalArchivo()) {
-			return new Tupla(idTokens.get("$").toString(), "$");
-		}
-		while ((estado != -1)) {
-			if (finalArchivo()) {
-				corta = concatActual.equals("");
-				if (corta ) {
-					return new Tupla(idTokens.get("$").toString(), "$");
-				}
-				if (concatActual.charAt(0) == '[') {
-					this.addWarning("Faltó cerrar cadena multilinea, se agregó ] .");
-					return new Tupla(Integer.toString(getNumToken()), concatActual.concat("]"));
-				}
-			}
-			if(!finalArchivo() && lineasCodigo.get(linea-1).length() == 0) {
-				this.avanzarLinea();
-			}else {
-				if (!corta) {	
-					int estado_anterior = estado;
-					int col = getColumna();
-					//System.out.println(col);
-					estado = matTrans[estado][col];
-					matAcciones[estado_anterior][col].ejecutar(this);
-					if(col == 14) {
-						saltoLinea = false;
-					}
-					//System.out.println("Voy leyendo: " + concatActual + "\n");
-					//System.out.println("Estado: " + estado_anterior + " pasa a: " + estado + "\n");
-					//System.out.println("Se ejecuta: " + matAcciones[estado_anterior][col].getClass().getName().split("\\$")[1]);
-					//System.out.println("__________________________________________________________ \n");
-				}
-			}
-			
-		}
-		if (huboError) {
-			this.reset();
-			return getToken();
-		}
-		Tupla retorno = new Tupla(nroToken, concatActual);
-		this.reset();
-		return retorno;
-	}
+
 	
 	private int getColumna() {
 		Character character = null;
