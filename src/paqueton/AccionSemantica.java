@@ -77,8 +77,8 @@ public abstract class AccionSemantica {
 	static class ASF1 extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
 	        new AS1().ejecutar(analizador);
-	    	int numToken = analizador.getTokenReservada();
-	    	analizador.setNroToken(Integer.toString(numToken));
+	    	int numToken = analizador.getIdToken();
+	    	analizador.setNroToken(numToken);
 	    }
 	}
 	
@@ -91,8 +91,8 @@ public abstract class AccionSemantica {
 	static class ASF1Comp extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
 	        new AS1().ejecutar(analizador);
-	    	int numToken = analizador.getNumToken();
-	    	analizador.setNroToken(Integer.toString(numToken));
+	    	int numToken = analizador.getIdToken();
+	    	analizador.setNroToken(numToken);
 	    }
 	}
 	
@@ -136,8 +136,8 @@ public abstract class AccionSemantica {
 
 	static class ASFBR extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-			int numToken = analizador.getIdTokens().get("constantes");
-	    	analizador.setNroToken(Integer.toString(numToken));	     
+			int numToken = Parser.CTE;
+	    	analizador.setNroToken(numToken);	     
 	    }
 	}
 	
@@ -152,14 +152,14 @@ public abstract class AccionSemantica {
 	static class ASFBR3 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			if (analizador.esPalabraReservada()) {
-				int numToken = analizador.getTokenReservada();
-		    	analizador.setNroToken(Integer.toString(numToken));
+				int numToken = analizador.getIdToken();
+		    	analizador.setNroToken(numToken);
 			}
 			else { 
 				super.checkString(analizador);
 				analizador.addTablaSimbolos();
-				int numToken = analizador.getIdTokens().get("id");
-				analizador.setNroToken(Integer.toString(numToken));
+				int numToken = Parser.ID;
+				analizador.setNroToken(numToken);
 			}
 	    }
 	}
@@ -169,8 +169,8 @@ public abstract class AccionSemantica {
 			super.checkString(analizador);
 			analizador.addTablaSimbolos();
 			analizador.addAtributoTablaSimbolos("tipo","ulongint");
-			int numToken = analizador.getIdTokens().get("id");
-			analizador.setNroToken(Integer.toString(numToken));
+			int numToken = Parser.ID;
+			analizador.setNroToken(numToken);
 	    }
 	}
 
@@ -179,8 +179,8 @@ public abstract class AccionSemantica {
 			super.checkString(analizador);
 			analizador.addTablaSimbolos();
 			analizador.addAtributoTablaSimbolos("tipo","double");
-			int numToken = analizador.getIdTokens().get("id");
-			analizador.setNroToken(Integer.toString(numToken));
+			int numToken = Parser.ID;
+			analizador.setNroToken(numToken);
 	    }
 	}
 
@@ -198,12 +198,6 @@ public abstract class AccionSemantica {
 	    }
 	}
 
-	static class ASF2 extends AccionSemantica {
-		public void ejecutar(AnalizadorLexico analizador) {
-			new ASFBR().ejecutar(analizador);
-	    }
-	}
-	
 	static class ASF2LongInt extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			if(checkLongInt(analizador)) {
@@ -229,15 +223,15 @@ public abstract class AccionSemantica {
 	
 	static class ASF2COMP extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-	    	int numToken = analizador.getNumToken();
-	    	analizador.setNroToken(Integer.toString(numToken));	  
+	    	int numToken = analizador.getIdToken();
+	    	analizador.setNroToken(numToken);	  
 		}
 	}
 
 	static class ASE4 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 	    	analizador.addWarning("Si quisiste armar un double, te falto la parte decimal");
-	        new ASF2().ejecutar(analizador);
+	        new ASFBR().ejecutar(analizador);
 	    }
 	}
 
@@ -262,62 +256,16 @@ public abstract class AccionSemantica {
 	    }
 	}
 
-	static class ASF3 extends AccionSemantica {
-		public void ejecutar(AnalizadorLexico analizador) {
-			new ASFBR3().ejecutar(analizador);
-		}
-	}
-
-	static class ASF4 extends AccionSemantica {
-		public void ejecutar(AnalizadorLexico analizador) {
-			new ASFBR3().ejecutar(analizador);
-	    }
-	}
-
-	static class ASF5 extends AccionSemantica {
-		public void ejecutar(AnalizadorLexico analizador) {
-			new ASFBR4().ejecutar(analizador);
-	    }
-	}
-
-	static class ASF6 extends AccionSemantica {
-		public void ejecutar(AnalizadorLexico analizador) {
-			new ASFBR4().ejecutar(analizador);
-	    }
-	}
-
-	static class ASF7 extends AccionSemantica {
-		public void ejecutar(AnalizadorLexico analizador) {
-			new ASFBR5().ejecutar(analizador);
-	    }
-	}
-
-	static class ASF8 extends AccionSemantica {
-		public void ejecutar(AnalizadorLexico analizador) {
-			new ASFBR5().ejecutar(analizador);
-	    }
-	}
 
 	static class ASE9 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			analizador.addWarning("Faltó un =, fue agregado.");
 			analizador.setConcatActual(analizador.getConcatActual().concat("="));
-			int numToken = analizador.getTokenReservada();
-	    	analizador.setNroToken(Integer.toString(numToken));
+			int numToken = analizador.getIdToken();
+	    	analizador.setNroToken(numToken);
 	    }
 	}
 
-	static class ASE10 extends AccionSemantica {
-		public void ejecutar(AnalizadorLexico analizador) {
-	        new ASE9().ejecutar(analizador);
-	    }
-	}
-
-	static class ASFBR6 extends AccionSemantica {
-		public void ejecutar(AnalizadorLexico analizador) {
-	        new ASE9().ejecutar(analizador);
-	    }
-	}
 
 	static class ASE11 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {

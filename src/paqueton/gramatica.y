@@ -1,8 +1,10 @@
 %{
-	import java.io*;
-
+	package paqueton;
+	import java.io.*;
 %}
 
 %token ID CTE MASI MENOSI ASIGN DIST GOTO UP DOWN TRIPLE FOR ULONGINT DOUBLE IF THEN ELSE BEGIN END END_IF OUTF TYPEDEF FUN RET CADMUL
 
 %%
+prog	: ASIGN
+	;	
