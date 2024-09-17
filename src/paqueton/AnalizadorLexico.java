@@ -26,6 +26,7 @@ public class AnalizadorLexico {
 	private TablaSimbolos tablaSimbolos;
 	private AccionSemantica[][] matAcciones;
 	private String errores;
+	private int lineaInicial;
 	
  	public AnalizadorLexico(String ruta, TablaSimbolos ts) {
 		this.inicializarMatTrans();
@@ -37,6 +38,7 @@ public class AnalizadorLexico {
 		this.setConcatActual("");
 		this.tablaSimbolos = ts;
 		this.archivo = new File(ruta);
+		this.lineaInicial=0;
         if (!archivo.exists()) {
             System.out.println("El archivo especificado no existe: " + ruta);
             return;
@@ -104,6 +106,7 @@ public class AnalizadorLexico {
 		AccionSemantica.ASE9 ase9 = new AccionSemantica.ASE9();
 		AccionSemantica.ASE11 ase11 = new AccionSemantica.ASE11();
 		AccionSemantica.ASDescartaComentario asd = new AccionSemantica.ASDescartaComentario();
+		AccionSemantica.ASFGOTO asfgoto = new AccionSemantica.ASFGOTO();
         
  		this.matAcciones = new AccionSemantica[][]{
 			{as1, as1, as1, ase1, as0, asf1, as1, asf1,	as1, asf1, as1,	asf1, as1, as1, asbr, as1, ase2, as1, asf1, ase3, as1},
@@ -114,15 +117,15 @@ public class AnalizadorLexico {
 			{ase8,	ase8, as1	,ase8	,ase8	,ase8,	ase8	,ase8,	ase8	,as1	,ase8,	ase8,	ase8,	as1,	asfbr2,	ase8	,ase8,	ase8	,ase8	,ase8,	as1},
 			{ase8,	ase8,	as1,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	as1,	asfbr2,	ase8,	ase8	,ase8,	ase8,	ase8,	as1},
 			{asf2double,	asf2double,	as1	,asf2double,	asf2double,	asf2double	,asf2double,	asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,as1	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,as1},
-			{as1,	as1	,as1	,as1	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,as1	,asfbr3,	asfbr3,	asfbr3	,as1,	asfbr3,	asfbr3	,as1},
-			{as1,	as1	,as1	,as1,	asfbr4	,asfbr4,	asfbr4,	asfbr4	,asfbr4	,asfbr4,	asfbr4,	asfbr4	,asfbr4	,as1,	asfbr4	,asfbr4	,asfbr4,	as1,	asfbr4,	asfbr4,	as1},
+			{as1,	as1	,as1	,as1	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfgoto	,asfbr3	,asfbr3	,as1	,asfbr3,	asfbr3,	asfbr3	,as1,	asfbr3,	asfbr3	,as1},
+			{as1,	as1	,as1	,as1,	asfbr4	,asfbr4,	asfbr4,	asfbr4	,asfbr4	,asfbr4,	asfgoto,	asfbr4	,asfbr4	,as1,	asfbr4	,asfbr4	,asfbr4,	as1,	asfbr4,	asfbr4,	as1},
 			{ase9	,ase9	,ase9,	ase9,	ase9,	ase9	,ase9,	asf1,	ase9	,ase9,	ase9,	ase9	,ase9	,ase9	,ase9,	ase9,	ase9	,ase9,	ase9,	ase9,	ase9},
 			{ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP	,asf1	,ASF2COMP,	ASF2COMP	,asf1,	ASF2COMP	,ASF2COMP,	ASF2COMP,	ASF2COMP	,ASF2COMP	,ASF2COMP,	ASF2COMP	,ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP},
 			{ase9,	ase9,	ase9,	ase9,	ase9,	ase9,	ase9	,asf1,	ase9	,ase9	,ase9	,ase9	,ase9	,ase9	,ase9,	ase9	,ase9,	ase9	,ase9,	ase9,	ase9},
 			{ase11,	ase11	,ase11,	ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,as1	,ase11	,asd	,ase11,	ase11,	ase11	,ase11,	ase11,	ase11},
 			{as1,	as1	,as1,	as1,	as1,	as1	,as1,	as1	,as1	,as1	,as1,	as1,	as1,	as1,	asd,	as1,	as1,	as1,	as1,	as1,	as1},
 			{as1,	as1,	as1,	as1	,as1,	as1,	as1	,as1	,as1	,as1	,as1	,as1	,as1	,as1,	asbr2,	as1,	asf1c	,as1,	as1,	ase3,	as1},
-			{as1,	as1,	as1	,as1	,asfbr5,	asfbr5,	asfbr5,	asfbr5	,asfbr5,	asfbr5,	asfbr5,	asfbr5,	asfbr5	,as1,	asfbr5,	asfbr5	,asfbr5	,as1	,asfbr5	,asfbr5,	as1}
+			{as1,	as1,	as1	,as1	,asfbr5,	asfbr5,	asfbr5,	asfbr5	,asfbr5,	asfbr5,	asfgoto,	asfbr5,	asfbr5	,as1,	asfbr5,	asfbr5	,asfbr5	,as1	,asfbr5	,asfbr5,	as1}
 		};
  	}
 
@@ -150,6 +153,9 @@ public class AnalizadorLexico {
 	//yylex()
 
 	public int yylex() {
+		//chequeo errores
+		if(lineaInicial==0)
+			lineaInicial=linea;
 		boolean corta = false;
 		if(finalArchivo()) {
 			return 0; //end of file
@@ -194,18 +200,15 @@ public class AnalizadorLexico {
 		return devolver;
 	}
 	
-	private int getLineaError() {
- 		return saltoLinea ? linea-1 : linea;
-	}
-	// adds
+
  	public void addError(String e) {
  		this.cantErrores++;
- 		errores += "Error en linea " + getLineaError() + ": " + e + "\n";
+ 		errores += "Error en linea " + lineaInicial + ": " + e + "\n";
  		this.huboError=true;
  	}
  	
  	public void addWarning(String e) {
- 		errores += "Warning en linea " + getLineaError() + ": " + e + "\n";
+ 		errores += "Warning en linea " + lineaInicial + ": " + e + "\n";
  	}
  	
 	public void addTablaSimbolos() { //yylval
@@ -399,9 +402,13 @@ public class AnalizadorLexico {
 		this.concatActual = "";
 		this.estado = 0;
 		this.nroToken = -4;
+		this.lineaInicial=0;
 	}
 	
 	public void avanzarLinea() {
+		//chequeo errores
+		if(concatActual.equals(""))
+			lineaInicial++;
 		saltoLinea = true;
 		linea++;
 		pos = 0;
@@ -431,10 +438,8 @@ public class AnalizadorLexico {
         TablaSimbolos ts = new TablaSimbolos();
         AnalizadorLexico anal = new AnalizadorLexico(rutaArchivo, ts);
         int fin = anal.yylex();
-        System.out.println(fin);
         while (fin != 0) {
         	fin = anal.yylex();
-            System.out.println(fin);
         }
         System.out.println(anal.getErrores());
     }

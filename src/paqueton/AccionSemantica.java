@@ -137,6 +137,7 @@ public abstract class AccionSemantica {
 	static class ASFBR extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			int numToken = Parser.CTE;
+			analizador.addTablaSimbolos();
 	    	analizador.setNroToken(numToken);	     
 	    }
 	}
@@ -278,6 +279,16 @@ public abstract class AccionSemantica {
 	static class ASDescartaComentario extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			analizador.setConcatActual("");
+		}
+	}
+	
+	static class ASFGOTO extends AccionSemantica {
+		public void ejecutar(AnalizadorLexico analizador) {
+			analizador.concatenar();
+	    	analizador.avanzarPos();  
+	    	int numToken = Parser.TAG;
+			analizador.addTablaSimbolos();
+	    	analizador.setNroToken(numToken);	
 		}
 	}
 	

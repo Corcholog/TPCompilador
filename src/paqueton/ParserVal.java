@@ -1,5 +1,4 @@
-
-package paqueton; //me obligo a hacer esto xd
+package paqueton;
 
 
 //#############################################
