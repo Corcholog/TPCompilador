@@ -24,6 +24,7 @@ sentec_eject	: asignacion ';'
 		| sald_mensaj ';'
 		| for ';'
 		| goto ';'
+		| TAG 
 		;
 condicion	: '(' expresion comparador expresion ')'
 		| '(' '(' lista_expres ')' comparador '(' lista_expres ')' ')'
@@ -37,7 +38,9 @@ seleccion 	: IF condicion THEN cuerpo_control END_IF
 comparador	: MASI
 		| MENOSI
 		| DIST
-		| '='
+		| '='	
+		| '<'
+		| '>'
 		;
 cuerpo_control	: BEGIN multip_cuerp_fun END
 		| sentec_eject
@@ -75,7 +78,7 @@ declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN cuerpo_funcion END
 		;
 parametro	: tipo ID
 		;
-cuerpo_funcion	: cuerpo RET '(' expresion ')'
+cuerpo_funcion	: cuerpo RET '(' expresion ')' ';'
 		;
 invoc_fun	: ID '(' param_real ')'
 		;

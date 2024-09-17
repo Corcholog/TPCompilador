@@ -1,0 +1,21 @@
+nombre begin
+ULONGINT pepe;
+double FUN nombrefuncion ( ulongint paqui ) begin
+		nombrefuncion2( paqui2 )
+		goto pepe@;
+		for ( pepe := 0 ; (pepe < 3 ) ; up 1)begin
+			OUTF([mensaje]);
+		end;
+		RET ( 4 ) ;
+	end;
+    if ((1*3,2+1,3/5)=(1,2,3)) then
+	begin
+		goto jeje@;
+		goto jeje2@;
+		algo@
+	end
+     else
+	algo@
+    end_if;
+    typedef triple <ULONGINT> tripla;
+end

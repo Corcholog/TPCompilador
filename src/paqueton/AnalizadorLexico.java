@@ -27,6 +27,7 @@ public class AnalizadorLexico {
 	private AccionSemantica[][] matAcciones;
 	private String errores;
 	private int lineaInicial;
+	private static AnalizadorLexico analizador = new AnalizadorLexico(System.getProperty("user.dir")+ File.separator + "codes" + File.separator + "pruebagramatica.txt", new TablaSimbolos());
 	
  	public AnalizadorLexico(String ruta, TablaSimbolos ts) {
 		this.inicializarMatTrans();
@@ -58,23 +59,23 @@ public class AnalizadorLexico {
  	// inicializaciones
  	private void inicializarMatTrans() { //chequear matriz jeje xD
 		this.matTrans = new Integer[][]{
-				{8,	9,	1,	8,	0, -1, 11, -1, 12, -1, 10, -1, 13, 2, 0, 15, 0, 16, -1, 0, 1}, //
-				{-1, -1, 1,	-1, -1, -1, -1, -1, -1, -1,	-1,	-1,	-1,	1, -1, -1, -1,	-1,	3, -1, 1}, //
-				{-1, -1, 4,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	1, -1, -1, -1, -1, 3, -1, 4}, //
-				{-1, -1, 3, -1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	3, -1, -1, -1,	5,	3,	-1,	3}, //
-				{-1, -1, 4, -1, -1, -1, -1, -1, -1, 6, -1,	-1,	-1,	4, -1, -1, -1,	-1,	-1,	-1,	4}, //
-				{-1, -1, 7, -1,	-1,	-1,	-1,	-1,	-1,	6, -1, -1, -1, 7, -1, -1, -1, -1, -1, -1, 7}, //
-				{-1, -1, 7,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	7, -1, -1, -1, -1, -1, -1, 7}, //
-				{-1, -1, 7,	-1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	7,	-1,	-1,	-1,	-1,	-1,	-1, 7}, //
-				{8,	8,	8,	8,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	8, -1, -1, -1, 8, -1, -1, 8}, //
-				{9,	9,	9,	9,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	9,	-1,	-1,	-1,	9,	-1,	-1,	9}, //
-				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //
-				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //
-				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //
-				{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 0,	14,	14,	14,	14,	14,	14}, //
-				{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 0, 14,	14,	14,	14,	14,	14}, //
-				{15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, -1, 15, 15, 15, 15}, //
-				{16, 16, 16, 16, -1, -1, -1, -1, -1, -1, -1, -1, -1, 16, -1, -1, -1, 16, -1, -1, 16}
+				{8,	9,	1,	8,	0, -1, 11, -1, 12, -1, 10, -1, 13, 2, 0, 15, 0, 16, -1, 0, 1,0}, //
+				{-1, -1, 1,	-1, -1, -1, -1, -1, -1, -1,	-1,	-1,	-1,	1, -1, -1, -1,	-1,	3, -1, 1,-1}, //
+				{-1, -1, 4,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	1, -1, -1, -1, -1, 3, -1, 4,-1}, //
+				{-1, -1, 3, -1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	3, -1, -1, -1,	5,	3,	-1,	3,-1}, //
+				{-1, -1, 4, -1, -1, -1, -1, -1, -1, 6, -1,	-1,	-1,	4, -1, -1, -1,	-1,	-1,	-1,	4,-1}, //
+				{-1, -1, 7, -1,	-1,	-1,	-1,	-1,	-1,	6, -1, -1, -1, 7, -1, -1, -1, -1, -1, -1, 7,-1}, //
+				{-1, -1, 7,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	7, -1, -1, -1, -1, -1, -1, 7,-1}, //
+				{-1, -1, 7,	-1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	7,	-1,	-1,	-1,	-1,	-1,	-1, 7,-1}, //
+				{8,	8,	8,	8,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	8, -1, -1, -1, 8, -1, -1, 8,-1}, //
+				{9,	9,	9,	9,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	9,	-1,	-1,	-1,	9,	-1,	-1,	9,-1}, //
+				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,-1}, //
+				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //
+				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //
+				{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 0,	14,	14,	14,	14,	14,	14,14}, //
+				{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 0, 14,	14,	14,	14,	14,	14,14}, //
+				{15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, -1, 15, 15, 15, 15,15}, //
+				{16, 16, 16, 16, -1, -1, -1, -1, -1, -1, -1, -1, -1, 16, -1, -1, -1, 16, -1, -1, 16,-1}
 		};
 	}
 	
@@ -109,23 +110,23 @@ public class AnalizadorLexico {
 		AccionSemantica.ASFGOTO asfgoto = new AccionSemantica.ASFGOTO();
         
  		this.matAcciones = new AccionSemantica[][]{
-			{as1, as1, as1, ase1, as0, asf1, as1, asf1,	as1, asf1, as1,	asf1, as1, as1, asbr, as1, ase2, as1, asf1, ase3, as1},
-			{asf2longint, asf2longint, as1, asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	as1,	asf2longint,	asf2longint,	asf2longint,	ase4,	as1,	asf2longint,	as1},
-			{asf2octal,	asf2octal,	ase5,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asfoctal,	asf2octal ,asf2octal,	asf2octal,	ase4, as1,	asf2octal,	as1},
-			{asf2double,	asf2double,	as1,	asf2double	,asf2double	,asf2double,	asf2double	,asf2double	,asf2double,	asf2double,	asf2double	,asf2double	,asf2double,	as1	,asf2double	,asf2double	,asf2double	,as1	,ase7,	asf2double	,as1},
-			{asf2octal,	asf2octal,	ase5,	asf2octal,	asf2octal	,asf2octal	,asf2octal,	asf2octal	,asf2octal	,asf2octal	,asf2octal	,asf2octal,	asf2octal,	as1,	asf2octal	,asf2octal,	asf2octal	,asf2octal,	asf2octal,	asf2octal,	as1},
-			{ase8,	ase8, as1	,ase8	,ase8	,ase8,	ase8	,ase8,	ase8	,as1	,ase8,	ase8,	ase8,	as1,	asfbr2,	ase8	,ase8,	ase8	,ase8	,ase8,	as1},
-			{ase8,	ase8,	as1,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	as1,	asfbr2,	ase8,	ase8	,ase8,	ase8,	ase8,	as1},
-			{asf2double,	asf2double,	as1	,asf2double,	asf2double,	asf2double	,asf2double,	asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,as1	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,as1},
-			{as1,	as1	,as1	,as1	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfgoto	,asfbr3	,asfbr3	,as1	,asfbr3,	asfbr3,	asfbr3	,as1,	asfbr3,	asfbr3	,as1},
-			{as1,	as1	,as1	,as1,	asfbr4	,asfbr4,	asfbr4,	asfbr4	,asfbr4	,asfbr4,	asfgoto,	asfbr4	,asfbr4	,as1,	asfbr4	,asfbr4	,asfbr4,	as1,	asfbr4,	asfbr4,	as1},
-			{ase9	,ase9	,ase9,	ase9,	ase9,	ase9	,ase9,	asf1,	ase9	,ase9,	ase9,	ase9	,ase9	,ase9	,ase9,	ase9,	ase9	,ase9,	ase9,	ase9,	ase9},
-			{ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP	,asf1	,ASF2COMP,	ASF2COMP	,asf1,	ASF2COMP	,ASF2COMP,	ASF2COMP,	ASF2COMP	,ASF2COMP	,ASF2COMP,	ASF2COMP	,ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP},
-			{ase9,	ase9,	ase9,	ase9,	ase9,	ase9,	ase9	,asf1,	ase9	,ase9	,ase9	,ase9	,ase9	,ase9	,ase9,	ase9	,ase9,	ase9	,ase9,	ase9,	ase9},
-			{ase11,	ase11	,ase11,	ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,as1	,ase11	,asd	,ase11,	ase11,	ase11	,ase11,	ase11,	ase11},
-			{as1,	as1	,as1,	as1,	as1,	as1	,as1,	as1	,as1	,as1	,as1,	as1,	as1,	as1,	asd,	as1,	as1,	as1,	as1,	as1,	as1},
-			{as1,	as1,	as1,	as1	,as1,	as1,	as1	,as1	,as1	,as1	,as1	,as1	,as1	,as1,	asbr2,	as1,	asf1c	,as1,	as1,	ase3,	as1},
-			{as1,	as1,	as1	,as1	,asfbr5,	asfbr5,	asfbr5,	asfbr5	,asfbr5,	asfbr5,	asfgoto,	asfbr5,	asfbr5	,as1,	asfbr5,	asfbr5	,asfbr5	,as1	,asfbr5	,asfbr5,	as1}
+			{as1, as1, as1, ase1, as0, asf1, as1, asf1,	as1, asf1, as1,	asf1, as1, as1, asbr, as1, ase2, as1, asf1, ase3, as1,ase3},
+			{asf2longint, asf2longint, as1, asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	as1,	asf2longint,	asf2longint,	asf2longint,	ase4,	as1,	asf2longint,	as1,asf2longint},
+			{asf2octal,	asf2octal,	ase5,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asfoctal,	asf2octal ,asf2octal,	asf2octal,	ase4, as1,	asf2octal,	as1,asf2octal},
+			{asf2double,	asf2double,	as1,	asf2double	,asf2double	,asf2double,	asf2double	,asf2double	,asf2double,	asf2double,	asf2double	,asf2double	,asf2double,	as1	,asf2double	,asf2double	,asf2double	,as1	,ase7,	asf2double	,as1,asf2double},
+			{asf2octal,	asf2octal,	ase5,	asf2octal,	asf2octal	,asf2octal	,asf2octal,	asf2octal	,asf2octal	,asf2octal	,asf2octal	,asf2octal,	asf2octal,	as1,	asf2octal	,asf2octal,	asf2octal	,asf2octal,	asf2octal,	asf2octal,	as1,asf2octal},
+			{ase8,	ase8, as1	,ase8	,ase8	,ase8,	ase8	,ase8,	ase8	,as1	,ase8,	ase8,	ase8,	as1,	asfbr2,	ase8	,ase8,	ase8	,ase8	,ase8,	as1,ase8},
+			{ase8,	ase8,	as1,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	as1,	asfbr2,	ase8,	ase8	,ase8,	ase8,	ase8,	as1,ase8},
+			{asf2double,	asf2double,	as1	,asf2double,	asf2double,	asf2double	,asf2double,	asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,as1	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,as1,asf2double},
+			{as1,	as1	,as1	,as1	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,as1	,asfbr3,	asfbr3,	asfbr3	,as1,	asfbr3,	asfbr3	,as1,asfgoto},
+			{as1,	as1	,as1	,as1,	asfbr4	,asfbr4,	asfbr4,	asfbr4	,asfbr4	,asfbr4,	asfbr4,	asfbr4	,asfbr4	,as1,	asfbr4	,asfbr4	,asfbr4,	as1,	asfbr4,	asfbr4,	as1,asfgoto},
+			{ase9	,ase9	,ase9,	ase9,	ase9,	ase9	,ase9,	asf1,	ase9	,ase9,	ase9,	ase9	,ase9	,ase9	,ase9,	ase9,	ase9	,ase9,	ase9,	ase9,	ase9,ase9},
+			{ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP	,asf1	,ASF2COMP,	ASF2COMP	,asf1,	ASF2COMP	,ASF2COMP,	ASF2COMP,	ASF2COMP	,ASF2COMP	,ASF2COMP,	ASF2COMP	,ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,ASF2COMP},
+			{ase9,	ase9,	ase9,	ase9,	ase9,	ase9,	ase9	,asf1,	ase9	,ase9	,ase9	,ase9	,ase9	,ase9	,ase9,	ase9	,ase9,	ase9	,ase9,	ase9,	ase9,ase9},
+			{ase11,	ase11	,ase11,	ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,as1	,ase11	,asd	,ase11,	ase11,	ase11	,ase11,	ase11,	ase11,ase11},
+			{as1,	as1	,as1,	as1,	as1,	as1	,as1,	as1	,as1	,as1	,as1,	as1,	as1,	as1,	asd,	as1,	as1,	as1,	as1,	as1,	as1,as1},
+			{as1,	as1,	as1,	as1	,as1,	as1,	as1	,as1	,as1	,as1	,as1	,as1	,as1	,as1,	asbr2,	as1,	asf1c	,as1,	as1,	ase3,	as1,ase3},
+			{as1,	as1,	as1	,as1	,asfbr5,	asfbr5,	asfbr5,	asfbr5	,asfbr5,	asfbr5,	asfbr5,	asfbr5,	asfbr5	,as1,	asfbr5,	asfbr5	,asfbr5	,as1	,asfbr5	,asfbr5,	as1,asfgoto}
 		};
  	}
 
@@ -152,6 +153,10 @@ public class AnalizadorLexico {
  	
 	//yylex()
 
+ 	public static int pruebaLex(){
+ 		return analizador.yylex();
+ 	}
+ 	
 	public int yylex() {
 		//chequeo errores
 		if(lineaInicial==0)
@@ -263,7 +268,8 @@ public class AnalizadorLexico {
  	 	        
  	 	    case '_':
  	 	        return 3;
- 	 	        
+ 	 	    //en el case de abajo manejamos espacios y tabulaciones de la misma manera.
+ 	 	    case '\t':    
  	 	    case ' ':
  	 	        return 4;
  	 	        
@@ -299,7 +305,9 @@ public class AnalizadorLexico {
  	 	        
  	 	    case ']':
  	 	        return 16;
- 	 	    
+ 	 	        
+ 	 	    case '@':
+ 	 	        return 21;
  	 	    default:
  	 	        // Caso: otro (carácter no contemplado en los casos anteriores)
  	 	    	return 19;
@@ -433,13 +441,15 @@ public class AnalizadorLexico {
        
         // Asumir que la ruta del proyecto es el directorio actual
         String rutaProyecto = System.getProperty("user.dir");
-        String rutaArchivo = rutaProyecto + File.separator + "codes" + File.separator + "programa.txt";
+        String rutaArchivo = rutaProyecto + File.separator + "codes" + File.separator + "pruebagramatica.txt";
         System.out.println("Se lee el archivo: " + rutaArchivo);
         TablaSimbolos ts = new TablaSimbolos();
         AnalizadorLexico anal = new AnalizadorLexico(rutaArchivo, ts);
         int fin = anal.yylex();
+        System.out.println(fin);
         while (fin != 0) {
         	fin = anal.yylex();
+        	System.out.println(fin);
         }
         System.out.println(anal.getErrores());
     }

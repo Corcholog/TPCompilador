@@ -9,6 +9,9 @@ minoctal 00
 maxoctal 037777777777
 sepasaoctal 040000000000
 
+goto algo@
+xd
+
 10.
 9.8
 .13
@@ -33,4 +36,3 @@ asd]
 :
 
 [abc
-

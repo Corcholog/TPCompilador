@@ -177,11 +177,17 @@ public abstract class AccionSemantica {
 
 	static class ASFBR5 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-			super.checkString(analizador);
-			analizador.addTablaSimbolos();
-			analizador.addAtributoTablaSimbolos("tipo","double");
-			int numToken = Parser.ID;
-			analizador.setNroToken(numToken);
+			if (analizador.esPalabraReservada()) {
+				int numToken = analizador.getIdToken();
+		    	analizador.setNroToken(numToken);
+			}
+			else {
+				super.checkString(analizador);
+				analizador.addTablaSimbolos();
+				analizador.addAtributoTablaSimbolos("tipo","double");
+				int numToken = Parser.ID;
+				analizador.setNroToken(numToken);				
+			}
 	    }
 	}
 
@@ -286,6 +292,7 @@ public abstract class AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			analizador.concatenar();
 	    	analizador.avanzarPos();  
+	    	super.checkString(analizador);
 	    	int numToken = Parser.TAG;
 			analizador.addTablaSimbolos();
 	    	analizador.setNroToken(numToken);	
