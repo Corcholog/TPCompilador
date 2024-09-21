@@ -1,219 +1,278 @@
    0  $accept : prog $end
 
    1  prog : ID BEGIN cuerpo END
+   2       | BEGIN cuerpo END
+   3       | ID cuerpo END
+   4       | ID BEGIN cuerpo
+   5       | ID BEGIN END
+   6       | ID cuerpo
+   7       | BEGIN cuerpo
+   8       | BEGIN END
+   9       | ID END
+  10       | ID BEGIN
 
-   2  cuerpo : cuerpo sentencia
-   3         | sentencia
+  11  cuerpo : cuerpo sentencia
+  12         | sentencia
 
-   4  sentencia : sentec_declar
-   5            | sentec_eject
+  13  sentencia : sentec_declar
+  14            | sentec_eject
 
-   6  sentec_declar : declaracion_var ';'
-   7                | declaracion_fun ';'
-   8                | declar_tipo_trip ';'
+  15  sentec_declar : declaracion_var ';'
+  16                | declaracion_fun ';'
+  17                | declar_tipo_trip ';'
+  18                | declaracion_var
+  19                | declaracion_fun
+  20                | declar_tipo_trip
 
-   9  sentec_eject : asignacion ';'
-  10               | invoc_fun ';'
-  11               | seleccion ';'
-  12               | sald_mensaj ';'
-  13               | for ';'
-  14               | goto ';'
+  21  sentec_eject : asignacion ';'
+  22               | invoc_fun ';'
+  23               | seleccion ';'
+  24               | sald_mensaj ';'
+  25               | for ';'
+  26               | goto ';'
+  27               | TAG
 
-  15  condicion : '(' expresion comparador expresion ')'
-  16            | '(' '(' lista_expres ')' comparador '(' lista_expres ')' ')'
+  28  condicion : '(' condicion_2 ')'
+  29            | condicion_2 ')'
+  30            | '(' condicion_2
+  31            | condicion_2
 
-  17  lista_expres : lista_expres ',' expresion
-  18               | expresion
+  32  condicion_2 : expresion comparador expresion
+  33              | expresion expresion
+  34              | '(' lista_expres ')' comparador '(' lista_expres ')'
 
-  19  seleccion : IF condicion THEN cuerpo_control END_IF
-  20            | IF condicion THEN cuerpo_control ELSE cuerpo_control END_IF
+  35  lista_expres : lista_expres ',' expresion
+  36               | lista_expres expresion
+  37               | expresion
 
-  21  comparador : MASI
-  22             | MENOSI
-  23             | DIST
-  24             | '='
+  38  seleccion : IF condicion THEN cuerpo_control END_IF
+  39            | IF condicion THEN cuerpo_control ELSE cuerpo_control END_IF
 
-  25  cuerpo_control : BEGIN multip_cuerp_fun END
-  26                 | sentec_eject
+  40  comparador : MASI
+  41             | MENOSI
+  42             | DIST
+  43             | '='
+  44             | '<'
+  45             | '>'
 
-  27  multip_cuerp_fun : multip_cuerp_fun sentec_eject
-  28                   | sentec_eject
+  46  cuerpo_control : BEGIN multip_cuerp_fun END
+  47                 | sentec_eject
 
-  29  variable : ID
-  30           | ID '{' variable '}'
+  48  multip_cuerp_fun : multip_cuerp_fun sentec_eject
+  49                   | sentec_eject
 
-  31  declaracion_var : tipo lista_variables
+  50  variable : ID
+  51           | ID '{' variable '}'
 
-  32  lista_variables : lista_variables ',' ID
-  33                  | ID
+  52  declaracion_var : tipo lista_variables
 
-  34  tipo : ULONGINT
-  35       | DOUBLE
-  36       | ID
+  53  lista_variables : lista_variables ',' ID
+  54                  | ID
 
-  37  asignacion : variable ASIGN expresion
+  55  tipo : tipo_basico
+  56       | ID
 
-  38  expresion : expresion '+' termino
-  39            | expresion '-' termino
-  40            | termino
+  57  tipo_basico : DOUBLE
+  58              | ULONGINT
 
-  41  termino : termino '*' factor
-  42          | termino '/' factor
-  43          | factor
+  59  asignacion : variable ASIGN expresion
 
-  44  factor : variable
-  45         | CTE
-  46         | invoc_fun
+  60  expresion : expresion '+' termino
+  61            | expresion '-' termino
+  62            | termino
 
-  47  declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN cuerpo_funcion END
+  63  termino : termino '*' factor
+  64          | termino '/' factor
+  65          | factor
 
-  48  parametro : tipo ID
+  66  factor : variable
+  67         | CTE
+  68         | invoc_fun
 
-  49  cuerpo_funcion : cuerpo RET '(' expresion ')' ';'
+  69  declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN cuerpo_funcion END
 
-  50  invoc_fun : ID '(' param_real ')'
+  70  parametro : tipo ID
 
-  51  param_real : tipo expresion
-  52             | expresion
+  71  cuerpo_funcion : cuerpo RET '(' expresion ')' ';'
 
-  53  sald_mensaj : OUTF '(' mensaje ')'
+  72  invoc_fun : ID '(' param_real ')'
 
-  54  mensaje : expresion
-  55          | CADMUL
+  73  param_real : tipo expresion
+  74             | expresion
 
-  56  for : FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control
+  75  sald_mensaj : OUTF '(' mensaje ')'
 
-  57  foravanc : UP
-  58           | DOWN
+  76  mensaje : expresion
+  77          | CADMUL
 
-  59  declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' ID
+  78  for : FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control
 
-  60  goto : GOTO TAG
+  79  foravanc : UP
+  80           | DOWN
+
+  81  declar_tipo_trip : TYPEDEF TRIPLE '<' tipo_basico '>' ID
+
+  82  goto : GOTO TAG
 
 state 0
 	$accept : . prog $end  (0)
 
 	ID  shift 1
+	BEGIN  shift 2
 	.  error
 
-	prog  goto 2
+	prog  goto 3
 
 
 state 1
 	prog : ID . BEGIN cuerpo END  (1)
+	prog : ID . cuerpo END  (3)
+	prog : ID . BEGIN cuerpo  (4)
+	prog : ID . BEGIN END  (5)
+	prog : ID . cuerpo  (6)
+	prog : ID . END  (9)
+	prog : ID . BEGIN  (10)
 
-	BEGIN  shift 3
+	ID  shift 4
+	GOTO  shift 5
+	FOR  shift 6
+	ULONGINT  shift 7
+	DOUBLE  shift 8
+	IF  shift 9
+	BEGIN  shift 10
+	END  shift 11
+	OUTF  shift 12
+	TYPEDEF  shift 13
+	TAG  shift 14
 	.  error
+
+	cuerpo  goto 15
+	sentencia  goto 16
+	sentec_declar  goto 17
+	sentec_eject  goto 18
+	declaracion_var  goto 19
+	declaracion_fun  goto 20
+	declar_tipo_trip  goto 21
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	variable  goto 28
+	tipo  goto 29
+	tipo_basico  goto 30
 
 
 state 2
+	prog : BEGIN . cuerpo END  (2)
+	prog : BEGIN . cuerpo  (7)
+	prog : BEGIN . END  (8)
+
+	ID  shift 4
+	GOTO  shift 5
+	FOR  shift 6
+	ULONGINT  shift 7
+	DOUBLE  shift 8
+	IF  shift 9
+	END  shift 31
+	OUTF  shift 12
+	TYPEDEF  shift 13
+	TAG  shift 14
+	.  error
+
+	cuerpo  goto 32
+	sentencia  goto 16
+	sentec_declar  goto 17
+	sentec_eject  goto 18
+	declaracion_var  goto 19
+	declaracion_fun  goto 20
+	declar_tipo_trip  goto 21
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	variable  goto 28
+	tipo  goto 29
+	tipo_basico  goto 30
+
+
+state 3
 	$accept : prog . $end  (0)
 
 	$end  accept
 
 
-state 3
-	prog : ID BEGIN . cuerpo END  (1)
-
-	ID  shift 4
-	GOTO  shift 5
-	FOR  shift 6
-	ULONGINT  shift 7
-	DOUBLE  shift 8
-	IF  shift 9
-	OUTF  shift 10
-	TYPEDEF  shift 11
-	.  error
-
-	cuerpo  goto 12
-	sentencia  goto 13
-	sentec_declar  goto 14
-	sentec_eject  goto 15
-	declaracion_var  goto 16
-	declaracion_fun  goto 17
-	declar_tipo_trip  goto 18
-	asignacion  goto 19
-	invoc_fun  goto 20
-	seleccion  goto 21
-	sald_mensaj  goto 22
-	for  goto 23
-	goto  goto 24
-	variable  goto 25
-	tipo  goto 26
-
-
 state 4
-	variable : ID .  (29)
-	variable : ID . '{' variable '}'  (30)
-	tipo : ID .  (36)
-	invoc_fun : ID . '(' param_real ')'  (50)
+	variable : ID .  (50)
+	variable : ID . '{' variable '}'  (51)
+	tipo : ID .  (56)
+	invoc_fun : ID . '(' param_real ')'  (72)
 
-	'('  shift 27
-	'{'  shift 28
-	ID  reduce 36
-	CTE  reduce 36
-	ASIGN  reduce 29
-	FUN  reduce 36
-	')'  reduce 29
-	'+'  reduce 29
-	'-'  reduce 29
-	'*'  reduce 29
-	'/'  reduce 29
+	'('  shift 33
+	'{'  shift 34
+	ID  reduce 56
+	CTE  reduce 56
+	ASIGN  reduce 50
+	FUN  reduce 56
+	')'  reduce 50
+	'+'  reduce 50
+	'-'  reduce 50
+	'*'  reduce 50
+	'/'  reduce 50
 
 
 state 5
-	goto : GOTO . TAG  (60)
+	goto : GOTO . TAG  (82)
 
-	TAG  shift 29
+	TAG  shift 35
 	.  error
 
 
 state 6
-	for : FOR . '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control  (56)
+	for : FOR . '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control  (78)
 
-	'('  shift 30
+	'('  shift 36
 	.  error
 
 
 state 7
-	tipo : ULONGINT .  (34)
+	tipo_basico : ULONGINT .  (58)
 
-	.  reduce 34
+	.  reduce 58
 
 
 state 8
-	tipo : DOUBLE .  (35)
+	tipo_basico : DOUBLE .  (57)
 
-	.  reduce 35
+	.  reduce 57
 
 
 state 9
-	seleccion : IF . condicion THEN cuerpo_control END_IF  (19)
-	seleccion : IF . condicion THEN cuerpo_control ELSE cuerpo_control END_IF  (20)
+	seleccion : IF . condicion THEN cuerpo_control END_IF  (38)
+	seleccion : IF . condicion THEN cuerpo_control ELSE cuerpo_control END_IF  (39)
 
-	'('  shift 31
+	ID  shift 37
+	CTE  shift 38
+	'('  shift 39
 	.  error
 
-	condicion  goto 32
+	invoc_fun  goto 40
+	condicion  goto 41
+	condicion_2  goto 42
+	expresion  goto 43
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
 
 
 state 10
-	sald_mensaj : OUTF . '(' mensaje ')'  (53)
-
-	'('  shift 33
-	.  error
-
-
-state 11
-	declar_tipo_trip : TYPEDEF . TRIPLE '<' tipo '>' ID  (59)
-
-	TRIPLE  shift 34
-	.  error
-
-
-state 12
-	prog : ID BEGIN cuerpo . END  (1)
-	cuerpo : cuerpo . sentencia  (2)
+	prog : ID BEGIN . cuerpo END  (1)
+	prog : ID BEGIN . cuerpo  (4)
+	prog : ID BEGIN . END  (5)
+	prog : ID BEGIN .  (10)
 
 	ID  shift 4
 	GOTO  shift 5
@@ -221,1225 +280,1597 @@ state 12
 	ULONGINT  shift 7
 	DOUBLE  shift 8
 	IF  shift 9
-	END  shift 35
-	OUTF  shift 10
-	TYPEDEF  shift 11
-	.  error
+	END  shift 47
+	OUTF  shift 12
+	TYPEDEF  shift 13
+	TAG  shift 14
+	$end  reduce 10
 
-	sentencia  goto 36
-	sentec_declar  goto 14
-	sentec_eject  goto 15
-	declaracion_var  goto 16
-	declaracion_fun  goto 17
-	declar_tipo_trip  goto 18
-	asignacion  goto 19
-	invoc_fun  goto 20
-	seleccion  goto 21
-	sald_mensaj  goto 22
-	for  goto 23
-	goto  goto 24
-	variable  goto 25
-	tipo  goto 26
+	cuerpo  goto 48
+	sentencia  goto 16
+	sentec_declar  goto 17
+	sentec_eject  goto 18
+	declaracion_var  goto 19
+	declaracion_fun  goto 20
+	declar_tipo_trip  goto 21
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	variable  goto 28
+	tipo  goto 29
+	tipo_basico  goto 30
+
+
+state 11
+	prog : ID END .  (9)
+
+	.  reduce 9
+
+
+state 12
+	sald_mensaj : OUTF . '(' mensaje ')'  (75)
+
+	'('  shift 49
+	.  error
 
 
 state 13
-	cuerpo : sentencia .  (3)
+	declar_tipo_trip : TYPEDEF . TRIPLE '<' tipo_basico '>' ID  (81)
 
-	.  reduce 3
+	TRIPLE  shift 50
+	.  error
 
 
 state 14
-	sentencia : sentec_declar .  (4)
+	sentec_eject : TAG .  (27)
 
-	.  reduce 4
+	.  reduce 27
 
 
 state 15
-	sentencia : sentec_eject .  (5)
+	prog : ID cuerpo . END  (3)
+	prog : ID cuerpo .  (6)
+	cuerpo : cuerpo . sentencia  (11)
 
-	.  reduce 5
+	ID  shift 4
+	GOTO  shift 5
+	FOR  shift 6
+	ULONGINT  shift 7
+	DOUBLE  shift 8
+	IF  shift 9
+	END  shift 51
+	OUTF  shift 12
+	TYPEDEF  shift 13
+	TAG  shift 14
+	$end  reduce 6
+
+	sentencia  goto 52
+	sentec_declar  goto 17
+	sentec_eject  goto 18
+	declaracion_var  goto 19
+	declaracion_fun  goto 20
+	declar_tipo_trip  goto 21
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	variable  goto 28
+	tipo  goto 29
+	tipo_basico  goto 30
 
 
 state 16
-	sentec_declar : declaracion_var . ';'  (6)
+	cuerpo : sentencia .  (12)
 
-	';'  shift 37
-	.  error
+	.  reduce 12
 
 
 state 17
-	sentec_declar : declaracion_fun . ';'  (7)
+	sentencia : sentec_declar .  (13)
 
-	';'  shift 38
-	.  error
+	.  reduce 13
 
 
 state 18
-	sentec_declar : declar_tipo_trip . ';'  (8)
+	sentencia : sentec_eject .  (14)
 
-	';'  shift 39
-	.  error
+	.  reduce 14
 
 
 state 19
-	sentec_eject : asignacion . ';'  (9)
+	sentec_declar : declaracion_var . ';'  (15)
+	sentec_declar : declaracion_var .  (18)
 
-	';'  shift 40
-	.  error
+	';'  shift 53
+	$end  reduce 18
+	ID  reduce 18
+	GOTO  reduce 18
+	FOR  reduce 18
+	ULONGINT  reduce 18
+	DOUBLE  reduce 18
+	IF  reduce 18
+	END  reduce 18
+	OUTF  reduce 18
+	TYPEDEF  reduce 18
+	RET  reduce 18
+	TAG  reduce 18
 
 
 state 20
-	sentec_eject : invoc_fun . ';'  (10)
+	sentec_declar : declaracion_fun . ';'  (16)
+	sentec_declar : declaracion_fun .  (19)
 
-	';'  shift 41
-	.  error
+	';'  shift 54
+	$end  reduce 19
+	ID  reduce 19
+	GOTO  reduce 19
+	FOR  reduce 19
+	ULONGINT  reduce 19
+	DOUBLE  reduce 19
+	IF  reduce 19
+	END  reduce 19
+	OUTF  reduce 19
+	TYPEDEF  reduce 19
+	RET  reduce 19
+	TAG  reduce 19
 
 
 state 21
-	sentec_eject : seleccion . ';'  (11)
+	sentec_declar : declar_tipo_trip . ';'  (17)
+	sentec_declar : declar_tipo_trip .  (20)
 
-	';'  shift 42
-	.  error
+	';'  shift 55
+	$end  reduce 20
+	ID  reduce 20
+	GOTO  reduce 20
+	FOR  reduce 20
+	ULONGINT  reduce 20
+	DOUBLE  reduce 20
+	IF  reduce 20
+	END  reduce 20
+	OUTF  reduce 20
+	TYPEDEF  reduce 20
+	RET  reduce 20
+	TAG  reduce 20
 
 
 state 22
-	sentec_eject : sald_mensaj . ';'  (12)
+	sentec_eject : asignacion . ';'  (21)
 
-	';'  shift 43
+	';'  shift 56
 	.  error
 
 
 state 23
-	sentec_eject : for . ';'  (13)
+	sentec_eject : invoc_fun . ';'  (22)
 
-	';'  shift 44
+	';'  shift 57
 	.  error
 
 
 state 24
-	sentec_eject : goto . ';'  (14)
+	sentec_eject : seleccion . ';'  (23)
 
-	';'  shift 45
+	';'  shift 58
 	.  error
 
 
 state 25
-	asignacion : variable . ASIGN expresion  (37)
+	sentec_eject : sald_mensaj . ';'  (24)
 
-	ASIGN  shift 46
+	';'  shift 59
 	.  error
 
 
 state 26
-	declaracion_var : tipo . lista_variables  (31)
-	declaracion_fun : tipo . FUN ID '(' parametro ')' BEGIN cuerpo_funcion END  (47)
+	sentec_eject : for . ';'  (25)
 
-	ID  shift 47
-	FUN  shift 48
+	';'  shift 60
 	.  error
-
-	lista_variables  goto 49
 
 
 state 27
-	invoc_fun : ID '(' . param_real ')'  (50)
+	sentec_eject : goto . ';'  (26)
+
+	';'  shift 61
+	.  error
+
+
+state 28
+	asignacion : variable . ASIGN expresion  (59)
+
+	ASIGN  shift 62
+	.  error
+
+
+state 29
+	declaracion_var : tipo . lista_variables  (52)
+	declaracion_fun : tipo . FUN ID '(' parametro ')' BEGIN cuerpo_funcion END  (69)
+
+	ID  shift 63
+	FUN  shift 64
+	.  error
+
+	lista_variables  goto 65
+
+
+state 30
+	tipo : tipo_basico .  (55)
+
+	.  reduce 55
+
+
+state 31
+	prog : BEGIN END .  (8)
+
+	.  reduce 8
+
+
+state 32
+	prog : BEGIN cuerpo . END  (2)
+	prog : BEGIN cuerpo .  (7)
+	cuerpo : cuerpo . sentencia  (11)
 
 	ID  shift 4
-	CTE  shift 50
+	GOTO  shift 5
+	FOR  shift 6
+	ULONGINT  shift 7
+	DOUBLE  shift 8
+	IF  shift 9
+	END  shift 66
+	OUTF  shift 12
+	TYPEDEF  shift 13
+	TAG  shift 14
+	$end  reduce 7
+
+	sentencia  goto 52
+	sentec_declar  goto 17
+	sentec_eject  goto 18
+	declaracion_var  goto 19
+	declaracion_fun  goto 20
+	declar_tipo_trip  goto 21
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	variable  goto 28
+	tipo  goto 29
+	tipo_basico  goto 30
+
+
+state 33
+	invoc_fun : ID '(' . param_real ')'  (72)
+
+	ID  shift 4
+	CTE  shift 38
 	ULONGINT  shift 7
 	DOUBLE  shift 8
 	.  error
 
-	invoc_fun  goto 51
-	expresion  goto 52
-	variable  goto 53
-	tipo  goto 54
-	termino  goto 55
-	factor  goto 56
-	param_real  goto 57
-
-
-state 28
-	variable : ID '{' . variable '}'  (30)
-
-	ID  shift 58
-	.  error
-
-	variable  goto 59
-
-
-state 29
-	goto : GOTO TAG .  (60)
-
-	.  reduce 60
-
-
-state 30
-	for : FOR '(' . ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control  (56)
-
-	ID  shift 60
-	.  error
-
-
-state 31
-	condicion : '(' . expresion comparador expresion ')'  (15)
-	condicion : '(' . '(' lista_expres ')' comparador '(' lista_expres ')' ')'  (16)
-
-	ID  shift 61
-	CTE  shift 50
-	'('  shift 62
-	.  error
-
-	invoc_fun  goto 51
-	expresion  goto 63
-	variable  goto 53
-	termino  goto 55
-	factor  goto 56
-
-
-state 32
-	seleccion : IF condicion . THEN cuerpo_control END_IF  (19)
-	seleccion : IF condicion . THEN cuerpo_control ELSE cuerpo_control END_IF  (20)
-
-	THEN  shift 64
-	.  error
-
-
-state 33
-	sald_mensaj : OUTF '(' . mensaje ')'  (53)
-
-	ID  shift 61
-	CTE  shift 50
-	CADMUL  shift 65
-	.  error
-
-	invoc_fun  goto 51
-	expresion  goto 66
-	variable  goto 53
-	termino  goto 55
-	factor  goto 56
-	mensaje  goto 67
+	invoc_fun  goto 40
+	expresion  goto 67
+	variable  goto 44
+	tipo  goto 68
+	tipo_basico  goto 30
+	termino  goto 45
+	factor  goto 46
+	param_real  goto 69
 
 
 state 34
-	declar_tipo_trip : TYPEDEF TRIPLE . '<' tipo '>' ID  (59)
+	variable : ID '{' . variable '}'  (51)
 
-	'<'  shift 68
+	ID  shift 70
 	.  error
+
+	variable  goto 71
 
 
 state 35
+	goto : GOTO TAG .  (82)
+
+	.  reduce 82
+
+
+state 36
+	for : FOR '(' . ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control  (78)
+
+	ID  shift 72
+	.  error
+
+
+state 37
+	variable : ID .  (50)
+	variable : ID . '{' variable '}'  (51)
+	invoc_fun : ID . '(' param_real ')'  (72)
+
+	'('  shift 33
+	'{'  shift 34
+	ID  reduce 50
+	CTE  reduce 50
+	MASI  reduce 50
+	MENOSI  reduce 50
+	ASIGN  reduce 50
+	DIST  reduce 50
+	THEN  reduce 50
+	';'  reduce 50
+	')'  reduce 50
+	','  reduce 50
+	'='  reduce 50
+	'<'  reduce 50
+	'>'  reduce 50
+	'+'  reduce 50
+	'-'  reduce 50
+	'*'  reduce 50
+	'/'  reduce 50
+
+
+state 38
+	factor : CTE .  (67)
+
+	.  reduce 67
+
+
+state 39
+	condicion : '(' . condicion_2 ')'  (28)
+	condicion : '(' . condicion_2  (30)
+	condicion_2 : '(' . lista_expres ')' comparador '(' lista_expres ')'  (34)
+
+	ID  shift 37
+	CTE  shift 38
+	'('  shift 73
+	.  error
+
+	invoc_fun  goto 40
+	condicion_2  goto 74
+	expresion  goto 75
+	lista_expres  goto 76
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+
+
+state 40
+	factor : invoc_fun .  (68)
+
+	.  reduce 68
+
+
+state 41
+	seleccion : IF condicion . THEN cuerpo_control END_IF  (38)
+	seleccion : IF condicion . THEN cuerpo_control ELSE cuerpo_control END_IF  (39)
+
+	THEN  shift 77
+	.  error
+
+
+state 42
+	condicion : condicion_2 . ')'  (29)
+	condicion : condicion_2 .  (31)
+
+	')'  shift 78
+	THEN  reduce 31
+	';'  reduce 31
+
+
+state 43
+	condicion_2 : expresion . comparador expresion  (32)
+	condicion_2 : expresion . expresion  (33)
+	expresion : expresion . '+' termino  (60)
+	expresion : expresion . '-' termino  (61)
+
+	ID  shift 37
+	CTE  shift 38
+	MASI  shift 79
+	MENOSI  shift 80
+	DIST  shift 81
+	'='  shift 82
+	'<'  shift 83
+	'>'  shift 84
+	'+'  shift 85
+	'-'  shift 86
+	.  error
+
+	invoc_fun  goto 40
+	expresion  goto 87
+	comparador  goto 88
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+
+
+state 44
+	factor : variable .  (66)
+
+	.  reduce 66
+
+
+state 45
+	expresion : termino .  (62)
+	termino : termino . '*' factor  (63)
+	termino : termino . '/' factor  (64)
+
+	'*'  shift 89
+	'/'  shift 90
+	ID  reduce 62
+	CTE  reduce 62
+	MASI  reduce 62
+	MENOSI  reduce 62
+	DIST  reduce 62
+	THEN  reduce 62
+	';'  reduce 62
+	')'  reduce 62
+	','  reduce 62
+	'='  reduce 62
+	'<'  reduce 62
+	'>'  reduce 62
+	'+'  reduce 62
+	'-'  reduce 62
+
+
+state 46
+	termino : factor .  (65)
+
+	.  reduce 65
+
+
+state 47
+	prog : ID BEGIN END .  (5)
+
+	.  reduce 5
+
+
+state 48
+	prog : ID BEGIN cuerpo . END  (1)
+	prog : ID BEGIN cuerpo .  (4)
+	cuerpo : cuerpo . sentencia  (11)
+
+	ID  shift 4
+	GOTO  shift 5
+	FOR  shift 6
+	ULONGINT  shift 7
+	DOUBLE  shift 8
+	IF  shift 9
+	END  shift 91
+	OUTF  shift 12
+	TYPEDEF  shift 13
+	TAG  shift 14
+	$end  reduce 4
+
+	sentencia  goto 52
+	sentec_declar  goto 17
+	sentec_eject  goto 18
+	declaracion_var  goto 19
+	declaracion_fun  goto 20
+	declar_tipo_trip  goto 21
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	variable  goto 28
+	tipo  goto 29
+	tipo_basico  goto 30
+
+
+state 49
+	sald_mensaj : OUTF '(' . mensaje ')'  (75)
+
+	ID  shift 37
+	CTE  shift 38
+	CADMUL  shift 92
+	.  error
+
+	invoc_fun  goto 40
+	expresion  goto 93
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+	mensaje  goto 94
+
+
+state 50
+	declar_tipo_trip : TYPEDEF TRIPLE . '<' tipo_basico '>' ID  (81)
+
+	'<'  shift 95
+	.  error
+
+
+state 51
+	prog : ID cuerpo END .  (3)
+
+	.  reduce 3
+
+
+state 52
+	cuerpo : cuerpo sentencia .  (11)
+
+	.  reduce 11
+
+
+state 53
+	sentec_declar : declaracion_var ';' .  (15)
+
+	.  reduce 15
+
+
+state 54
+	sentec_declar : declaracion_fun ';' .  (16)
+
+	.  reduce 16
+
+
+state 55
+	sentec_declar : declar_tipo_trip ';' .  (17)
+
+	.  reduce 17
+
+
+state 56
+	sentec_eject : asignacion ';' .  (21)
+
+	.  reduce 21
+
+
+state 57
+	sentec_eject : invoc_fun ';' .  (22)
+
+	.  reduce 22
+
+
+state 58
+	sentec_eject : seleccion ';' .  (23)
+
+	.  reduce 23
+
+
+state 59
+	sentec_eject : sald_mensaj ';' .  (24)
+
+	.  reduce 24
+
+
+state 60
+	sentec_eject : for ';' .  (25)
+
+	.  reduce 25
+
+
+state 61
+	sentec_eject : goto ';' .  (26)
+
+	.  reduce 26
+
+
+state 62
+	asignacion : variable ASIGN . expresion  (59)
+
+	ID  shift 37
+	CTE  shift 38
+	.  error
+
+	invoc_fun  goto 40
+	expresion  goto 96
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+
+
+state 63
+	lista_variables : ID .  (54)
+
+	.  reduce 54
+
+
+state 64
+	declaracion_fun : tipo FUN . ID '(' parametro ')' BEGIN cuerpo_funcion END  (69)
+
+	ID  shift 97
+	.  error
+
+
+state 65
+	declaracion_var : tipo lista_variables .  (52)
+	lista_variables : lista_variables . ',' ID  (53)
+
+	','  shift 98
+	$end  reduce 52
+	ID  reduce 52
+	GOTO  reduce 52
+	FOR  reduce 52
+	ULONGINT  reduce 52
+	DOUBLE  reduce 52
+	IF  reduce 52
+	END  reduce 52
+	OUTF  reduce 52
+	TYPEDEF  reduce 52
+	RET  reduce 52
+	TAG  reduce 52
+	';'  reduce 52
+
+
+state 66
+	prog : BEGIN cuerpo END .  (2)
+
+	.  reduce 2
+
+
+state 67
+	expresion : expresion . '+' termino  (60)
+	expresion : expresion . '-' termino  (61)
+	param_real : expresion .  (74)
+
+	'+'  shift 85
+	'-'  shift 86
+	')'  reduce 74
+
+
+state 68
+	param_real : tipo . expresion  (73)
+
+	ID  shift 37
+	CTE  shift 38
+	.  error
+
+	invoc_fun  goto 40
+	expresion  goto 99
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+
+
+state 69
+	invoc_fun : ID '(' param_real . ')'  (72)
+
+	')'  shift 100
+	.  error
+
+
+state 70
+	variable : ID .  (50)
+	variable : ID . '{' variable '}'  (51)
+
+	'{'  shift 34
+	'}'  reduce 50
+
+
+state 71
+	variable : ID '{' variable . '}'  (51)
+
+	'}'  shift 101
+	.  error
+
+
+state 72
+	for : FOR '(' ID . ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control  (78)
+
+	ASIGN  shift 102
+	.  error
+
+
+state 73
+	condicion_2 : '(' . lista_expres ')' comparador '(' lista_expres ')'  (34)
+
+	ID  shift 37
+	CTE  shift 38
+	.  error
+
+	invoc_fun  goto 40
+	expresion  goto 103
+	lista_expres  goto 76
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+
+
+state 74
+	condicion : '(' condicion_2 . ')'  (28)
+	condicion : '(' condicion_2 .  (30)
+
+	')'  shift 104
+	THEN  reduce 30
+	';'  reduce 30
+
+
+75: shift/reduce conflict (shift 37, reduce 37) on ID
+75: shift/reduce conflict (shift 38, reduce 37) on CTE
+state 75
+	condicion_2 : expresion . comparador expresion  (32)
+	condicion_2 : expresion . expresion  (33)
+	lista_expres : expresion .  (37)
+	expresion : expresion . '+' termino  (60)
+	expresion : expresion . '-' termino  (61)
+
+	ID  shift 37
+	CTE  shift 38
+	MASI  shift 79
+	MENOSI  shift 80
+	DIST  shift 81
+	'='  shift 82
+	'<'  shift 83
+	'>'  shift 84
+	'+'  shift 85
+	'-'  shift 86
+	')'  reduce 37
+	','  reduce 37
+
+	invoc_fun  goto 40
+	expresion  goto 87
+	comparador  goto 88
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+
+
+state 76
+	condicion_2 : '(' lista_expres . ')' comparador '(' lista_expres ')'  (34)
+	lista_expres : lista_expres . ',' expresion  (35)
+	lista_expres : lista_expres . expresion  (36)
+
+	ID  shift 37
+	CTE  shift 38
+	')'  shift 105
+	','  shift 106
+	.  error
+
+	invoc_fun  goto 40
+	expresion  goto 107
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+
+
+state 77
+	seleccion : IF condicion THEN . cuerpo_control END_IF  (38)
+	seleccion : IF condicion THEN . cuerpo_control ELSE cuerpo_control END_IF  (39)
+
+	ID  shift 37
+	GOTO  shift 5
+	FOR  shift 6
+	IF  shift 9
+	BEGIN  shift 108
+	OUTF  shift 12
+	TAG  shift 14
+	.  error
+
+	sentec_eject  goto 109
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	cuerpo_control  goto 110
+	variable  goto 28
+
+
+state 78
+	condicion : condicion_2 ')' .  (29)
+
+	.  reduce 29
+
+
+state 79
+	comparador : MASI .  (40)
+
+	.  reduce 40
+
+
+state 80
+	comparador : MENOSI .  (41)
+
+	.  reduce 41
+
+
+state 81
+	comparador : DIST .  (42)
+
+	.  reduce 42
+
+
+state 82
+	comparador : '=' .  (43)
+
+	.  reduce 43
+
+
+state 83
+	comparador : '<' .  (44)
+
+	.  reduce 44
+
+
+state 84
+	comparador : '>' .  (45)
+
+	.  reduce 45
+
+
+state 85
+	expresion : expresion '+' . termino  (60)
+
+	ID  shift 37
+	CTE  shift 38
+	.  error
+
+	invoc_fun  goto 40
+	variable  goto 44
+	termino  goto 111
+	factor  goto 46
+
+
+state 86
+	expresion : expresion '-' . termino  (61)
+
+	ID  shift 37
+	CTE  shift 38
+	.  error
+
+	invoc_fun  goto 40
+	variable  goto 44
+	termino  goto 112
+	factor  goto 46
+
+
+state 87
+	condicion_2 : expresion expresion .  (33)
+	expresion : expresion . '+' termino  (60)
+	expresion : expresion . '-' termino  (61)
+
+	'+'  shift 85
+	'-'  shift 86
+	THEN  reduce 33
+	';'  reduce 33
+	')'  reduce 33
+
+
+state 88
+	condicion_2 : expresion comparador . expresion  (32)
+
+	ID  shift 37
+	CTE  shift 38
+	.  error
+
+	invoc_fun  goto 40
+	expresion  goto 113
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+
+
+state 89
+	termino : termino '*' . factor  (63)
+
+	ID  shift 37
+	CTE  shift 38
+	.  error
+
+	invoc_fun  goto 40
+	variable  goto 44
+	factor  goto 114
+
+
+state 90
+	termino : termino '/' . factor  (64)
+
+	ID  shift 37
+	CTE  shift 38
+	.  error
+
+	invoc_fun  goto 40
+	variable  goto 44
+	factor  goto 115
+
+
+state 91
 	prog : ID BEGIN cuerpo END .  (1)
 
 	.  reduce 1
 
 
-state 36
-	cuerpo : cuerpo sentencia .  (2)
-
-	.  reduce 2
-
-
-state 37
-	sentec_declar : declaracion_var ';' .  (6)
-
-	.  reduce 6
-
-
-state 38
-	sentec_declar : declaracion_fun ';' .  (7)
-
-	.  reduce 7
-
-
-state 39
-	sentec_declar : declar_tipo_trip ';' .  (8)
-
-	.  reduce 8
-
-
-state 40
-	sentec_eject : asignacion ';' .  (9)
-
-	.  reduce 9
-
-
-state 41
-	sentec_eject : invoc_fun ';' .  (10)
-
-	.  reduce 10
-
-
-state 42
-	sentec_eject : seleccion ';' .  (11)
-
-	.  reduce 11
-
-
-state 43
-	sentec_eject : sald_mensaj ';' .  (12)
-
-	.  reduce 12
-
-
-state 44
-	sentec_eject : for ';' .  (13)
-
-	.  reduce 13
-
-
-state 45
-	sentec_eject : goto ';' .  (14)
-
-	.  reduce 14
-
-
-state 46
-	asignacion : variable ASIGN . expresion  (37)
-
-	ID  shift 61
-	CTE  shift 50
-	.  error
-
-	invoc_fun  goto 51
-	expresion  goto 69
-	variable  goto 53
-	termino  goto 55
-	factor  goto 56
-
-
-state 47
-	lista_variables : ID .  (33)
-
-	.  reduce 33
-
-
-state 48
-	declaracion_fun : tipo FUN . ID '(' parametro ')' BEGIN cuerpo_funcion END  (47)
-
-	ID  shift 70
-	.  error
-
-
-state 49
-	declaracion_var : tipo lista_variables .  (31)
-	lista_variables : lista_variables . ',' ID  (32)
-
-	','  shift 71
-	';'  reduce 31
-
-
-state 50
-	factor : CTE .  (45)
-
-	.  reduce 45
-
-
-state 51
-	factor : invoc_fun .  (46)
-
-	.  reduce 46
-
-
-state 52
-	expresion : expresion . '+' termino  (38)
-	expresion : expresion . '-' termino  (39)
-	param_real : expresion .  (52)
-
-	'+'  shift 72
-	'-'  shift 73
-	')'  reduce 52
-
-
-state 53
-	factor : variable .  (44)
-
-	.  reduce 44
-
-
-state 54
-	param_real : tipo . expresion  (51)
-
-	ID  shift 61
-	CTE  shift 50
-	.  error
-
-	invoc_fun  goto 51
-	expresion  goto 74
-	variable  goto 53
-	termino  goto 55
-	factor  goto 56
-
-
-state 55
-	expresion : termino .  (40)
-	termino : termino . '*' factor  (41)
-	termino : termino . '/' factor  (42)
-
-	'*'  shift 75
-	'/'  shift 76
-	MASI  reduce 40
-	MENOSI  reduce 40
-	DIST  reduce 40
-	';'  reduce 40
-	')'  reduce 40
-	','  reduce 40
-	'='  reduce 40
-	'+'  reduce 40
-	'-'  reduce 40
-
-
-state 56
-	termino : factor .  (43)
-
-	.  reduce 43
-
-
-state 57
-	invoc_fun : ID '(' param_real . ')'  (50)
-
-	')'  shift 77
-	.  error
-
-
-state 58
-	variable : ID .  (29)
-	variable : ID . '{' variable '}'  (30)
-
-	'{'  shift 28
-	'}'  reduce 29
-
-
-state 59
-	variable : ID '{' variable . '}'  (30)
-
-	'}'  shift 78
-	.  error
-
-
-state 60
-	for : FOR '(' ID . ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control  (56)
-
-	ASIGN  shift 79
-	.  error
-
-
-state 61
-	variable : ID .  (29)
-	variable : ID . '{' variable '}'  (30)
-	invoc_fun : ID . '(' param_real ')'  (50)
-
-	'('  shift 27
-	'{'  shift 28
-	MASI  reduce 29
-	MENOSI  reduce 29
-	ASIGN  reduce 29
-	DIST  reduce 29
-	';'  reduce 29
-	')'  reduce 29
-	','  reduce 29
-	'='  reduce 29
-	'+'  reduce 29
-	'-'  reduce 29
-	'*'  reduce 29
-	'/'  reduce 29
-
-
-state 62
-	condicion : '(' '(' . lista_expres ')' comparador '(' lista_expres ')' ')'  (16)
-
-	ID  shift 61
-	CTE  shift 50
-	.  error
-
-	invoc_fun  goto 51
-	expresion  goto 80
-	lista_expres  goto 81
-	variable  goto 53
-	termino  goto 55
-	factor  goto 56
-
-
-state 63
-	condicion : '(' expresion . comparador expresion ')'  (15)
-	expresion : expresion . '+' termino  (38)
-	expresion : expresion . '-' termino  (39)
-
-	MASI  shift 82
-	MENOSI  shift 83
-	DIST  shift 84
-	'='  shift 85
-	'+'  shift 72
-	'-'  shift 73
-	.  error
-
-	comparador  goto 86
-
-
-state 64
-	seleccion : IF condicion THEN . cuerpo_control END_IF  (19)
-	seleccion : IF condicion THEN . cuerpo_control ELSE cuerpo_control END_IF  (20)
-
-	ID  shift 61
-	GOTO  shift 5
-	FOR  shift 6
-	IF  shift 9
-	BEGIN  shift 87
-	OUTF  shift 10
-	.  error
-
-	sentec_eject  goto 88
-	asignacion  goto 19
-	invoc_fun  goto 20
-	seleccion  goto 21
-	sald_mensaj  goto 22
-	for  goto 23
-	goto  goto 24
-	cuerpo_control  goto 89
-	variable  goto 25
-
-
-state 65
-	mensaje : CADMUL .  (55)
-
-	.  reduce 55
-
-
-state 66
-	expresion : expresion . '+' termino  (38)
-	expresion : expresion . '-' termino  (39)
-	mensaje : expresion .  (54)
-
-	'+'  shift 72
-	'-'  shift 73
-	')'  reduce 54
-
-
-state 67
-	sald_mensaj : OUTF '(' mensaje . ')'  (53)
-
-	')'  shift 90
-	.  error
-
-
-state 68
-	declar_tipo_trip : TYPEDEF TRIPLE '<' . tipo '>' ID  (59)
-
-	ID  shift 91
-	ULONGINT  shift 7
-	DOUBLE  shift 8
-	.  error
-
-	tipo  goto 92
-
-
-state 69
-	asignacion : variable ASIGN expresion .  (37)
-	expresion : expresion . '+' termino  (38)
-	expresion : expresion . '-' termino  (39)
-
-	'+'  shift 72
-	'-'  shift 73
-	';'  reduce 37
-
-
-state 70
-	declaracion_fun : tipo FUN ID . '(' parametro ')' BEGIN cuerpo_funcion END  (47)
-
-	'('  shift 93
-	.  error
-
-
-state 71
-	lista_variables : lista_variables ',' . ID  (32)
-
-	ID  shift 94
-	.  error
-
-
-state 72
-	expresion : expresion '+' . termino  (38)
-
-	ID  shift 61
-	CTE  shift 50
-	.  error
-
-	invoc_fun  goto 51
-	variable  goto 53
-	termino  goto 95
-	factor  goto 56
-
-
-state 73
-	expresion : expresion '-' . termino  (39)
-
-	ID  shift 61
-	CTE  shift 50
-	.  error
-
-	invoc_fun  goto 51
-	variable  goto 53
-	termino  goto 96
-	factor  goto 56
-
-
-state 74
-	expresion : expresion . '+' termino  (38)
-	expresion : expresion . '-' termino  (39)
-	param_real : tipo expresion .  (51)
-
-	'+'  shift 72
-	'-'  shift 73
-	')'  reduce 51
-
-
-state 75
-	termino : termino '*' . factor  (41)
-
-	ID  shift 61
-	CTE  shift 50
-	.  error
-
-	invoc_fun  goto 51
-	variable  goto 53
-	factor  goto 97
-
-
-state 76
-	termino : termino '/' . factor  (42)
-
-	ID  shift 61
-	CTE  shift 50
-	.  error
-
-	invoc_fun  goto 51
-	variable  goto 53
-	factor  goto 98
-
-
-state 77
-	invoc_fun : ID '(' param_real ')' .  (50)
-
-	.  reduce 50
-
-
-state 78
-	variable : ID '{' variable '}' .  (30)
-
-	.  reduce 30
-
-
-state 79
-	for : FOR '(' ID ASIGN . CTE ';' condicion ';' foravanc CTE ')' cuerpo_control  (56)
-
-	CTE  shift 99
-	.  error
-
-
-state 80
-	lista_expres : expresion .  (18)
-	expresion : expresion . '+' termino  (38)
-	expresion : expresion . '-' termino  (39)
-
-	'+'  shift 72
-	'-'  shift 73
-	')'  reduce 18
-	','  reduce 18
-
-
-state 81
-	condicion : '(' '(' lista_expres . ')' comparador '(' lista_expres ')' ')'  (16)
-	lista_expres : lista_expres . ',' expresion  (17)
-
-	')'  shift 100
-	','  shift 101
-	.  error
-
-
-state 82
-	comparador : MASI .  (21)
-
-	.  reduce 21
-
-
-state 83
-	comparador : MENOSI .  (22)
-
-	.  reduce 22
-
-
-state 84
-	comparador : DIST .  (23)
-
-	.  reduce 23
-
-
-state 85
-	comparador : '=' .  (24)
-
-	.  reduce 24
-
-
-state 86
-	condicion : '(' expresion comparador . expresion ')'  (15)
-
-	ID  shift 61
-	CTE  shift 50
-	.  error
-
-	invoc_fun  goto 51
-	expresion  goto 102
-	variable  goto 53
-	termino  goto 55
-	factor  goto 56
-
-
-state 87
-	cuerpo_control : BEGIN . multip_cuerp_fun END  (25)
-
-	ID  shift 61
-	GOTO  shift 5
-	FOR  shift 6
-	IF  shift 9
-	OUTF  shift 10
-	.  error
-
-	sentec_eject  goto 103
-	asignacion  goto 19
-	invoc_fun  goto 20
-	seleccion  goto 21
-	sald_mensaj  goto 22
-	for  goto 23
-	goto  goto 24
-	multip_cuerp_fun  goto 104
-	variable  goto 25
-
-
-state 88
-	cuerpo_control : sentec_eject .  (26)
-
-	.  reduce 26
-
-
-state 89
-	seleccion : IF condicion THEN cuerpo_control . END_IF  (19)
-	seleccion : IF condicion THEN cuerpo_control . ELSE cuerpo_control END_IF  (20)
-
-	ELSE  shift 105
-	END_IF  shift 106
-	.  error
-
-
-state 90
-	sald_mensaj : OUTF '(' mensaje ')' .  (53)
-
-	.  reduce 53
-
-
-state 91
-	tipo : ID .  (36)
-
-	.  reduce 36
-
-
 state 92
-	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo . '>' ID  (59)
+	mensaje : CADMUL .  (77)
 
-	'>'  shift 107
-	.  error
+	.  reduce 77
 
 
 state 93
-	declaracion_fun : tipo FUN ID '(' . parametro ')' BEGIN cuerpo_funcion END  (47)
+	expresion : expresion . '+' termino  (60)
+	expresion : expresion . '-' termino  (61)
+	mensaje : expresion .  (76)
 
-	ID  shift 91
+	'+'  shift 85
+	'-'  shift 86
+	')'  reduce 76
+
+
+state 94
+	sald_mensaj : OUTF '(' mensaje . ')'  (75)
+
+	')'  shift 116
+	.  error
+
+
+state 95
+	declar_tipo_trip : TYPEDEF TRIPLE '<' . tipo_basico '>' ID  (81)
+
 	ULONGINT  shift 7
 	DOUBLE  shift 8
 	.  error
 
-	tipo  goto 108
-	parametro  goto 109
-
-
-state 94
-	lista_variables : lista_variables ',' ID .  (32)
-
-	.  reduce 32
-
-
-state 95
-	expresion : expresion '+' termino .  (38)
-	termino : termino . '*' factor  (41)
-	termino : termino . '/' factor  (42)
-
-	'*'  shift 75
-	'/'  shift 76
-	MASI  reduce 38
-	MENOSI  reduce 38
-	DIST  reduce 38
-	';'  reduce 38
-	')'  reduce 38
-	','  reduce 38
-	'='  reduce 38
-	'+'  reduce 38
-	'-'  reduce 38
+	tipo_basico  goto 117
 
 
 state 96
-	expresion : expresion '-' termino .  (39)
-	termino : termino . '*' factor  (41)
-	termino : termino . '/' factor  (42)
+	asignacion : variable ASIGN expresion .  (59)
+	expresion : expresion . '+' termino  (60)
+	expresion : expresion . '-' termino  (61)
 
-	'*'  shift 75
-	'/'  shift 76
-	MASI  reduce 39
-	MENOSI  reduce 39
-	DIST  reduce 39
-	';'  reduce 39
-	')'  reduce 39
-	','  reduce 39
-	'='  reduce 39
-	'+'  reduce 39
-	'-'  reduce 39
+	'+'  shift 85
+	'-'  shift 86
+	';'  reduce 59
 
 
 state 97
-	termino : termino '*' factor .  (41)
+	declaracion_fun : tipo FUN ID . '(' parametro ')' BEGIN cuerpo_funcion END  (69)
 
-	.  reduce 41
+	'('  shift 118
+	.  error
 
 
 state 98
-	termino : termino '/' factor .  (42)
+	lista_variables : lista_variables ',' . ID  (53)
 
-	.  reduce 42
+	ID  shift 119
+	.  error
 
 
 state 99
-	for : FOR '(' ID ASIGN CTE . ';' condicion ';' foravanc CTE ')' cuerpo_control  (56)
+	expresion : expresion . '+' termino  (60)
+	expresion : expresion . '-' termino  (61)
+	param_real : tipo expresion .  (73)
 
-	';'  shift 110
-	.  error
+	'+'  shift 85
+	'-'  shift 86
+	')'  reduce 73
 
 
 state 100
-	condicion : '(' '(' lista_expres ')' . comparador '(' lista_expres ')' ')'  (16)
+	invoc_fun : ID '(' param_real ')' .  (72)
 
-	MASI  shift 82
-	MENOSI  shift 83
-	DIST  shift 84
-	'='  shift 85
-	.  error
-
-	comparador  goto 111
+	.  reduce 72
 
 
 state 101
-	lista_expres : lista_expres ',' . expresion  (17)
+	variable : ID '{' variable '}' .  (51)
 
-	ID  shift 61
-	CTE  shift 50
-	.  error
-
-	invoc_fun  goto 51
-	expresion  goto 112
-	variable  goto 53
-	termino  goto 55
-	factor  goto 56
+	.  reduce 51
 
 
 state 102
-	condicion : '(' expresion comparador expresion . ')'  (15)
-	expresion : expresion . '+' termino  (38)
-	expresion : expresion . '-' termino  (39)
+	for : FOR '(' ID ASIGN . CTE ';' condicion ';' foravanc CTE ')' cuerpo_control  (78)
 
-	')'  shift 113
-	'+'  shift 72
-	'-'  shift 73
+	CTE  shift 120
 	.  error
 
 
 state 103
-	multip_cuerp_fun : sentec_eject .  (28)
+	lista_expres : expresion .  (37)
+	expresion : expresion . '+' termino  (60)
+	expresion : expresion . '-' termino  (61)
+
+	'+'  shift 85
+	'-'  shift 86
+	ID  reduce 37
+	CTE  reduce 37
+	')'  reduce 37
+	','  reduce 37
+
+
+state 104
+	condicion : '(' condicion_2 ')' .  (28)
 
 	.  reduce 28
 
 
-state 104
-	cuerpo_control : BEGIN multip_cuerp_fun . END  (25)
-	multip_cuerp_fun : multip_cuerp_fun . sentec_eject  (27)
-
-	ID  shift 61
-	GOTO  shift 5
-	FOR  shift 6
-	IF  shift 9
-	END  shift 114
-	OUTF  shift 10
-	.  error
-
-	sentec_eject  goto 115
-	asignacion  goto 19
-	invoc_fun  goto 20
-	seleccion  goto 21
-	sald_mensaj  goto 22
-	for  goto 23
-	goto  goto 24
-	variable  goto 25
-
-
 state 105
-	seleccion : IF condicion THEN cuerpo_control ELSE . cuerpo_control END_IF  (20)
+	condicion_2 : '(' lista_expres ')' . comparador '(' lista_expres ')'  (34)
 
-	ID  shift 61
-	GOTO  shift 5
-	FOR  shift 6
-	IF  shift 9
-	BEGIN  shift 87
-	OUTF  shift 10
+	MASI  shift 79
+	MENOSI  shift 80
+	DIST  shift 81
+	'='  shift 82
+	'<'  shift 83
+	'>'  shift 84
 	.  error
 
-	sentec_eject  goto 88
-	asignacion  goto 19
-	invoc_fun  goto 20
-	seleccion  goto 21
-	sald_mensaj  goto 22
-	for  goto 23
-	goto  goto 24
-	cuerpo_control  goto 116
-	variable  goto 25
+	comparador  goto 121
 
 
 state 106
-	seleccion : IF condicion THEN cuerpo_control END_IF .  (19)
+	lista_expres : lista_expres ',' . expresion  (35)
 
-	.  reduce 19
+	ID  shift 37
+	CTE  shift 38
+	.  error
+
+	invoc_fun  goto 40
+	expresion  goto 122
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
 
 
 state 107
-	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' . ID  (59)
+	lista_expres : lista_expres expresion .  (36)
+	expresion : expresion . '+' termino  (60)
+	expresion : expresion . '-' termino  (61)
 
-	ID  shift 117
-	.  error
+	'+'  shift 85
+	'-'  shift 86
+	ID  reduce 36
+	CTE  reduce 36
+	')'  reduce 36
+	','  reduce 36
 
 
 state 108
-	parametro : tipo . ID  (48)
+	cuerpo_control : BEGIN . multip_cuerp_fun END  (46)
 
-	ID  shift 118
+	ID  shift 37
+	GOTO  shift 5
+	FOR  shift 6
+	IF  shift 9
+	OUTF  shift 12
+	TAG  shift 14
 	.  error
+
+	sentec_eject  goto 123
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	multip_cuerp_fun  goto 124
+	variable  goto 28
 
 
 state 109
-	declaracion_fun : tipo FUN ID '(' parametro . ')' BEGIN cuerpo_funcion END  (47)
-
-	')'  shift 119
-	.  error
-
-
-state 110
-	for : FOR '(' ID ASIGN CTE ';' . condicion ';' foravanc CTE ')' cuerpo_control  (56)
-
-	'('  shift 31
-	.  error
-
-	condicion  goto 120
-
-
-state 111
-	condicion : '(' '(' lista_expres ')' comparador . '(' lista_expres ')' ')'  (16)
-
-	'('  shift 121
-	.  error
-
-
-state 112
-	lista_expres : lista_expres ',' expresion .  (17)
-	expresion : expresion . '+' termino  (38)
-	expresion : expresion . '-' termino  (39)
-
-	'+'  shift 72
-	'-'  shift 73
-	')'  reduce 17
-	','  reduce 17
-
-
-state 113
-	condicion : '(' expresion comparador expresion ')' .  (15)
-
-	.  reduce 15
-
-
-state 114
-	cuerpo_control : BEGIN multip_cuerp_fun END .  (25)
-
-	.  reduce 25
-
-
-state 115
-	multip_cuerp_fun : multip_cuerp_fun sentec_eject .  (27)
-
-	.  reduce 27
-
-
-state 116
-	seleccion : IF condicion THEN cuerpo_control ELSE cuerpo_control . END_IF  (20)
-
-	END_IF  shift 122
-	.  error
-
-
-state 117
-	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' ID .  (59)
-
-	.  reduce 59
-
-
-state 118
-	parametro : tipo ID .  (48)
-
-	.  reduce 48
-
-
-state 119
-	declaracion_fun : tipo FUN ID '(' parametro ')' . BEGIN cuerpo_funcion END  (47)
-
-	BEGIN  shift 123
-	.  error
-
-
-state 120
-	for : FOR '(' ID ASIGN CTE ';' condicion . ';' foravanc CTE ')' cuerpo_control  (56)
-
-	';'  shift 124
-	.  error
-
-
-state 121
-	condicion : '(' '(' lista_expres ')' comparador '(' . lista_expres ')' ')'  (16)
-
-	ID  shift 61
-	CTE  shift 50
-	.  error
-
-	invoc_fun  goto 51
-	expresion  goto 80
-	lista_expres  goto 125
-	variable  goto 53
-	termino  goto 55
-	factor  goto 56
-
-
-state 122
-	seleccion : IF condicion THEN cuerpo_control ELSE cuerpo_control END_IF .  (20)
-
-	.  reduce 20
-
-
-state 123
-	declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN . cuerpo_funcion END  (47)
-
-	ID  shift 4
-	GOTO  shift 5
-	FOR  shift 6
-	ULONGINT  shift 7
-	DOUBLE  shift 8
-	IF  shift 9
-	OUTF  shift 10
-	TYPEDEF  shift 11
-	.  error
-
-	cuerpo  goto 126
-	sentencia  goto 13
-	sentec_declar  goto 14
-	sentec_eject  goto 15
-	declaracion_var  goto 16
-	declaracion_fun  goto 17
-	declar_tipo_trip  goto 18
-	asignacion  goto 19
-	invoc_fun  goto 20
-	seleccion  goto 21
-	sald_mensaj  goto 22
-	for  goto 23
-	goto  goto 24
-	variable  goto 25
-	tipo  goto 26
-	cuerpo_funcion  goto 127
-
-
-state 124
-	for : FOR '(' ID ASIGN CTE ';' condicion ';' . foravanc CTE ')' cuerpo_control  (56)
-
-	UP  shift 128
-	DOWN  shift 129
-	.  error
-
-	foravanc  goto 130
-
-
-state 125
-	condicion : '(' '(' lista_expres ')' comparador '(' lista_expres . ')' ')'  (16)
-	lista_expres : lista_expres . ',' expresion  (17)
-
-	')'  shift 131
-	','  shift 101
-	.  error
-
-
-state 126
-	cuerpo : cuerpo . sentencia  (2)
-	cuerpo_funcion : cuerpo . RET '(' expresion ')' ';'  (49)
-
-	ID  shift 4
-	GOTO  shift 5
-	FOR  shift 6
-	ULONGINT  shift 7
-	DOUBLE  shift 8
-	IF  shift 9
-	OUTF  shift 10
-	TYPEDEF  shift 11
-	RET  shift 132
-	.  error
-
-	sentencia  goto 36
-	sentec_declar  goto 14
-	sentec_eject  goto 15
-	declaracion_var  goto 16
-	declaracion_fun  goto 17
-	declar_tipo_trip  goto 18
-	asignacion  goto 19
-	invoc_fun  goto 20
-	seleccion  goto 21
-	sald_mensaj  goto 22
-	for  goto 23
-	goto  goto 24
-	variable  goto 25
-	tipo  goto 26
-
-
-state 127
-	declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN cuerpo_funcion . END  (47)
-
-	END  shift 133
-	.  error
-
-
-state 128
-	foravanc : UP .  (57)
-
-	.  reduce 57
-
-
-state 129
-	foravanc : DOWN .  (58)
-
-	.  reduce 58
-
-
-state 130
-	for : FOR '(' ID ASIGN CTE ';' condicion ';' foravanc . CTE ')' cuerpo_control  (56)
-
-	CTE  shift 134
-	.  error
-
-
-state 131
-	condicion : '(' '(' lista_expres ')' comparador '(' lista_expres ')' . ')'  (16)
-
-	')'  shift 135
-	.  error
-
-
-state 132
-	cuerpo_funcion : cuerpo RET . '(' expresion ')' ';'  (49)
-
-	'('  shift 136
-	.  error
-
-
-state 133
-	declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN cuerpo_funcion END .  (47)
+	cuerpo_control : sentec_eject .  (47)
 
 	.  reduce 47
 
 
-state 134
-	for : FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE . ')' cuerpo_control  (56)
+state 110
+	seleccion : IF condicion THEN cuerpo_control . END_IF  (38)
+	seleccion : IF condicion THEN cuerpo_control . ELSE cuerpo_control END_IF  (39)
 
-	')'  shift 137
+	ELSE  shift 125
+	END_IF  shift 126
 	.  error
 
 
-state 135
-	condicion : '(' '(' lista_expres ')' comparador '(' lista_expres ')' ')' .  (16)
+state 111
+	expresion : expresion '+' termino .  (60)
+	termino : termino . '*' factor  (63)
+	termino : termino . '/' factor  (64)
 
-	.  reduce 16
+	'*'  shift 89
+	'/'  shift 90
+	ID  reduce 60
+	CTE  reduce 60
+	MASI  reduce 60
+	MENOSI  reduce 60
+	DIST  reduce 60
+	THEN  reduce 60
+	';'  reduce 60
+	')'  reduce 60
+	','  reduce 60
+	'='  reduce 60
+	'<'  reduce 60
+	'>'  reduce 60
+	'+'  reduce 60
+	'-'  reduce 60
 
 
-state 136
-	cuerpo_funcion : cuerpo RET '(' . expresion ')' ';'  (49)
+state 112
+	expresion : expresion '-' termino .  (61)
+	termino : termino . '*' factor  (63)
+	termino : termino . '/' factor  (64)
 
-	ID  shift 61
-	CTE  shift 50
+	'*'  shift 89
+	'/'  shift 90
+	ID  reduce 61
+	CTE  reduce 61
+	MASI  reduce 61
+	MENOSI  reduce 61
+	DIST  reduce 61
+	THEN  reduce 61
+	';'  reduce 61
+	')'  reduce 61
+	','  reduce 61
+	'='  reduce 61
+	'<'  reduce 61
+	'>'  reduce 61
+	'+'  reduce 61
+	'-'  reduce 61
+
+
+state 113
+	condicion_2 : expresion comparador expresion .  (32)
+	expresion : expresion . '+' termino  (60)
+	expresion : expresion . '-' termino  (61)
+
+	'+'  shift 85
+	'-'  shift 86
+	THEN  reduce 32
+	';'  reduce 32
+	')'  reduce 32
+
+
+state 114
+	termino : termino '*' factor .  (63)
+
+	.  reduce 63
+
+
+state 115
+	termino : termino '/' factor .  (64)
+
+	.  reduce 64
+
+
+state 116
+	sald_mensaj : OUTF '(' mensaje ')' .  (75)
+
+	.  reduce 75
+
+
+state 117
+	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo_basico . '>' ID  (81)
+
+	'>'  shift 127
 	.  error
 
-	invoc_fun  goto 51
-	expresion  goto 138
-	variable  goto 53
-	termino  goto 55
-	factor  goto 56
 
+state 118
+	declaracion_fun : tipo FUN ID '(' . parametro ')' BEGIN cuerpo_funcion END  (69)
 
-state 137
-	for : FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' . cuerpo_control  (56)
-
-	ID  shift 61
-	GOTO  shift 5
-	FOR  shift 6
-	IF  shift 9
-	BEGIN  shift 87
-	OUTF  shift 10
+	ID  shift 128
+	ULONGINT  shift 7
+	DOUBLE  shift 8
 	.  error
 
-	sentec_eject  goto 88
-	asignacion  goto 19
-	invoc_fun  goto 20
-	seleccion  goto 21
-	sald_mensaj  goto 22
-	for  goto 23
-	goto  goto 24
-	cuerpo_control  goto 139
-	variable  goto 25
+	tipo  goto 129
+	tipo_basico  goto 30
+	parametro  goto 130
 
 
-state 138
-	expresion : expresion . '+' termino  (38)
-	expresion : expresion . '-' termino  (39)
-	cuerpo_funcion : cuerpo RET '(' expresion . ')' ';'  (49)
+state 119
+	lista_variables : lista_variables ',' ID .  (53)
 
-	')'  shift 140
-	'+'  shift 72
-	'-'  shift 73
+	.  reduce 53
+
+
+state 120
+	for : FOR '(' ID ASIGN CTE . ';' condicion ';' foravanc CTE ')' cuerpo_control  (78)
+
+	';'  shift 131
 	.  error
 
 
-state 139
-	for : FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control .  (56)
+state 121
+	condicion_2 : '(' lista_expres ')' comparador . '(' lista_expres ')'  (34)
 
-	.  reduce 56
-
-
-state 140
-	cuerpo_funcion : cuerpo RET '(' expresion ')' . ';'  (49)
-
-	';'  shift 141
+	'('  shift 132
 	.  error
 
 
-state 141
-	cuerpo_funcion : cuerpo RET '(' expresion ')' ';' .  (49)
+state 122
+	lista_expres : lista_expres ',' expresion .  (35)
+	expresion : expresion . '+' termino  (60)
+	expresion : expresion . '-' termino  (61)
+
+	'+'  shift 85
+	'-'  shift 86
+	ID  reduce 35
+	CTE  reduce 35
+	')'  reduce 35
+	','  reduce 35
+
+
+state 123
+	multip_cuerp_fun : sentec_eject .  (49)
 
 	.  reduce 49
 
 
-40 terminals, 31 nonterminals
-61 grammar rules, 142 states
+state 124
+	cuerpo_control : BEGIN multip_cuerp_fun . END  (46)
+	multip_cuerp_fun : multip_cuerp_fun . sentec_eject  (48)
+
+	ID  shift 37
+	GOTO  shift 5
+	FOR  shift 6
+	IF  shift 9
+	END  shift 133
+	OUTF  shift 12
+	TAG  shift 14
+	.  error
+
+	sentec_eject  goto 134
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	variable  goto 28
+
+
+state 125
+	seleccion : IF condicion THEN cuerpo_control ELSE . cuerpo_control END_IF  (39)
+
+	ID  shift 37
+	GOTO  shift 5
+	FOR  shift 6
+	IF  shift 9
+	BEGIN  shift 108
+	OUTF  shift 12
+	TAG  shift 14
+	.  error
+
+	sentec_eject  goto 109
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	cuerpo_control  goto 135
+	variable  goto 28
+
+
+state 126
+	seleccion : IF condicion THEN cuerpo_control END_IF .  (38)
+
+	.  reduce 38
+
+
+state 127
+	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo_basico '>' . ID  (81)
+
+	ID  shift 136
+	.  error
+
+
+state 128
+	tipo : ID .  (56)
+
+	.  reduce 56
+
+
+state 129
+	parametro : tipo . ID  (70)
+
+	ID  shift 137
+	.  error
+
+
+state 130
+	declaracion_fun : tipo FUN ID '(' parametro . ')' BEGIN cuerpo_funcion END  (69)
+
+	')'  shift 138
+	.  error
+
+
+state 131
+	for : FOR '(' ID ASIGN CTE ';' . condicion ';' foravanc CTE ')' cuerpo_control  (78)
+
+	ID  shift 37
+	CTE  shift 38
+	'('  shift 39
+	.  error
+
+	invoc_fun  goto 40
+	condicion  goto 139
+	condicion_2  goto 42
+	expresion  goto 43
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+
+
+state 132
+	condicion_2 : '(' lista_expres ')' comparador '(' . lista_expres ')'  (34)
+
+	ID  shift 37
+	CTE  shift 38
+	.  error
+
+	invoc_fun  goto 40
+	expresion  goto 103
+	lista_expres  goto 140
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+
+
+state 133
+	cuerpo_control : BEGIN multip_cuerp_fun END .  (46)
+
+	.  reduce 46
+
+
+state 134
+	multip_cuerp_fun : multip_cuerp_fun sentec_eject .  (48)
+
+	.  reduce 48
+
+
+state 135
+	seleccion : IF condicion THEN cuerpo_control ELSE cuerpo_control . END_IF  (39)
+
+	END_IF  shift 141
+	.  error
+
+
+state 136
+	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo_basico '>' ID .  (81)
+
+	.  reduce 81
+
+
+state 137
+	parametro : tipo ID .  (70)
+
+	.  reduce 70
+
+
+state 138
+	declaracion_fun : tipo FUN ID '(' parametro ')' . BEGIN cuerpo_funcion END  (69)
+
+	BEGIN  shift 142
+	.  error
+
+
+state 139
+	for : FOR '(' ID ASIGN CTE ';' condicion . ';' foravanc CTE ')' cuerpo_control  (78)
+
+	';'  shift 143
+	.  error
+
+
+state 140
+	condicion_2 : '(' lista_expres ')' comparador '(' lista_expres . ')'  (34)
+	lista_expres : lista_expres . ',' expresion  (35)
+	lista_expres : lista_expres . expresion  (36)
+
+	ID  shift 37
+	CTE  shift 38
+	')'  shift 144
+	','  shift 106
+	.  error
+
+	invoc_fun  goto 40
+	expresion  goto 107
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+
+
+state 141
+	seleccion : IF condicion THEN cuerpo_control ELSE cuerpo_control END_IF .  (39)
+
+	.  reduce 39
+
+
+state 142
+	declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN . cuerpo_funcion END  (69)
+
+	ID  shift 4
+	GOTO  shift 5
+	FOR  shift 6
+	ULONGINT  shift 7
+	DOUBLE  shift 8
+	IF  shift 9
+	OUTF  shift 12
+	TYPEDEF  shift 13
+	TAG  shift 14
+	.  error
+
+	cuerpo  goto 145
+	sentencia  goto 16
+	sentec_declar  goto 17
+	sentec_eject  goto 18
+	declaracion_var  goto 19
+	declaracion_fun  goto 20
+	declar_tipo_trip  goto 21
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	variable  goto 28
+	tipo  goto 29
+	tipo_basico  goto 30
+	cuerpo_funcion  goto 146
+
+
+state 143
+	for : FOR '(' ID ASIGN CTE ';' condicion ';' . foravanc CTE ')' cuerpo_control  (78)
+
+	UP  shift 147
+	DOWN  shift 148
+	.  error
+
+	foravanc  goto 149
+
+
+state 144
+	condicion_2 : '(' lista_expres ')' comparador '(' lista_expres ')' .  (34)
+
+	.  reduce 34
+
+
+state 145
+	cuerpo : cuerpo . sentencia  (11)
+	cuerpo_funcion : cuerpo . RET '(' expresion ')' ';'  (71)
+
+	ID  shift 4
+	GOTO  shift 5
+	FOR  shift 6
+	ULONGINT  shift 7
+	DOUBLE  shift 8
+	IF  shift 9
+	OUTF  shift 12
+	TYPEDEF  shift 13
+	RET  shift 150
+	TAG  shift 14
+	.  error
+
+	sentencia  goto 52
+	sentec_declar  goto 17
+	sentec_eject  goto 18
+	declaracion_var  goto 19
+	declaracion_fun  goto 20
+	declar_tipo_trip  goto 21
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	variable  goto 28
+	tipo  goto 29
+	tipo_basico  goto 30
+
+
+state 146
+	declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN cuerpo_funcion . END  (69)
+
+	END  shift 151
+	.  error
+
+
+state 147
+	foravanc : UP .  (79)
+
+	.  reduce 79
+
+
+state 148
+	foravanc : DOWN .  (80)
+
+	.  reduce 80
+
+
+state 149
+	for : FOR '(' ID ASIGN CTE ';' condicion ';' foravanc . CTE ')' cuerpo_control  (78)
+
+	CTE  shift 152
+	.  error
+
+
+state 150
+	cuerpo_funcion : cuerpo RET . '(' expresion ')' ';'  (71)
+
+	'('  shift 153
+	.  error
+
+
+state 151
+	declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN cuerpo_funcion END .  (69)
+
+	.  reduce 69
+
+
+state 152
+	for : FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE . ')' cuerpo_control  (78)
+
+	')'  shift 154
+	.  error
+
+
+state 153
+	cuerpo_funcion : cuerpo RET '(' . expresion ')' ';'  (71)
+
+	ID  shift 37
+	CTE  shift 38
+	.  error
+
+	invoc_fun  goto 40
+	expresion  goto 155
+	variable  goto 44
+	termino  goto 45
+	factor  goto 46
+
+
+state 154
+	for : FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' . cuerpo_control  (78)
+
+	ID  shift 37
+	GOTO  shift 5
+	FOR  shift 6
+	IF  shift 9
+	BEGIN  shift 108
+	OUTF  shift 12
+	TAG  shift 14
+	.  error
+
+	sentec_eject  goto 109
+	asignacion  goto 22
+	invoc_fun  goto 23
+	seleccion  goto 24
+	sald_mensaj  goto 25
+	for  goto 26
+	goto  goto 27
+	cuerpo_control  goto 156
+	variable  goto 28
+
+
+state 155
+	expresion : expresion . '+' termino  (60)
+	expresion : expresion . '-' termino  (61)
+	cuerpo_funcion : cuerpo RET '(' expresion . ')' ';'  (71)
+
+	')'  shift 157
+	'+'  shift 85
+	'-'  shift 86
+	.  error
+
+
+state 156
+	for : FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control .  (78)
+
+	.  reduce 78
+
+
+state 157
+	cuerpo_funcion : cuerpo RET '(' expresion ')' . ';'  (71)
+
+	';'  shift 158
+	.  error
+
+
+state 158
+	cuerpo_funcion : cuerpo RET '(' expresion ')' ';' .  (71)
+
+	.  reduce 71
+
+
+State 75 contains 2 shift/reduce conflicts.
+
+
+40 terminals, 33 nonterminals
+83 grammar rules, 159 states

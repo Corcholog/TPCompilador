@@ -27,7 +27,7 @@ public class AnalizadorLexico {
 	private AccionSemantica[][] matAcciones;
 	private String errores;
 	private int lineaInicial;
-	private static AnalizadorLexico analizador = new AnalizadorLexico(System.getProperty("user.dir")+ File.separator + "codes" + File.separator + "pruebagramatica.txt", new TablaSimbolos());
+	private int lineaInicialDevolver;
 	
  	public AnalizadorLexico(String ruta, TablaSimbolos ts) {
 		this.inicializarMatTrans();
@@ -38,16 +38,18 @@ public class AnalizadorLexico {
 		this.errores = "";
 		this.setConcatActual("");
 		this.tablaSimbolos = ts;
-		this.archivo = new File(ruta);
+		String camino = System.getProperty("user.dir")+ File.separator + "codes" + File.separator + ruta +".txt";
+		this.archivo = new File(camino);
 		this.lineaInicial=0;
+		this.lineaInicialDevolver=1;
         if (!archivo.exists()) {
-            System.out.println("El archivo especificado no existe: " + ruta);
+            System.out.println("El archivo especificado no existe: " + camino);
             return;
         }
 
         // Leer el contenido del archivo línea por línea
         try {
-            this.lineasCodigo = (ArrayList<String>) Files.readAllLines(Paths.get(ruta));
+            this.lineasCodigo = (ArrayList<String>) Files.readAllLines(Paths.get(camino));
             System.out.println("Contenido del archivo con detección de saltos de línea:");
             
         } catch (IOException e) {
@@ -152,15 +154,13 @@ public class AnalizadorLexico {
     }
  	
 	//yylex()
-
- 	public static int pruebaLex(){
- 		return analizador.yylex();
- 	}
  	
 	public int yylex() {
 		//chequeo errores
-		if(lineaInicial==0)
+		if(lineaInicial==0) {
 			lineaInicial=linea;
+			lineaInicialDevolver=lineaInicial;
+		}
 		boolean corta = false;
 		if(finalArchivo()) {
 			return 0; //end of file
@@ -188,7 +188,7 @@ public class AnalizadorLexico {
 					if(col == 14) {
 						saltoLinea = false;
 					}
-					//System.out.println("Voy leyendo: " + concatActual + "\n");
+				//	System.out.println("Voy leyendo: " + concatActual + "\n");
 					//System.out.println("Estado: " + estado_anterior + " pasa a: " + estado + "\n");
 					//System.out.println("Se ejecuta: " + matAcciones[estado_anterior][col].getClass().getName().split("\\$")[1]);
 					//System.out.println("__________________________________________________________ \n");
@@ -205,11 +205,19 @@ public class AnalizadorLexico {
 		return devolver;
 	}
 	
+	public int getLineaInicial() {
+		return lineaInicialDevolver;
+	}
 
  	public void addError(String e) {
  		this.cantErrores++;
  		errores += "Error en linea " + lineaInicial + ": " + e + "\n";
  		this.huboError=true;
+ 	}
+ 	
+ 	public void addErrorLexico(String e) {
+ 		this.cantErrores++;
+ 		errores += "Error Lexico : " + e + "\n";
  	}
  	
  	public void addWarning(String e) {
@@ -415,8 +423,10 @@ public class AnalizadorLexico {
 	
 	public void avanzarLinea() {
 		//chequeo errores
-		if(concatActual.equals(""))
+		if(concatActual.equals("")) {
 			lineaInicial++;
+			lineaInicialDevolver=lineaInicial;
+		}
 		saltoLinea = true;
 		linea++;
 		pos = 0;
@@ -444,7 +454,7 @@ public class AnalizadorLexico {
         String rutaArchivo = rutaProyecto + File.separator + "codes" + File.separator + "pruebagramatica.txt";
         System.out.println("Se lee el archivo: " + rutaArchivo);
         TablaSimbolos ts = new TablaSimbolos();
-        AnalizadorLexico anal = new AnalizadorLexico(rutaArchivo, ts);
+        AnalizadorLexico anal = new AnalizadorLexico("pruebagramatica", ts);
         int fin = anal.yylex();
         System.out.println(fin);
         while (fin != 0) {
