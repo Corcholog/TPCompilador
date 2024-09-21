@@ -137,23 +137,68 @@ declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN cuerpo_funcion END
 parametro	: tipo ID
 		;
 cuerpo_funcion	: cuerpo RET '(' expresion ')' ';'
+
+		| RET '(' expresion ')' ';' {lex.addErrorLexico("falta el cuerpo en el cuerpo en la funcion declarada"); }
+		| cuerpo RET '('  ')' ';' {lex.addErrorLexico("falta la expresion en el cuerpo en la funcion declarada"); }
+		| cuerpo RET  expresion ')' ';' {lex.addErrorLexico("falta el parentesis izquierdo en el cuerpo en la funcion declarada"); }
+		| cuerpo RET '(' expresion ';' {lex.addErrorLexico("falta el parentesis derecho en el cuerpo en la funcion declarada"); }
+		| cuerpo RET '(' expresion ')' {lex.addErrorLexico("falta el punto y coma en el cuerpo en la funcion declarada"); }
 		;
 invoc_fun	: ID '(' param_real ')'
+
+		| ID '(' ')'  {lex.addErrorLexico("falta el parametro real en la invocación"); }
 		;
 param_real	: tipo expresion
 		| expresion
+
 		;
 sald_mensaj	: OUTF '(' mensaje ')'
+
+		| OUTF mensaje ')' {lex.addErrorLexico("falta el parentesis izquierdo del mensaje del OUTF"); }
+		| OUTF '(' mensaje {lex.addErrorLexico("falta el parentesis derecho del mensaje del OUTF"); }
+		| OUTF mensaje {lex.addErrorLexico("faltan ambos parentesis del mensaje del OUTF"); }
+		| OUTF '('  ')' {lex.addErrorLexico("falta el mensaje del OUTF"); }
+		| OUTF {lex.addErrorLexico("falta el mensaje y los parentesis del OUTF"); }
 		;
 mensaje		: expresion
 		| CADMUL
 		;
 for		: FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control
+		
+		| FOR ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorLexico("falta el parentesis izquierdo del FOR"); }
+		| FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE cuerpo_control {lex.addErrorLexico("falta el parentesis derecho del FOR"); }
+		| FOR ID ASIGN CTE ';' condicion ';' foravanc CTE cuerpo_control {lex.addErrorLexico("faltan ambos parentesis del FOR"); }
+
+		| FOR '(' ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorLexico("falta el ID del FOR"); }
+		| FOR '(' ID CTE ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorLexico("falta la asignacion del FOR"); }
+		| FOR '(' ID ASIGN ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorLexico("falta la constante a asignar del FOR"); }
+		| FOR '(' ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorLexico("falta todo ID ASIGN CTE del FOR"); }
+		| FOR '(' ID ASIGN CTE ';'  ';' foravanc CTE ')' cuerpo_control {lex.addErrorLexico("falta la condicion del FOR"); }
+		| FOR '(' ID ASIGN CTE ';' condicion ';'  CTE ')' cuerpo_control {lex.addErrorLexico("falta el avance del FOR"); }
+		| FOR '(' ID ASIGN CTE ';' condicion ';' foravanc ')' cuerpo_control {lex.addErrorLexico("falta la constante de avance del FOR"); }
+		| FOR '(' ID ASIGN CTE ';'')' cuerpo_control {lex.addErrorLexico("falta condicion y avance entero del FOR"); }
+
+		| FOR '(' ';'  ';' foravanc CTE ')' {lex.addErrorLexico("falta asignacion entera y condicion entera del FOR"); }
+		| FOR '(' ID ASIGN CTE ';'  ';'')' cuerpo_control {lex.addErrorLexico("falta condicion entera y avance entero del FOR"); }
+		| FOR '(' ';' condicion ';' ')' cuerpo_control {lex.addErrorLexico("falta asignacion entera y avance entero del FOR"); }
+
+
+		
+		| '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorLexico("falta el FOR"); }
+		
+		
 		;
 foravanc	: UP
 		| DOWN
 		;
 declar_tipo_trip: TYPEDEF TRIPLE '<' tipo_basico '>' ID
+		
+		| TRIPLE '<' tipo_basico '>' ID {lex.addErrorLexico("falta TYPEDEF en la declaración del TRIPLE"); }
+		| TYPEDEF  '<' tipo_basico '>' ID {lex.addErrorLexico("falta TRIPLE en la declaración del TRIPLE"); }
+		| TYPEDEF TRIPLE  tipo_basico '>' ID {lex.addErrorLexico("falta < en la declaración del TRIPLE"); }
+		| TYPEDEF TRIPLE '<' tipo_basico  ID {lex.addErrorLexico("falta > en la declaración del TRIPLE"); }
+		| TYPEDEF TRIPLE  tipo_basico  ID {lex.addErrorLexico("falta > y < en la declaración del TRIPLE"); }
+		| TYPEDEF TRIPLE '<'  '>' ID {lex.addErrorLexico("falta el tipo_basico en la declaración del TRIPLE"); }
 		;
 goto		: GOTO TAG
 		;
