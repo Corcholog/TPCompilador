@@ -28,8 +28,10 @@ public class AnalizadorLexico {
 	private String errores;
 	private int lineaInicial;
 	private int lineaInicialDevolver;
+	private Parser parce;
 	
- 	public AnalizadorLexico(String ruta, TablaSimbolos ts) {
+ 	public AnalizadorLexico(String ruta, TablaSimbolos ts, Parser parce) {
+ 		this.parce = parce;
 		this.inicializarMatTrans();
 		this.inicializarIdTokens();
 		this.inicializarMatAcciones();
@@ -201,8 +203,12 @@ public class AnalizadorLexico {
 			return yylex();
 		}		
 		int devolver = nroToken;
-		this.reset();
+		this.reset();	
 		return devolver;
+	}
+	
+	public Parser getParser() {
+		return this.parce;
 	}
 	
 	public int getLineaInicial() {
@@ -217,7 +223,7 @@ public class AnalizadorLexico {
  	
  	public void addErrorLexico(String e) {
  		this.cantErrores++;
- 		errores += "Error Lexico : " + e + "\n";
+ 		errores += "Error Sintáctico, en linea " + lineaInicialDevolver + " : " + e + "\n";
  	}
  	
  	public void addWarning(String e) {
@@ -242,7 +248,6 @@ public class AnalizadorLexico {
 	}
 	
 	// getters
-
 	
 	private int getColumna() {
 		Character character = null;
@@ -324,7 +329,6 @@ public class AnalizadorLexico {
  		
  	}
 
-
  	public int getIdToken() {
  		switch (concatActual) {
  	    case ">=":
@@ -395,7 +399,6 @@ public class AnalizadorLexico {
 	public String getConcatActual() {
 		return concatActual;
 	}
-
 	
 	// setters
 	public void setConcatActual(String concatActual) {
@@ -405,6 +408,7 @@ public class AnalizadorLexico {
 	public void setNroToken(int nroToken) {
 		this.nroToken = nroToken;
 	}	
+	
 	public void concatenar() {
 		setConcatActual( (getConcatActual() + lineasCodigo.get(linea-1).charAt(pos) ).toLowerCase() );
 	}
@@ -463,7 +467,5 @@ public class AnalizadorLexico {
         }
         System.out.println(anal.getErrores());
     }
-
-
 }
 

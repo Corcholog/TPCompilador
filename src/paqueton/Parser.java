@@ -833,7 +833,7 @@ AnalizadorLexico lex;
 public Parser(String nombreArchivo, TablaSimbolos t)
 {
 	this.nombreArchivo=nombreArchivo;
-	this.lex= new AnalizadorLexico(nombreArchivo,t);
+	this.lex= new AnalizadorLexico(nombreArchivo, t, this);
 }
 
 String yyerror(String a) {
@@ -852,8 +852,9 @@ public static void main(String[] args) {
 	Parser p = new Parser(prueba,tb);
 	System.out.println(p.yyparse());
 	System.out.println(p.errores());
+	System.out.println(tb);
 }
-//#line 785 "Parser.java"
+//#line 786 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -1007,6 +1008,10 @@ boolean doaction;
     switch(yyn)
       {
 //########## USER-SUPPLIED ACTIONS ##########
+case 1:
+//#line 9 "gramatica.y"
+{System.out.println("Se declaró el programa: " + val_peek(3).sval);}
+break;
 case 2:
 //#line 11 "gramatica.y"
 { lex.addErrorLexico("Falta nombre en prog");}
@@ -1139,6 +1144,14 @@ case 42:
 //#line 62 "gramatica.y"
 {lex.addErrorLexico("Se esta comparando una lista de expresiones, falta ,"); }
 break;
+case 44:
+//#line 65 "gramatica.y"
+{System.out.println("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
+break;
+case 45:
+//#line 66 "gramatica.y"
+{System.out.println("Se definió una sentencia de control con else, en la linea: " + lex.getLineaInicial());}
+break;
 case 46:
 //#line 68 "gramatica.y"
 {lex.addErrorLexico("falta el if en la seleccion"); }
@@ -1171,6 +1184,14 @@ case 65:
 //#line 92 "gramatica.y"
 {lex.addErrorLexico("falta la variable que indica la posicion"); }
 break;
+case 66:
+//#line 94 "gramatica.y"
+{System.out.println("Se declararon variables en la linea: " + lex.getLineaInicial());}
+break;
+case 73:
+//#line 105 "gramatica.y"
+{System.out.println("Se realizó una asignación a la variable: " + val_peek(2).sval + " en la linea: " + lex.getLineaInicial());}
+break;
 case 74:
 //#line 107 "gramatica.y"
 {lex.addErrorLexico("falta la expresion en la asignacion"); }
@@ -1182,6 +1203,10 @@ break;
 case 76:
 //#line 109 "gramatica.y"
 {lex.addErrorLexico("falta la variable y la expresion en la asignacion"); }
+break;
+case 86:
+//#line 123 "gramatica.y"
+{System.out.println("Se declaró la función: " + val_peek(6).sval);}
 break;
 case 87:
 //#line 125 "gramatica.y"
@@ -1227,6 +1252,10 @@ case 97:
 //#line 135 "gramatica.y"
 {lex.addErrorLexico("falta el ( ) y el cuerpo en la funcion declarada"); }
 break;
+case 98:
+//#line 137 "gramatica.y"
+{System.out.println("Se declaró el parámetro: " + val_peek(0).sval + " en la linea: " + lex.getLineaInicial());}
+break;
 case 100:
 //#line 141 "gramatica.y"
 {lex.addErrorLexico("falta el cuerpo en el cuerpo en la funcion declarada"); }
@@ -1247,9 +1276,17 @@ case 104:
 //#line 145 "gramatica.y"
 {lex.addErrorLexico("falta el punto y coma en el cuerpo en la funcion declarada"); }
 break;
+case 105:
+//#line 147 "gramatica.y"
+{System.out.println("Se invocó a la función: " + val_peek(3).sval + " en la linea: " + lex.getLineaInicial());}
+break;
 case 106:
 //#line 149 "gramatica.y"
 {lex.addErrorLexico("falta el parametro real en la invocación"); }
+break;
+case 109:
+//#line 155 "gramatica.y"
+{System.out.println("Se realizó una impresión en la linea: " + lex.getLineaInicial());}
 break;
 case 110:
 //#line 157 "gramatica.y"
@@ -1270,6 +1307,10 @@ break;
 case 114:
 //#line 161 "gramatica.y"
 {lex.addErrorLexico("falta el mensaje y los parentesis del OUTF"); }
+break;
+case 117:
+//#line 166 "gramatica.y"
+{System.out.println("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial());}
 break;
 case 118:
 //#line 168 "gramatica.y"
@@ -1331,6 +1372,10 @@ case 132:
 //#line 187 "gramatica.y"
 {lex.addErrorLexico("falta el FOR"); }
 break;
+case 135:
+//#line 194 "gramatica.y"
+{System.out.println("Se declaró un tipo TRIPLE con el ID: " + val_peek(0).sval + " en la linea:" + lex.getLineaInicial());}
+break;
 case 136:
 //#line 196 "gramatica.y"
 {lex.addErrorLexico("falta TYPEDEF en la declaración del TRIPLE"); }
@@ -1355,7 +1400,7 @@ case 141:
 //#line 201 "gramatica.y"
 {lex.addErrorLexico("falta el tipo_basico en la declaración del TRIPLE"); }
 break;
-//#line 1282 "Parser.java"
+//#line 1327 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

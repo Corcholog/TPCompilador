@@ -1,12 +1,13 @@
 nombre
-ULONGINT pepe 
+ULONGINT pepe;
 double FUN nombrefuncion ( ulongint paqui ) begin
-		nombrefuncion2( paqui2 )
-		paqui := 8
+		nombrefuncion2( paqui2 + 3 );
+		xpaqui := 3;
+		paqui := 8;
 		goto pepe@;
 		for ( pepe := 0 ; (pepe < 3 ) ; up 1)begin
 			OUTF([mensaje]);
-		end
+		end;
 		RET ( 4 ) ;
 	end
     if ((1*3,2+1,3/5)=(1,2,3)) then

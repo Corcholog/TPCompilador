@@ -4,6 +4,7 @@ public abstract class AccionSemantica {
 	public static final BigInteger MAX_INT = new BigInteger("4294967296");
     public static final double MIN_DOUBLE = 2.2250738585072014e-308;
     public static final double MAX_DOUBLE = 1.7976931348623157e+308;
+    public static final String CANTIDAD = "cantidad";
 	
 	public void checkString(AnalizadorLexico analizador) {
 		String concatActual = analizador.getConcatActual();
@@ -137,8 +138,18 @@ public abstract class AccionSemantica {
 	static class ASFBR extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			int numToken = Parser.CTE;
-			analizador.addTablaSimbolos();
-	    	analizador.setNroToken(numToken);	     
+			TablaSimbolos ts = analizador.getTablaSimbolos();
+			String concatActual = analizador.getConcatActual();
+			if(!ts.estaEnTablaSimbolos(concatActual)) {
+				analizador.addTablaSimbolos();
+				ts.addAtributo(concatActual, CANTIDAD, "1");
+			} else {
+				int cant = Integer.parseInt(ts.getAtributo(concatActual, CANTIDAD));
+				cant++;
+				ts.updateAtributo(concatActual, CANTIDAD, Integer.toString(cant));
+			}
+	    	analizador.setNroToken(numToken);	
+	    	analizador.getParser().yylval = new ParserVal(concatActual);
 	    }
 	}
 	
@@ -161,6 +172,7 @@ public abstract class AccionSemantica {
 				analizador.addTablaSimbolos();
 				int numToken = Parser.ID;
 				analizador.setNroToken(numToken);
+				analizador.getParser().yylval = new ParserVal(analizador.getConcatActual());
 			}
 	    }
 	}
@@ -170,6 +182,7 @@ public abstract class AccionSemantica {
 			super.checkString(analizador);
 			analizador.addTablaSimbolos();
 			analizador.addAtributoTablaSimbolos("tipo","ulongint");
+			analizador.getParser().yylval = new ParserVal(analizador.getConcatActual());
 			int numToken = Parser.ID;
 			analizador.setNroToken(numToken);
 	    }
@@ -185,6 +198,7 @@ public abstract class AccionSemantica {
 				super.checkString(analizador);
 				analizador.addTablaSimbolos();
 				analizador.addAtributoTablaSimbolos("tipo","double");
+				analizador.getParser().yylval = new ParserVal(analizador.getConcatActual()); 
 				int numToken = Parser.ID;
 				analizador.setNroToken(numToken);				
 			}
@@ -296,6 +310,7 @@ public abstract class AccionSemantica {
 	    	int numToken = Parser.TAG;
 			analizador.addTablaSimbolos();
 	    	analizador.setNroToken(numToken);	
+	    	analizador.getParser().yylval = new ParserVal(analizador.getConcatActual());
 		}
 	}
 	

@@ -6,7 +6,7 @@
 %token ID CTE MASI MENOSI ASIGN DIST GOTO UP DOWN TRIPLE FOR ULONGINT DOUBLE IF THEN ELSE BEGIN END END_IF OUTF TYPEDEF FUN RET CADMUL TAG
 
 %%
-prog		: ID BEGIN cuerpo END
+prog		: ID BEGIN cuerpo END {System.out.println("Se declaró el programa: " + $1.sval);}
 
 		| BEGIN cuerpo END { lex.addErrorLexico("Falta nombre en prog");}
 		| ID cuerpo END { lex.addErrorLexico("Falta Begin en prog");}
@@ -62,8 +62,8 @@ lista_expres	: lista_expres ',' expresion
 		|lista_expres expresion {lex.addErrorLexico("Se esta comparando una lista de expresiones, falta ,"); }
 		| expresion
 		;
-seleccion 	: IF condicion THEN cuerpo_control END_IF
-        	| IF condicion THEN cuerpo_control ELSE cuerpo_control END_IF
+seleccion 	: IF condicion THEN cuerpo_control END_IF {System.out.println("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
+        	| IF condicion THEN cuerpo_control ELSE cuerpo_control END_IF {System.out.println("Se definió una sentencia de control con else, en la linea: " + lex.getLineaInicial());}
 
 		| condicion THEN cuerpo_control END_IF {lex.addErrorLexico("falta el if en la seleccion"); }
 		| IF condicion THEN cuerpo_control {lex.addErrorLexico("falta el END_IF en la seleccion"); }
@@ -91,9 +91,9 @@ variable	: ID
 
 		| ID '{' '}' {lex.addErrorLexico("falta la variable que indica la posicion"); }
 		;
-declaracion_var : tipo lista_variables 
+declaracion_var : tipo lista_variables {System.out.println("Se declararon variables en la linea: " + lex.getLineaInicial());}
 		;
-lista_variables : lista_variables ',' ID
+lista_variables : lista_variables ',' ID 
 		| ID	
 		;
 tipo		: tipo_basico	
@@ -102,7 +102,7 @@ tipo		: tipo_basico
 tipo_basico	: DOUBLE
 		| ULONGINT 
 		;
-asignacion 	: variable ASIGN expresion
+asignacion 	: variable ASIGN expresion {System.out.println("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
 
 		| variable ASIGN {lex.addErrorLexico("falta la expresion en la asignacion"); }
 		| ASIGN expresion {lex.addErrorLexico("falta la variable en la asignacion"); }
@@ -118,9 +118,10 @@ termino 	: termino '*' factor
 		;
 factor		: variable
 		| CTE
+		| '-' CTE
 		| invoc_fun
 		;
-declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN cuerpo_funcion END
+declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN cuerpo_funcion END {System.out.println("Se declaró la función: " + $3.sval);}
 
 		| FUN ID '(' parametro ')' BEGIN cuerpo_funcion END {lex.addErrorLexico("falta el tipo de la funcion declarada"); }
 		| tipo FUN '(' parametro ')' BEGIN cuerpo_funcion END {lex.addErrorLexico("falta el identificador de la funcion declarada"); }
@@ -134,7 +135,7 @@ declaracion_fun : tipo FUN ID '(' parametro ')' BEGIN cuerpo_funcion END
 		| tipo FUN ID '(' parametro  BEGIN END {lex.addErrorLexico("falta el ) y el cuerpo en la funcion declarada"); }
 		| tipo FUN ID parametro BEGIN END {lex.addErrorLexico("falta el ( ) y el cuerpo en la funcion declarada"); }
 		;
-parametro	: tipo ID
+parametro	: tipo ID {System.out.println("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
 		;
 cuerpo_funcion	: cuerpo RET '(' expresion ')' ';'
 
@@ -144,7 +145,7 @@ cuerpo_funcion	: cuerpo RET '(' expresion ')' ';'
 		| cuerpo RET '(' expresion ';' {lex.addErrorLexico("falta el parentesis derecho en el cuerpo en la funcion declarada"); }
 		| cuerpo RET '(' expresion ')' {lex.addErrorLexico("falta el punto y coma en el cuerpo en la funcion declarada"); }
 		;
-invoc_fun	: ID '(' param_real ')'
+invoc_fun	: ID '(' param_real ')' {System.out.println("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
 
 		| ID '(' ')'  {lex.addErrorLexico("falta el parametro real en la invocación"); }
 		;
@@ -152,7 +153,7 @@ param_real	: tipo expresion
 		| expresion
 
 		;
-sald_mensaj	: OUTF '(' mensaje ')'
+sald_mensaj	: OUTF '(' mensaje ')' {System.out.println("Se realizó una impresión en la linea: " + lex.getLineaInicial());}
 
 		| OUTF mensaje ')' {lex.addErrorLexico("falta el parentesis izquierdo del mensaje del OUTF"); }
 		| OUTF '(' mensaje {lex.addErrorLexico("falta el parentesis derecho del mensaje del OUTF"); }
@@ -163,7 +164,7 @@ sald_mensaj	: OUTF '(' mensaje ')'
 mensaje		: expresion
 		| CADMUL
 		;
-for		: FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control
+for		: FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control {System.out.println("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial());}
 		
 		| FOR ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorLexico("falta el parentesis izquierdo del FOR"); }
 		| FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE cuerpo_control {lex.addErrorLexico("falta el parentesis derecho del FOR"); }
@@ -191,7 +192,7 @@ for		: FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control
 foravanc	: UP
 		| DOWN
 		;
-declar_tipo_trip: TYPEDEF TRIPLE '<' tipo_basico '>' ID
+declar_tipo_trip: TYPEDEF TRIPLE '<' tipo_basico '>' ID {System.out.println("Se declaró un tipo TRIPLE con el ID: " + $6.sval + " en la linea:" + lex.getLineaInicial());}
 		
 		| TRIPLE '<' tipo_basico '>' ID {lex.addErrorLexico("falta TYPEDEF en la declaración del TRIPLE"); }
 		| TYPEDEF  '<' tipo_basico '>' ID {lex.addErrorLexico("falta TRIPLE en la declaración del TRIPLE"); }
@@ -208,7 +209,7 @@ AnalizadorLexico lex;
 public Parser(String nombreArchivo, TablaSimbolos t)
 {
 	this.nombreArchivo=nombreArchivo;
-	this.lex= new AnalizadorLexico(nombreArchivo,t);
+	this.lex= new AnalizadorLexico(nombreArchivo, t, this);
 }
 
 String yyerror(String a) {
@@ -227,4 +228,5 @@ public static void main(String[] args) {
 	Parser p = new Parser(prueba,tb);
 	System.out.println(p.yyparse());
 	System.out.println(p.errores());
+	System.out.println(tb);
 }
