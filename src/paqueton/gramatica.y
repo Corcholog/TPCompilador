@@ -4,71 +4,80 @@
 %}
 
 %token ID CTE MASI MENOSI ASIGN DIST GOTO UP DOWN TRIPLE FOR ULONGINT DOUBLE IF THEN ELSE BEGIN END END_IF OUTF TYPEDEF FUN RET CADMUL TAG
-
 %%
-prog		: ID BEGIN cuerpo END {estructurasSintacticas("Se declaró el programa: " + $1.sval);}
+prog		: ID cuerpo { estructurasSintacticas("Se declaró el programa: " + $1.sval);}
 
-		| BEGIN cuerpo END { lex.addErrorSintactico("Falta nombre en prog");}
-		| ID cuerpo END { lex.addErrorSintactico("Falta Begin en prog");}
-		| ID BEGIN cuerpo { lex.addErrorSintactico("Falta End en prog");}
-		| ID BEGIN END { lex.addErrorSintactico("Falta Cuerpo en prog");}
-		| ID cuerpo { lex.addErrorSintactico("Falta begin y end en el prog");}
-		| BEGIN cuerpo { lex.addErrorSintactico("Falta nombre y end en prog");}
-		| BEGIN END { lex.addErrorSintactico("Falta nombre y cuerpo en prog");}
-		| ID END { lex.addErrorSintactico("Falta Cuerpo y Begin en prog");}
-		| ID BEGIN { lex.addErrorSintactico("Falta Cuerpo y end en prog");}
+		| cuerpo { lex.addErrorSintactico("Falta el nombre del programa");}
 		;
-cuerpo		: cuerpo sentencia
-        	| sentencia
+
+cuerpo		: BEGIN sentencias ';' END
+		| BEGIN sentencias ';' { lex.addErrorSintactico("Falta delimitador del programa");}
+		//| sentencias ';' END {}
+		//| sentencias ';' {}
 		;
+	
+sentencias : sentencias ';' sentencia
+		| sentencia
+		
+		| sentencias sentencia {lex.addErrorSintactico("Falta punto y coma");}	
+		;
+		
 sentencia       : sentec_declar
 		| sentec_eject
 		;
-sentec_declar	: declaracion_var ';'
-		| declaracion_fun ';' {	estructurasSintacticas("Se declaro la funcion, en linea: " + lex.getLineaInicial()); }
-		| declaracion_var { lex.addErrorSintactico("Se declaro la variable, falta ;"); }
-		| declaracion_fun {	lex.addErrorSintactico("Se declaro la funcion, falta ;"); }
-
-		;
-sentec_eject	: asignacion ';' 
-		| invoc_fun ';' 
-		| seleccion ';'
-		| sald_mensaj ';' {estructurasSintacticas("Se imprimio un mensaje, en linea: " + lex.getLineaInicial()); }
-		| for ';' 
-		| goto ';' {estructurasSintacticas("Se llamo a una etiqueta goto, en linea: " + lex.getLineaInicial()); }
+		
+sentec_declar	: declaracion_var
+		| declaracion_fun  {	estructurasSintacticas("Se declaro la funcion, en linea: " + lex.getLineaInicial()); }
 		| TAG {	estructurasSintacticas("Se declaro una etiqueta goto, en linea: " + lex.getLineaInicial()); }
+		| declar_tipo_trip
 		;
+		
+sentec_eject	: asignacion 
+		| invoc_fun 
+		| seleccion 
+		| sald_mensaj  {estructurasSintacticas("Se imprimio un mensaje, en linea: " + lex.getLineaInicial()); }
+		| for 
+		| goto  {estructurasSintacticas("Se llamo a una etiqueta goto, en linea: " + lex.getLineaInicial()); }
+		
+		;
+
 condicion	: '(' condicion_2 ')'
 
-		|  condicion_2 ')' {lex.addErrorSintactico("falta el ( en la comparacion"); }
-		| '(' condicion_2  {lex.addErrorSintactico("falta el ) en la comparacion"); }
-		| condicion_2  {lex.addErrorSintactico("falta el ( y el ) en la comparacion"); }
+		| condicion_2 { lex.addErrorSintactico("Falta de paréntesis en la condición");}
+		| '(' condicion_2 { lex.addErrorSintactico("Falta de paréntesis derecho en la condición");}
+		|  condicion_2 ')' { lex.addErrorSintactico("Falta de paréntesis izquierdo en la condición");}
 		;
-condicion_2 	: expresion comparador expresion
-		| '(' lista_expres ')' comparador '(' lista_expres ')'
+		
+condicion_2 	: expresion_matematica comparador expresion_matematica
+		| patron comparador patron
+		| patron patron
 
-		| comparador expresion {lex.addErrorSintactico("falta la primera expresion en la comparacion"); }
-		| expresion  comparador {lex.addErrorSintactico("falta la segunda expresion en la comparacion"); }
-		| comparador {lex.addErrorSintactico("faltan lasexpresiones en la comparacion"); }
-		| '(' lista_expres  ')' '(' lista_expres ')' {lex.addErrorSintactico("falta el comparador"); }
-		| '(' ')' comparador '(' lista_expres ')' {lex.addErrorSintactico("falta la primera lista de elementos en la comparacion"); }
-		| '('lista_expres ')' comparador '(' ')' {lex.addErrorSintactico("falta la segunda lista de elementos en la comparacion"); }
-		| '(' ')' comparador '(' ')' {lex.addErrorSintactico("faltan las listas de elementos en la comparacion"); }
+		//| expresion_matematica expresion_matematica
 		;
-lista_expres	: lista_expres ',' expresion
-		| expresion
+
+patron		: '(' lista_patron ')'
+
+		//|  lista_patron ')' {}
+		//|  '(' lista_patron {}
+		//|  lista_patron {}
 		;
+
+lista_patron    : lista_patron ',' expresion_matematica
+		| expresion_matematica
+
+		| lista_patron expresion_matematica { lex.addErrorSintactico("Falta coma en la lista de variables del pattern matching");}
+		;
+		
 seleccion 	: IF condicion THEN cuerpo_control END_IF {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
         	| IF condicion THEN cuerpo_control ELSE cuerpo_control END_IF {estructurasSintacticas("Se definió una sentencia de control con else, en la linea: " + lex.getLineaInicial());}
 
-		| condicion THEN cuerpo_control END_IF {lex.addErrorSintactico("falta el if en la seleccion"); }
-		| IF condicion THEN cuerpo_control {lex.addErrorSintactico("falta el END_IF en la seleccion"); }
-		| condicion THEN cuerpo_control {lex.addErrorSintactico("falta el IF y el END_IF en la seleccion"); }
-		| IF condicion THEN cuerpo_control cuerpo_control END_IF {lex.addErrorSintactico("falta el else en la seleccion"); }
-		| condicion THEN cuerpo_control cuerpo_control END_IF {lex.addErrorSintactico("falta el if y el else en la seleccion"); }
-		| IF condicion THEN cuerpo_control cuerpo_control {lex.addErrorSintactico("falta el end_if y el else en la seleccion"); }
-		| condicion THEN cuerpo_control cuerpo_control {lex.addErrorSintactico("falta el if, end_if y el else en la seleccion"); }
+		| IF condicion THEN cuerpo_control ELSE cuerpo_control { lex.addErrorSintactico("Falta END_IF con ELSE");}
+		| IF condicion THEN cuerpo_control { lex.addErrorSintactico("Falta END_IF");}
+		| IF condicion THEN END_IF{ lex.addErrorSintactico("Falta el cuerpo de control del then");}
+		| IF condicion THEN cuerpo_control ELSE END_IF{ lex.addErrorSintactico("Falta el cuerpo de control del ELSE");}
+		| IF condicion THEN ELSE END_IF{ lex.addErrorSintactico("Falta el cuerpo de control tanto en THEN como ELSE");}
 		;
+		
 comparador	: MASI
 		| MENOSI
 		| DIST
@@ -76,18 +85,32 @@ comparador	: MASI
 		| '<'
 		| '>'
 		;
-cuerpo_control	: BEGIN multip_cuerp_fun END
-		| sentec_eject
+		
+cuerpo_control	: BEGIN multip_cuerp_fun ';' END
+		| sentec_eject ';'
+			
+		| BEGIN ';' END { lex.addErrorSintactico("Falta el cuerpo del control")}
+		| BEGIN END { lex.addErrorSintactico("Falta el cuerpo del control")}
+		| BEGIN multip_cuerp_fun END { lex.addErrorSintactico("Falta punto y coma");}
 		;
-multip_cuerp_fun: multip_cuerp_fun sentec_eject
-		| sentec_eject
-		;
-variable	: ID
-		| ID '{' variable '}'
-		| ID '{' '}' {lex.addErrorSintactico("falta la variable que indica la posicion"); }
 
+cuerpo_iteracion: BEGIN multip_cuerp_fun ';' END
+		| sentec_eject ';'
+			
+		| BEGIN ';' END { lex.addErrorSintactico("Falta el cuerpo de la iteracion")}
+		| BEGIN END { lex.addErrorSintactico("Falta el cuerpo de la iteracion")}
+		| BEGIN multip_cuerp_fun END { lex.addErrorSintactico("Falta punto y coma");}
 		;
+		
+multip_cuerp_fun: multip_cuerp_fun ';' sentec_eject
+		| sentec_eject
+		
+		| multip_cuerp_fun sentec_eject { lex.addErrorSintactico("Falta punto y coma");}
+		;
+		
+		
 declaracion_var : tipo lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
+		| ID lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
 		;
 
 lista_variables : lista_variables ',' ID {      
@@ -108,40 +131,65 @@ lista_variables : lista_variables ',' ID {
 		      	lex.addErrorSintactico("se declaro la variable "+ $1.sval + " que difiere del tipo declarado: " + tipoVar);
 		      }
 		}
+		//| lista_variables ID { lex.AddErrorSintactico("Falta coma en la lista de variables");}
 		;
+
 tipo		: tipo_basico	
 		;
 
 tipo_basico	: DOUBLE
 		| ULONGINT 
 		;
-asignacion 	: variable ASIGN expresion {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
 
-		| variable ASIGN {lex.addErrorSintactico("falta la expresion en la asignacion"); }
-		| ASIGN expresion {lex.addErrorSintactico("falta la variable en la asignacion"); }
-		| ASIGN  {lex.addErrorSintactico("falta la variable y la expresion en la asignacion"); }
+asignacion 	: triple ASIGN expresion {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
+		| ID ASIGN expresion {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
+
 	 	;
-expresion 	: expresion '+' termino
-		| expresion '-' termino
+
+expresion : expresion_matematica
+	  | condicion_2
+	  ;
+
+expresion_matematica 	: expresion_matematica '+' termino
+		| expresion_matematica '-' termino
 		| termino
+
+		// falta de operadores
+		//| expresion_matematica termino { lex.addErrorSintactico("Falta operando en la expresión matematica");}
 		;
+
+
 termino 	: termino '*' factor
 		| termino '/' factor
 		| factor
+		
+		//| termino factor { lex.addErrorSintactico("Falta operando en el término");}
+		//| '*' factor { lex.addErrorSintactico("Falta operador izquierdo");}
+		//| '/' factor { lex.addErrorSintactico("Falta operador izquierdo");}
+		//| termino '*' { lex.addErrorSintactico("Falta operador derecho");}
+		//| termino '/' { lex.addErrorSintactico("Falta operador derecho");}
 		;
-factor		: variable
-		| CTE
-		| '-' CTE {
-				if (ts.esUlongInt($2.sval)){
-					lex.addErrorSintactico("se utilizo un Ulongint negativo, son solo positivos");
-				}
-				else {
-					ts.convertirNegativo($2.sval);
-				}
-			}
+
+factor		: ID
+		| constante
 		| invoc_fun
+		| triple
 		;
-declaracion_fun : tipo_basico FUN ID '(' parametro ')' BEGIN cuerpo_funcion_p END {
+
+constante 	: CTE
+		//| '-' CTE {
+		//		if (ts.esUlongInt($2.sval)){
+		//			lex.addErrorSintactico("se utilizo un Ulongint negativo, son solo positivos");
+		//		}
+		//		else {
+		//			ts.convertirNegativo($2.sval);
+		//		}
+		//	}
+		;
+
+triple		: ID '{' expresion_matematica '}'
+		;
+declaracion_fun : tipo_basico FUN ID '(' lista_parametro ')' cuerpo_funcion_p {
 										if (this.cantRetornos > 0){
 											estructurasSintacticas("Se declaró la función: " + $3.sval);
 											ts.addClave($3.sval);
@@ -150,89 +198,79 @@ declaracion_fun : tipo_basico FUN ID '(' parametro ')' BEGIN cuerpo_funcion_p EN
 										}
 									}
 
-		| FUN ID '(' parametro ')' BEGIN cuerpo_funcion END {lex.addErrorSintactico("falta el tipo de la funcion declarada"); }
-		| tipo_basico FUN '(' parametro ')' BEGIN cuerpo_funcion END {lex.addErrorSintactico("falta el nombre de la funcion declarada"); }
-		| tipo_basico FUN ID '(' parametro ')' cuerpo_funcion END {lex.addErrorSintactico("falta el begin de la funcion declarada"); }
-		| tipo_basico FUN ID '(' ')' BEGIN cuerpo_funcion END {lex.addErrorSintactico("falta el  parametro en la funcion declarada"); }
-		| tipo_basico FUN ID '(' parametro ')' BEGIN END {lex.addErrorSintactico("falta el cuerpo en la funcion declarada"); }
-		| tipo_basico FUN ID  parametro ')' BEGIN cuerpo_funcion  END {lex.addErrorSintactico("falta el ( en la funcion declarada"); }
-		| tipo_basico FUN ID  '(' parametro BEGIN cuerpo_funcion  END {lex.addErrorSintactico("falta el ) en la funcion declarada"); }
-		| tipo_basico FUN ID  parametro BEGIN cuerpo_funcion  END {lex.addErrorSintactico("falta el ( y el ) en la funcion declarada"); }
-		| tipo_basico FUN ID  parametro ')' BEGIN END {lex.addErrorSintactico("falta el ( y el cuerpo en la funcion declarada"); }
-		| tipo_basico FUN ID '(' parametro  BEGIN END {lex.addErrorSintactico("falta el ) y el cuerpo en la funcion declarada"); }
-		| tipo_basico FUN ID parametro BEGIN END {lex.addErrorSintactico("falta el ( ) y el cuerpo en la funcion declarada"); }
+		| tipo_basico FUN '(' lista_parametro ')' cuerpo_funcion_p { lex.addErrorSintactico("Falta nombre de la funcion declarada");}
+		| tipo_basico FUN ID '(' ')' cuerpo_funcion_p { lex.addErrorSintactico("Falta el parametro en la declaracion de la funcion");}
 		;
+
+lista_parametro : lista_parametro ',' parametro { lex.addErrorSintactico("Se declaró más de un parametro");}
+		| parametro 
 
 parametro	: tipo ID {estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
+		| ID ID {estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
+
+		| tipo { lex.addErrorSintactico("Falta el nombre del parametro");}
+		| ID { lex.addErrorSintactico("Falta el nombre del parametro o el tipo");}
 		;
 
+cuerpo_funcion_p : {ts.addClave(yylval.sval);} BEGIN bloques_funcion';' END
+    		 ;
 
-cuerpo_funcion_p	: {ts.addClave(yylval.sval)} cuerpo_funcion 
-			;
-
-cuerpo_funcion	: cuerpo_funcion retorno 
-		| cuerpo_funcion sentencia
-		| retorno
+bloques_funcion : bloques_funcion';' bloque_funcion
+    		| bloque_funcion 
+    
+    		| bloques_funcion bloque_funcion {lex.addErrorSintactico("Falta punto y coma");}
+    		;
+    
+bloque_funcion : retorno
 		| sentencia
 		;
 
-retorno 	: RET '('expresion')' ';' { this.cantRetornos ++;}
-		| RET '('  ')' ';' {lex.addErrorSintactico("falta la expresion en el cuerpo en la funcion declarada"); }
-		| RET  expresion ')' ';' {lex.addErrorSintactico("falta el parentesis izquierdo en el cuerpo en la funcion declarada"); }
-		| RET '(' expresion ';' {lex.addErrorSintactico("falta el parentesis derecho en el cuerpo en la funcion declarada"); }
-		| RET '(' expresion ')' {lex.addErrorSintactico("falta el punto y coma en el cuerpo en la funcion declarada"); }
+retorno 	: RET '('expresion')' { this.cantRetornos++; }
 		;
 
 invoc_fun	: ID '(' param_real ')' {estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
-
-		| ID '(' ')'  {lex.addErrorSintactico("falta el parametro real en la invocación"); }
 		;
-param_real	: tipo expresion
+
+param_real	: tipo expresion_matematica
 		| expresion
-
+		| ID expresion_matematica
 		;
+
 sald_mensaj	: OUTF '(' mensaje ')'
-
-		| OUTF mensaje ')' {lex.addErrorSintactico("falta el parentesis izquierdo del mensaje del OUTF"); }
-		| OUTF '(' mensaje {lex.addErrorSintactico("falta el parentesis derecho del mensaje del OUTF"); }
-		| OUTF mensaje {lex.addErrorSintactico("faltan ambos parentesis del mensaje del OUTF"); }
-		| OUTF '('  ')' {lex.addErrorSintactico("falta el parametro del OUTF"); }
-		| OUTF {lex.addErrorSintactico("falta el mensaje y los parentesis del OUTF"); }
+		// error de parametro erroneo
+		| OUTF '(' ')' { lex.addErrorSintactico("Falta el mensaje del OUTF");}
 		;
+
 mensaje		: expresion
 		| CADMUL
 		;
-for		: FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control {estructurasSintacticas("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial());}
-		
-		| FOR ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorSintactico("falta el parentesis izquierdo del FOR"); }
-		| FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE cuerpo_control {lex.addErrorSintactico("falta el parentesis derecho del FOR"); }
-		| FOR ID ASIGN CTE ';' condicion ';' foravanc CTE cuerpo_control {lex.addErrorSintactico("faltan ambos parentesis del FOR"); }
 
-		| FOR '(' ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorSintactico("falta el ID del FOR"); }
-		| FOR '(' ID CTE ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorSintactico("falta la asignacion del FOR"); }
-		| FOR '(' ID ASIGN ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorSintactico("falta la constante a asignar del FOR"); }
-		| FOR '(' ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorSintactico("falta todo ID ASIGN CTE del FOR"); }
-		| FOR '(' ID ASIGN CTE ';'  ';' foravanc CTE ')' cuerpo_control {lex.addErrorSintactico("falta la condicion del FOR"); }
-		| FOR '(' ID ASIGN CTE ';' condicion ';'  CTE ')' cuerpo_control {lex.addErrorSintactico("falta el avance del FOR"); }
-		| FOR '(' ID ASIGN CTE ';' condicion ';' foravanc ')' cuerpo_control {lex.addErrorSintactico("falta la constante de avance del FOR"); }
-		| FOR '(' ID ASIGN CTE ';'')' cuerpo_control {lex.addErrorSintactico("falta condicion y avance entero del FOR"); }
-
-		| FOR '(' ';'  ';' foravanc CTE ')' {lex.addErrorSintactico("falta asignacion entera y condicion entera del FOR"); }
-		| FOR '(' ID ASIGN CTE ';'  ';'')' cuerpo_control {lex.addErrorSintactico("falta condicion entera y avance entero del FOR"); }
-		| FOR '(' ';' condicion ';' ')' cuerpo_control {lex.addErrorSintactico("falta asignacion entera y avance entero del FOR"); }
-
-
+for		: FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_iteracion {estructurasSintacticas("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial());}
 		
-		| '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_control {lex.addErrorSintactico("falta el FOR"); }
-		
-		
+		| FOR '(' ID ASIGN CTE ';' condicion  foravanc CTE ')' cuerpo_iteracion { lex.addErrorSintactico("Falta punto y coma entre condicion y avance");}
+		| FOR '(' ID ASIGN CTE  condicion ';' foravanc CTE ')' cuerpo_iteracion { lex.addErrorSintactico("Falta punto y coma entre asignacion y condicion");}
+		| FOR '(' ID ASIGN CTE  condicion foravanc CTE ')' cuerpo_iteracion { lex.addErrorSintactico("Faltan todos los punto y coma del for");}
+		| FOR '(' ID ASIGN CTE ';' condicion ';' CTE ')' cuerpo_iteracion { lex.addErrorSintactico("Falta UP/DOWN");}
+		| FOR '(' ID ASIGN CTE ';' condicion ';' foravanc ')' cuerpo_iteracion {lex.addErrorSintactico("Falta valor del UP/DOWN");}
+		| FOR '(' ID ASIGN CTE ';' condicion  CTE ')' cuerpo_iteracion { lex.addErrorSintactico("Falta UP/DOWN y punto y coma entre condicion y avance");}
+		| FOR '(' ID ASIGN CTE ';' condicion  foravanc ')' cuerpo_iteracion { lex.addErrorSintactico("Falta valor del UP/DOWN y punto y coma entre condicion y avance");}
+		| FOR '(' ID ASIGN CTE ';' condicion ';'  ')' cuerpo_iteracion { { lex.addErrorSintactico("Falta UP/DOWN, su valor, y punto y coma entre condicion y avance");}}
 		;
+
 foravanc	: UP
 		| DOWN
 		;
 
 goto		: GOTO TAG
-		| GOTO {System.out.println("falta la etiqueta en el GOTO")}
+
+		//| GOTO {System.out.println("falta la etiqueta en el GOTO")}
+		;
+
+declar_tipo_trip: TYPEDEF TRIPLE '<' tipo_basico '>' ID {System.out.println("Se declaró un tipo TRIPLE con el ID: " + $6.sval + " en la linea:" + lex.getLineaInicial());}
+		
+		| TYPEDEF TRIPLE  tipo_basico '>' ID {lex.addErrorLexico("falta < en la declaración del TRIPLE"); }
+		| TYPEDEF TRIPLE '<' tipo_basico  ID {lex.addErrorLexico("falta > en la declaración del TRIPLE"); }
+		| TYPEDEF TRIPLE  tipo_basico  ID {lex.addErrorLexico("falta > y < en la declaración del TRIPLE"); }
 		;
 %%
 String nombreArchivo;

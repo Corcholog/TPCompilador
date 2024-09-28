@@ -1,19 +1,13 @@
-nombre
-xpaqui := 90.3d+5;
-ULONGINT pepe;
-double xxx;
-double xpepe,xcork;
-double giorgio,pepito,corchito;
-double FUN nombrefuncion ( ulongint paqui ) begin
+nombre BEGIN
+double FUN nombrefuncion ( ulongint paqui2 ) begin
 		nombrefuncion2( paqui2 + 3 );
-		paqui := 8.3d;
-		noCumple :=  -2.2250738585072014d-310;
+		##noCumple :=  -2.2250738585072014d-310;
 		octalFuera := 07777777777777777777777777777;
 		ulongMax := 4294967296;
 		agus := 03245;
-		corcho := -3;
+		##corcho := -3;
 		goto pepe@;
-		gianni := -78;
+		##gianni := -78;
 		for ( pepe := 0 ; (pepe < 3 ) ; up 1)begin
 			OUTF([mensaje]);
 		end;
@@ -23,9 +17,11 @@ double FUN nombrefuncion ( ulongint paqui ) begin
 	begin
 		goto jeje@;
 		goto jeje2@;
-		algo@
+		paqui := 3;
+		##algo@
 	end
      else
-	algo@
+     paqui := 3;
+	##algo@
     end_if;
 end
