@@ -1,10 +1,19 @@
 nombre
+xpaqui := 90.3d+5;
 ULONGINT pepe;
+double xxx;
+double xpepe,xcork;
+double giorgio,pepito,corchito;
 double FUN nombrefuncion ( ulongint paqui ) begin
 		nombrefuncion2( paqui2 + 3 );
-		xpaqui := 3;
-		paqui := 8;
+		paqui := 8.3d;
+		noCumple :=  -2.2250738585072014d-310;
+		octalFuera := 07777777777777777777777777777;
+		ulongMax := 4294967296;
+		agus := 03245;
+		corcho := -3;
 		goto pepe@;
+		gianni := -78;
 		for ( pepe := 0 ; (pepe < 3 ) ; up 1)begin
 			OUTF([mensaje]);
 		end;
@@ -19,5 +28,4 @@ double FUN nombrefuncion ( ulongint paqui ) begin
      else
 	algo@
     end_if;
-    typedef triple <ULONGINT> tripla;
 end

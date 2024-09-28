@@ -23,16 +23,55 @@ public class TablaSimbolos {
 	}
 	
 	public void addClave(String clave) {
-		this.tablaSimbolos.put(clave, new HashMap<String, String>());
+		if (!this.tablaSimbolos.containsKey(clave)) {			
+			this.tablaSimbolos.put(clave, new HashMap<String, String>());
+		}
 	}
 	
 	public void addAtributo(String clave, String claveAtributo, String atributo) {
-		this.tablaSimbolos.get(clave).put(claveAtributo, atributo);
+		if (!this.tablaSimbolos.get(clave).containsKey(claveAtributo)) {			
+			this.tablaSimbolos.get(clave).put(claveAtributo, atributo);
+		}
 	}
 	
 	public boolean estaEnTablaSimbolos(String s) {
 		return tablaSimbolos.containsKey(s.toUpperCase());
 	}
+	
+	public boolean esUlongInt(String key) {
+		return this.tablaSimbolos.get(key).get(AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT);
+	}
+	
+	public void convertirNegativo(String key) {
+		    // Verifica si la cantidad es "1"
+	    if (this.tablaSimbolos.get(key).get(AccionSemantica.CANTIDAD).equals("1")) {
+	        // Obtener los atributos asociados a la key actual
+	        Map<String, String> atributos = this.tablaSimbolos.get(key);
+	        // Borrar la key actual
+	        this.tablaSimbolos.remove(key);
+	        // Generar una nueva key con el signo negativo
+	        String nuevaKey = "-" + key;
+	        // Insertar la nueva key con los mismos atributos
+	        this.tablaSimbolos.put(nuevaKey, atributos);
+	    } else {
+	        // Obtener los atributos de la key original
+	        Map<String, String> atributosOriginales = this.tablaSimbolos.get(key);
+	        // Crear una copia de los atributos
+	        Map<String, String> copiaAtributos = new HashMap<>(atributosOriginales);
+	        // Restarle 1 a la cantidad de la key original
+	        int cantidad = Integer.parseInt(atributosOriginales.get(AccionSemantica.CANTIDAD));
+	        cantidad -= 1;
+	        this.tablaSimbolos.get(key).put(AccionSemantica.CANTIDAD, String.valueOf(cantidad));
+	        // Establecer la cantidad de la nueva key negativa en 1
+	        copiaAtributos.put(AccionSemantica.CANTIDAD, "1");        
+	        // Crear una nueva key con el signo negativo
+	        String nuevaKey = "-" + key;
+	        // Insertar la nueva key con los atributos copiados
+	        this.tablaSimbolos.put(nuevaKey, copiaAtributos);
+	    }
+	}
+
+	
 	
 	 @Override
     public String toString() {

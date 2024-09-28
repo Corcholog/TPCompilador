@@ -2,9 +2,18 @@ package paqueton;
 import java.math.BigInteger;
 public abstract class AccionSemantica {
 	public static final BigInteger MAX_INT = new BigInteger("4294967296");
-    public static final double MIN_DOUBLE = 2.2250738585072014e-308;
-    public static final double MAX_DOUBLE = 1.7976931348623157e+308;
+	public static final String MaxIntRepresentable = "4294967295";
+    public static final double MIN_DOUBLE = 2.2250738585072015e-308;
+    public static final double MAX_DOUBLE = 1.7976931348623156e+308;
     public static final String CANTIDAD = "cantidad";
+    public static final String TIPO = "tipo";
+    public static final String TIPORETORNO = "tiporetorno";
+    public static final String FUNCION = "funcion";
+    public static final String ULONGINT = "ulongint";
+    public static final String DOUBLE = "double";
+
+    
+    protected static String tipoCte;
 	
 	public void checkString(AnalizadorLexico analizador) {
 		String concatActual = analizador.getConcatActual();
@@ -14,43 +23,54 @@ public abstract class AccionSemantica {
 		}
 	}
 	
-	public boolean checkLongInt(AnalizadorLexico analizador) {
+	public void checkLongInt(AnalizadorLexico analizador) {
 		BigInteger actual = new BigInteger(analizador.getConcatActual());
-		if(actual.compareTo(MAX_INT) >= 0 || actual.compareTo(new BigInteger("0")) == -1) {
-			analizador.addError("Constante fuera de rango.");
-			return false;
-		} else {
-			return true;
+		if(actual.compareTo(MAX_INT) >= 0) {
+        	analizador.addWarning("La constante Ulongint base 10 esta fuera de rango, es mayor a la representacion, se truncó al maximo representable");
+        	analizador.setConcatActual(MaxIntRepresentable);
 		}
 	}
 	
-	public boolean checkDouble(AnalizadorLexico analizador) {
+	public void checkDouble(AnalizadorLexico analizador) {
         try {
         	String number = analizador.getConcatActual();
             String normalizedNumber = number.replaceAll("d", "e").replaceAll("D", "e");
             double value = Double.parseDouble(normalizedNumber);
-            
-            boolean enRango = (value >= MIN_DOUBLE && value <= MAX_DOUBLE) || 
-                    (value <= -MIN_DOUBLE && value >= -MAX_DOUBLE) || 
-                    value == 0.0;
-            if (!enRango) {
-            	analizador.addError("Constante double fuera de rango");
+            if(value > MAX_DOUBLE){
+            	analizador.addWarning("La constante Double esta fuera de rango, es mayor a la representacion, se trunco al maximo representable");
+            	value = MAX_DOUBLE;
+            	String valueString = String.format("%.16E", value).replace('E', 'd');
+            	analizador.setConcatActual(valueString);
+
             }
-            return enRango;
+            else if(value < MIN_DOUBLE){
+            	analizador.addWarning("La constante Double esta fuera de rango, es menor a la representacion,se trunco al minimo representable");
+            	value = MIN_DOUBLE;
+            	String valueString = String.format("%.16E", value).replace('E', 'd');
+            	analizador.setConcatActual(valueString);
+            }
+            else {
+            	if (number.charAt(number.length()-1) == '.') {
+            		analizador.addWarning("Falta parte decimal luego del .  , se agregara un 0");
+            		analizador.setConcatActual(number+"0");
+            	}
+            }
+            
         } catch (NumberFormatException e) {
             // Si el formato no es correcto, no es un double válido
-            return false;
+            
         }
 	}
 	
-	public boolean checkOctal(AnalizadorLexico analizador) {
+	public void checkOctal(AnalizadorLexico analizador) {
 		String number = analizador.getConcatActual();
 		BigInteger actual = new BigInteger(number, 8);
-		if(actual.compareTo(MAX_INT) >= 0 || actual.compareTo(new BigInteger("0")) == -1) {
-			analizador.addError("Constante fuera de rango.");
-			return false;
-		} else {
-			return true;
+		if(actual.compareTo(MAX_INT) >= 0){
+			analizador.addWarning("Constante Ulongint base 8 fuera de rango, se trunco al maximo representable");
+	        BigInteger maxOctalInt = new BigInteger("4294967295");
+	        String octalString = maxOctalInt.toString(8);
+        	analizador.setConcatActual("0"+octalString);
+
 		}
 	}
  
@@ -99,26 +119,27 @@ public abstract class AccionSemantica {
 	
 	static class ASF1OCTAL extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
-	    	if (checkOctal(analizador)) {
-		        new AS1().ejecutar(analizador);
-		        new ASFBR().ejecutar(analizador);
-	    	}
+	    	checkOctal(analizador);
+			this.tipoCte=ULONGINT;
+		    new AS1().ejecutar(analizador);
+		    new ASFBR().ejecutar(analizador);
+	    
 	    }
 	}
 	
 	static class ASF1Double extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
-	    	if(checkDouble(analizador)) {
-		        new ASFBR().ejecutar(analizador);
-	    	}
+    		checkDouble(analizador);
+			this.tipoCte=DOUBLE;
+	        new ASFBR().ejecutar(analizador);
 	    }
 	}
 	
 	static class ASF1LongInt extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
-	    	if(checkLongInt(analizador)) {
-		        new ASFBR().ejecutar(analizador);
-	    	}
+	    	checkLongInt(analizador);
+			this.tipoCte=ULONGINT;
+		    new ASFBR().ejecutar(analizador);
 	    }
 	}
 
@@ -143,6 +164,7 @@ public abstract class AccionSemantica {
 			if(!ts.estaEnTablaSimbolos(concatActual)) {
 				analizador.addTablaSimbolos();
 				ts.addAtributo(concatActual, CANTIDAD, "1");
+				ts.addAtributo(concatActual,TIPO, this.tipoCte);
 			} else {
 				int cant = Integer.parseInt(ts.getAtributo(concatActual, CANTIDAD));
 				cant++;
@@ -155,15 +177,13 @@ public abstract class AccionSemantica {
 	
 	
 
-	static class ASFBR2 extends AccionSemantica {
-		public void ejecutar(AnalizadorLexico analizador) {
-	    	analizador.addError("Falta numero del exponente");
-	    }
-	}
 
 	static class ASFBR3 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			if (analizador.esPalabraReservada()) {
+				if (analizador.getConcatActual().equals(DOUBLE) || analizador.getConcatActual().equals(ULONGINT)) {
+					analizador.getParser().tipoVar = analizador.getConcatActual();
+				}
 				int numToken = analizador.getIdToken();
 		    	analizador.setNroToken(numToken);
 			}
@@ -181,7 +201,7 @@ public abstract class AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			super.checkString(analizador);
 			analizador.addTablaSimbolos();
-			analizador.addAtributoTablaSimbolos("tipo","ulongint");
+			analizador.addAtributoTablaSimbolos(TIPO,ULONGINT);
 			analizador.getParser().yylval = new ParserVal(analizador.getConcatActual());
 			int numToken = Parser.ID;
 			analizador.setNroToken(numToken);
@@ -191,13 +211,16 @@ public abstract class AccionSemantica {
 	static class ASFBR5 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			if (analizador.esPalabraReservada()) {
+				if (analizador.getConcatActual().equals(DOUBLE) || analizador.getConcatActual().equals(ULONGINT)) {
+					analizador.getParser().tipoVar = analizador.getConcatActual();
+				}
 				int numToken = analizador.getIdToken();
 		    	analizador.setNroToken(numToken);
 			}
 			else {
 				super.checkString(analizador);
 				analizador.addTablaSimbolos();
-				analizador.addAtributoTablaSimbolos("tipo","double");
+				analizador.addAtributoTablaSimbolos(TIPO,DOUBLE);
 				analizador.getParser().yylval = new ParserVal(analizador.getConcatActual()); 
 				int numToken = Parser.ID;
 				analizador.setNroToken(numToken);				
@@ -221,24 +244,25 @@ public abstract class AccionSemantica {
 
 	static class ASF2LongInt extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-			if(checkLongInt(analizador)) {
-				new ASFBR().ejecutar(analizador);
-			}
+			checkLongInt(analizador);
+			this.tipoCte=ULONGINT;
+			new ASFBR().ejecutar(analizador);
 	    }
 	}
 	static class ASF2Double extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-			if(checkDouble(analizador)) {
-				new ASFBR().ejecutar(analizador);
-			}
+			checkDouble(analizador);
+			this.tipoCte=DOUBLE;
+			new ASFBR().ejecutar(analizador);
+			
 	    }
 	}
 	
 	static class ASF2OCTAL extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
-	    	if (checkOctal(analizador)) {
-		        new ASFBR().ejecutar(analizador);
-	    	}
+	    	checkOctal(analizador);
+			this.tipoCte=ULONGINT;
+		    new ASFBR().ejecutar(analizador);
 	    }
 	}
 	
@@ -309,10 +333,10 @@ public abstract class AccionSemantica {
 	    	super.checkString(analizador);
 	    	int numToken = Parser.TAG;
 			analizador.addTablaSimbolos();
-	    	analizador.setNroToken(numToken);	
+	    	analizador.setNroToken(numToken);
+	    	analizador.getTablaSimbolos().addAtributo(analizador.getConcatActual(),TIPO,"tag");
 	    	analizador.getParser().yylval = new ParserVal(analizador.getConcatActual());
 		}
 	}
-	
 }
 
