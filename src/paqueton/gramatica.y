@@ -12,8 +12,8 @@ prog		: ID cuerpo { estructurasSintacticas("Se declaró el programa: " + $1.sval
 
 cuerpo		: BEGIN sentencias ';' END
 		| BEGIN sentencias ';' { lex.addErrorSintactico("Falta delimitador del programa");}
-		//| sentencias ';' END {}
-		//| sentencias ';' {}
+		| sentencias ';' END {}
+		| sentencias ';' {}
 		;
 	
 sentencias : sentencias ';' sentencia
@@ -43,9 +43,11 @@ sentec_eject	: asignacion
 
 condicion	: '(' condicion_2 ')'
 
-		| condicion_2 { lex.addErrorSintactico("Falta de paréntesis en la condición");}
+
+		// esta combinacion agrega un shift reduce con el -
+		//| condicion_2 { lex.addErrorSintactico("Falta de paréntesis en la condición");}
 		| '(' condicion_2 { lex.addErrorSintactico("Falta de paréntesis derecho en la condición");}
-		|  condicion_2 ')' { lex.addErrorSintactico("Falta de paréntesis izquierdo en la condición");}
+		//|  condicion_2 ')' { lex.addErrorSintactico("Falta de paréntesis izquierdo en la condición");}
 		;
 		
 condicion_2 	: expresion_matematica comparador expresion_matematica
@@ -64,8 +66,9 @@ patron		: '(' lista_patron ')'
 
 lista_patron    : lista_patron ',' expresion_matematica
 		| expresion_matematica
-
-		| lista_patron expresion_matematica { lex.addErrorSintactico("Falta coma en la lista de variables del pattern matching");}
+	
+		// ESTE QUITA 3 SHIFT REDUCE Y FUNCIONA EL - CTE
+		//| lista_patron expresion_matematica { lex.addErrorSintactico("Falta coma en la lista de variables del pattern matching");}
 		;
 		
 seleccion 	: IF condicion THEN cuerpo_control END_IF {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
@@ -177,14 +180,8 @@ factor		: ID
 		;
 
 constante 	: CTE
-		//| '-' CTE {
-		//		if (ts.esUlongInt($2.sval)){
-		//			lex.addErrorSintactico("se utilizo un Ulongint negativo, son solo positivos");
-		//		}
-		//		else {
-		//			ts.convertirNegativo($2.sval);
-		//		}
-		//	}
+		| '-' CTE 
+
 		;
 
 triple		: ID '{' expresion_matematica '}'
@@ -233,7 +230,9 @@ invoc_fun	: ID '(' param_real ')' {estructurasSintacticas("Se invocó a la funci
 
 param_real	: tipo expresion_matematica
 		| expresion
-		| ID expresion_matematica
+
+		// genera shift reduce en -CTE (tripla como param real)
+		//| ID expresion_matematica
 		;
 
 sald_mensaj	: OUTF '(' mensaje ')'
