@@ -1,26 +1,37 @@
 %{
 	package paqueton;
 	import java.io.*;
+	import java.util.ArrayList;
 %}
 
 %token ID CTE MASI MENOSI ASIGN DIST GOTO UP DOWN TRIPLE FOR ULONGINT DOUBLE IF THEN ELSE BEGIN END END_IF OUTF TYPEDEF FUN RET CADMUL TAG
 %%
 prog		: ID cuerpo { estructurasSintacticas("Se declaró el programa: " + $1.sval);}
 
-		| cuerpo { lex.addErrorSintactico("Falta el nombre del programa");}
+		| cuerpo_error { lex.addErrorSintactico("Falta el nombre del programa");}
+		;
+
+cuerpo_error	: BEGIN sentencias ';' END
+	
+		| BEGIN sentencia END { lex.addErrorSintactico("Falta punto y coma");}
+		| BEGIN sentencias ';' { lex.addErrorSintactico("Falta delimitador del programa");}
 		;
 
 cuerpo		: BEGIN sentencias ';' END
-		| BEGIN sentencias ';' { lex.addErrorSintactico("Falta delimitador del programa");}
-		| sentencias ';' END {}
-		| sentencias ';' {}
+
+		
+		| BEGIN sentencia END { lex.addErrorSintactico("Falta punto y coma");}
+		| BEGIN sentencias ';' { lex.addErrorSintactico("Falta delimitador END del programa");}
+		| sentencias ';' END { lex.addErrorSintactico("Falta delimitador BEGIN del programa");}
+		| sentencias ';' { lex.addErrorSintactico("Falta delimitador BEGIN y END del programa");}
 		;
-	
+
 sentencias : sentencias ';' sentencia
 		| sentencia
 		
 		| sentencias sentencia {lex.addErrorSintactico("Falta punto y coma");}	
 		;
+
 		
 sentencia       : sentec_declar
 		| sentec_eject
@@ -43,28 +54,26 @@ sentec_eject	: asignacion
 
 condicion	: '(' condicion_2 ')'
 
-
-		// esta combinacion agrega un shift reduce con el -
-		//| condicion_2 { lex.addErrorSintactico("Falta de paréntesis en la condición");}
+		| condicion_2 { lex.addErrorSintactico("Falta de paréntesis en la condición");}
 		| '(' condicion_2 { lex.addErrorSintactico("Falta de paréntesis derecho en la condición");}
-		//|  condicion_2 ')' { lex.addErrorSintactico("Falta de paréntesis izquierdo en la condición");}
+		|  condicion_2 ')' { lex.addErrorSintactico("Falta de paréntesis izquierdo en la condición");}
 		;
 		
 condicion_2 	: expresion_matematica comparador expresion_matematica
 		| patron comparador patron
-		| patron patron
 
-		//| expresion_matematica expresion_matematica
+		| patron error patron { lex.addErrorSintactico("Falta comparador entre los patrones");}
+		| expresion_matematica error expresion_matematica { lex.addErrorSintactico("Falta comparador entre las expresiones");}
 		;
 
-patron		: '(' lista_patron ')'
+patron		: '(' lista_patron ',' expresion_matematica ')'
 
 		//|  lista_patron ')' {}
 		//|  '(' lista_patron {}
 		//|  lista_patron {}
 		;
 
-lista_patron    : lista_patron ',' expresion_matematica
+lista_patron    : lista_patron ',' expresion_matematica 
 		| expresion_matematica
 	
 		// ESTE QUITA 3 SHIFT REDUCE Y FUNCIONA EL - CTE
@@ -92,16 +101,16 @@ comparador	: MASI
 cuerpo_control	: BEGIN multip_cuerp_fun ';' END
 		| sentec_eject ';'
 			
-		| BEGIN ';' END { lex.addErrorSintactico("Falta el cuerpo del control")}
-		| BEGIN END { lex.addErrorSintactico("Falta el cuerpo del control")}
+		| BEGIN ';' END { lex.addErrorSintactico("Falta el cuerpo del control");}
+		| BEGIN END { lex.addErrorSintactico("Falta el cuerpo del control");}
 		| BEGIN multip_cuerp_fun END { lex.addErrorSintactico("Falta punto y coma");}
 		;
 
 cuerpo_iteracion: BEGIN multip_cuerp_fun ';' END
 		| sentec_eject ';'
 			
-		| BEGIN ';' END { lex.addErrorSintactico("Falta el cuerpo de la iteracion")}
-		| BEGIN END { lex.addErrorSintactico("Falta el cuerpo de la iteracion")}
+		| BEGIN ';' END { lex.addErrorSintactico("Falta el cuerpo de la iteracion");}
+		| BEGIN END { lex.addErrorSintactico("Falta el cuerpo de la iteracion");}
 		| BEGIN multip_cuerp_fun END { lex.addErrorSintactico("Falta punto y coma");}
 		;
 		
@@ -113,6 +122,7 @@ multip_cuerp_fun: multip_cuerp_fun ';' sentec_eject
 		
 		
 declaracion_var : tipo lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
+		// esta declaracion de tripla rompe con delimitador del cuerpo del programa si quitas BEGIN
 		| ID lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
 		;
 
@@ -134,13 +144,11 @@ lista_variables : lista_variables ',' ID {
 		      	lex.addErrorSintactico("se declaro la variable "+ $1.sval + " que difiere del tipo declarado: " + tipoVar);
 		      }
 		}
-		//| lista_variables ID { lex.AddErrorSintactico("Falta coma en la lista de variables");}
+		| lista_variables error ID { lex.addErrorSintactico("Falta coma en la lista de variables, puede haber parado la compilacion en este punto");} // No funciona para dejarlo vacío pero si para cuando el usuario pone un caracter inesperado
 		;
 
-tipo		: tipo_basico	
-		;
 
-tipo_basico	: DOUBLE
+tipo	: DOUBLE
 		| ULONGINT 
 		;
 
@@ -159,6 +167,9 @@ expresion_matematica 	: expresion_matematica '+' termino
 
 		// falta de operadores
 		//| expresion_matematica termino { lex.addErrorSintactico("Falta operando en la expresión matematica");}
+		| '+' termino { lex.addErrorSintactico("Falta operando izquierdo");}
+		//| expresion_matematica '+' error { lex.addErrorSintactico("Falta operando derecho");}
+		//| '-' termino
 		;
 
 
@@ -166,11 +177,11 @@ termino 	: termino '*' factor
 		| termino '/' factor
 		| factor
 		
-		//| termino factor { lex.addErrorSintactico("Falta operando en el término");}
-		//| '*' factor { lex.addErrorSintactico("Falta operador izquierdo");}
-		//| '/' factor { lex.addErrorSintactico("Falta operador izquierdo");}
-		//| termino '*' { lex.addErrorSintactico("Falta operador derecho");}
-		//| termino '/' { lex.addErrorSintactico("Falta operador derecho");}
+		//| termino factor { lex.addErrorSintactico("Falta operador en el término");}
+		| '*' factor { lex.addErrorSintactico("Falta operando izquierdo");}
+		| '/' factor { lex.addErrorSintactico("Falta operando izquierdo");}
+		//| termino '*' { lex.addErrorSintactico("Falta operando derecho");}
+		//| termino '/' { lex.addErrorSintactico("Falta operando derecho");}
 		;
 
 factor		: ID
@@ -186,17 +197,24 @@ constante 	: CTE
 
 triple		: ID '{' expresion_matematica '}'
 		;
-declaracion_fun : tipo_basico FUN ID '(' lista_parametro ')' cuerpo_funcion_p {
-										if (this.cantRetornos > 0){
+
+declaracion_fun : tipo_fun FUN ID '(' lista_parametro ')' { this.cantRetornos.add(0); } cuerpo_funcion_p {
+										if (this.cantRetornos.get(this.cantRetornos.size()-1) > 0){
 											estructurasSintacticas("Se declaró la función: " + $3.sval);
 											ts.addClave($3.sval);
 											ts.addAtributo($3.sval,AccionSemantica.TIPO,AccionSemantica.FUNCION);
 											ts.addAtributo($3.sval,AccionSemantica.TIPORETORNO,tipoVar);
+										} else {
+											lex.addErrorSintactico("Falta el retorno de la función: " + $3.sval);
 										}
+										this.cantRetornos.remove(this.cantRetornos.size()-1);
 									}
+		| tipo_fun FUN '(' lista_parametro ')' cuerpo_funcion_p { lex.addErrorSintactico("Falta nombre de la funcion declarada");}
+		| tipo_fun FUN ID '(' ')' cuerpo_funcion_p { lex.addErrorSintactico("Falta el parametro en la declaracion de la funcion");}
+		;
 
-		| tipo_basico FUN '(' lista_parametro ')' cuerpo_funcion_p { lex.addErrorSintactico("Falta nombre de la funcion declarada");}
-		| tipo_basico FUN ID '(' ')' cuerpo_funcion_p { lex.addErrorSintactico("Falta el parametro en la declaracion de la funcion");}
+tipo_fun 	: tipo
+		| ID
 		;
 
 lista_parametro : lista_parametro ',' parametro { lex.addErrorSintactico("Se declaró más de un parametro");}
@@ -206,11 +224,14 @@ parametro	: tipo ID {estructurasSintacticas("Se declaró el parámetro: " + $2.s
 		| ID ID {estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
 
 		| tipo { lex.addErrorSintactico("Falta el nombre del parametro");}
-		| ID { lex.addErrorSintactico("Falta el nombre del parametro o el tipo");}
+		| ID { lex.addErrorSintactico("Falta el nombre del parametro o el tipo");} //buscando en tabla de simbolos se puede saber lo que falta
 		;
 
-cuerpo_funcion_p : {ts.addClave(yylval.sval);} BEGIN bloques_funcion';' END
+cuerpo_funcion_p : {ts.addClave(yylval.sval);} BEGIN bloques_funcion ';' END
+
+		 // No pudimos hacer que ese punto y coma falte, lo cual obliga a funciones anidadas llevar un ; luego del END
     		 ;
+
 
 bloques_funcion : bloques_funcion';' bloque_funcion
     		| bloque_funcion 
@@ -222,7 +243,7 @@ bloque_funcion : retorno
 		| sentencia
 		;
 
-retorno 	: RET '('expresion')' { this.cantRetornos++; }
+retorno 	: RET '('expresion')' { this.cantRetornos.set(this.cantRetornos.size()-1, this.cantRetornos.get(this.cantRetornos.size()-1) + 1); }
 		;
 
 invoc_fun	: ID '(' param_real ')' {estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
@@ -231,13 +252,14 @@ invoc_fun	: ID '(' param_real ')' {estructurasSintacticas("Se invocó a la funci
 param_real	: tipo expresion_matematica
 		| expresion
 
-		// genera shift reduce en -CTE (tripla como param real)
+		// genera 4 shift reduce en -CTE (conversión explícita como tripla (tipos definidos por el usuario))
 		//| ID expresion_matematica
 		;
 
 sald_mensaj	: OUTF '(' mensaje ')'
-		// error de parametro erroneo
+
 		| OUTF '(' ')' { lex.addErrorSintactico("Falta el mensaje del OUTF");}
+		| OUTF '(' error ')' { lex.addErrorSintactico("Parámetro invalido del OUTF");}
 		;
 
 mensaje		: expresion
@@ -262,27 +284,29 @@ foravanc	: UP
 
 goto		: GOTO TAG
 
-		//| GOTO {System.out.println("falta la etiqueta en el GOTO")}
+		| GOTO error ';' {lex.addErrorSintactico("falta la etiqueta en el GOTO, en caso de faltar también el punto y coma es posible que no compile el resto del programa o lo haga mal.");}
 		;
 
-declar_tipo_trip: TYPEDEF TRIPLE '<' tipo_basico '>' ID {System.out.println("Se declaró un tipo TRIPLE con el ID: " + $6.sval + " en la linea:" + lex.getLineaInicial());}
+
+
+declar_tipo_trip: TYPEDEF TRIPLE '<' tipo '>' ID {System.out.println("Se declaró un tipo TRIPLE con el ID: " + $6.sval + " en la linea:" + lex.getLineaInicial());}
 		
-		| TYPEDEF TRIPLE  tipo_basico '>' ID {lex.addErrorLexico("falta < en la declaración del TRIPLE"); }
-		| TYPEDEF TRIPLE '<' tipo_basico  ID {lex.addErrorLexico("falta > en la declaración del TRIPLE"); }
-		| TYPEDEF TRIPLE  tipo_basico  ID {lex.addErrorLexico("falta > y < en la declaración del TRIPLE"); }
+		| TYPEDEF TRIPLE  tipo '>' ID {lex.addErrorSintactico("falta < en la declaración del TRIPLE"); }
+		| TYPEDEF TRIPLE '<' tipo  ID {lex.addErrorSintactico("falta > en la declaración del TRIPLE"); }
+		| TYPEDEF TRIPLE  tipo  ID {lex.addErrorSintactico("falta > y < en la declaración del TRIPLE"); }
 		;
 %%
 String nombreArchivo;
 AnalizadorLexico lex;
 TablaSimbolos ts;
 String tipoVar;
-int cantRetornos;
+ArrayList<Integer> cantRetornos;
 String estructuras;
 public Parser(String nombreArchivo, TablaSimbolos t)
 {
 	this.nombreArchivo=nombreArchivo;
 	this.ts=t;
-	this.cantRetornos = 0;
+	this.cantRetornos = new ArrayList<>();
 	this.estructuras = "Estructuras sintacticas detectadas en el codigo fuente :  \n";
 	this.lex= new AnalizadorLexico(nombreArchivo, t, this);
 }
