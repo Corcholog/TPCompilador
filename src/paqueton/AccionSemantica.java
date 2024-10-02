@@ -5,12 +5,15 @@ public abstract class AccionSemantica {
 	public static final String MaxIntRepresentable = "4294967295";
     public static final double MIN_DOUBLE = 2.2250738585072015e-308;
     public static final double MAX_DOUBLE = 1.7976931348623156e+308;
+    public static final String REPRESENTACION = "representacion";
     public static final String CANTIDAD = "cantidad";
     public static final String TIPO = "tipo";
     public static final String TIPORETORNO = "tiporetorno";
     public static final String FUNCION = "funcion";
     public static final String ULONGINT = "ulongint";
     public static final String DOUBLE = "double";
+    public static final String OCTAL = "octal";
+    public static final String TAG = "tag";
 
     
     protected static String tipoCte;
@@ -103,12 +106,6 @@ public abstract class AccionSemantica {
 	    }
 	}
 	
-	static class ASF1Constante extends AccionSemantica{
-		public void ejecutar(AnalizadorLexico analizador) {
-		
-		}
-	}
-	
 	static class ASF1Comp extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
 	        new AS1().ejecutar(analizador);
@@ -123,23 +120,8 @@ public abstract class AccionSemantica {
 			this.tipoCte=ULONGINT;
 		    new AS1().ejecutar(analizador);
 		    new ASFBR().ejecutar(analizador);
+		    analizador.getTablaSimbolos().addAtributo(analizador.getConcatActual(), REPRESENTACION, OCTAL);
 	    
-	    }
-	}
-	
-	static class ASF1Double extends AccionSemantica {
-	    public void ejecutar(AnalizadorLexico analizador) {
-    		checkDouble(analizador);
-			this.tipoCte=DOUBLE;
-	        new ASFBR().ejecutar(analizador);
-	    }
-	}
-	
-	static class ASF1LongInt extends AccionSemantica {
-	    public void ejecutar(AnalizadorLexico analizador) {
-	    	checkLongInt(analizador);
-			this.tipoCte=ULONGINT;
-		    new ASFBR().ejecutar(analizador);
 	    }
 	}
 
@@ -211,7 +193,7 @@ public abstract class AccionSemantica {
 	static class ASFBR5 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			if (analizador.esPalabraReservada()) {
-				if (analizador.getConcatActual().equals(DOUBLE) || analizador.getConcatActual().equals(ULONGINT)) {
+				if (analizador.getConcatActual().equals(DOUBLE)) {
 					analizador.getParser().tipoVar = analizador.getConcatActual();
 				}
 				int numToken = analizador.getIdToken();
@@ -241,6 +223,13 @@ public abstract class AccionSemantica {
 	    	analizador.avanzarPos();
 	    }
 	}
+	
+	static class ASE10 extends AccionSemantica {
+		public void ejecutar(AnalizadorLexico analizador) {
+	    	analizador.addWarning("Vino un @ sin antes especificar un ID, es descartado");
+	    	analizador.avanzarPos();
+	    }
+	}
 
 	static class ASF2LongInt extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
@@ -263,6 +252,7 @@ public abstract class AccionSemantica {
 	    	checkOctal(analizador);
 			this.tipoCte=ULONGINT;
 		    new ASFBR().ejecutar(analizador);
+		    analizador.getTablaSimbolos().addAtributo(analizador.getConcatActual(), REPRESENTACION, OCTAL);
 	    }
 	}
 	
@@ -272,6 +262,7 @@ public abstract class AccionSemantica {
 	    	analizador.setNroToken(numToken);	  
 		}
 	}
+	
 
 	static class ASE4 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
@@ -328,15 +319,15 @@ public abstract class AccionSemantica {
 	
 	static class ASFGOTO extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
-			analizador.concatenar();
-	    	analizador.avanzarPos();  
+			new AS1().ejecutar(analizador);  
 	    	super.checkString(analizador);
 	    	int numToken = Parser.TAG;
 			analizador.addTablaSimbolos();
 	    	analizador.setNroToken(numToken);
-	    	analizador.getTablaSimbolos().addAtributo(analizador.getConcatActual(),TIPO,"tag");
+	    	analizador.getTablaSimbolos().addAtributo(analizador.getConcatActual(),TIPO,TAG);
 	    	analizador.getParser().yylval = new ParserVal(analizador.getConcatActual());
 		}
 	}
+
 }
 

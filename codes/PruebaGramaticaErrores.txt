@@ -1,22 +1,19 @@
 nombre BEGIN
-	ulongint paco pepe;
+	ulongint paco / pepe;
 	double FUN nombrefuncion ( ulongint paqui2 ) begin
 		double FUN nombre2 ( ulongint paqui2 ) begin
-			paqui := 3;
+
+			paqui2 := 009;
+			paquioctal := 0773
 			RET ( 3 ) ;
 		end;
 		RET ( 4 ) ;
 		
-	end
-    if (2 3) then
-	begin
-		goto jeje@;
-		goto jeje2@;
-		paqui := 3;
-		##algo@
-	end
-     else
-     paqui := 3;
+	end;
+
+	goto ;
+	goto jeje2@;
+	paqui := 3;
 	##algo@
-    end_if;
+
 end

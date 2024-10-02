@@ -60,23 +60,22 @@ condicion	: '(' condicion_2 ')'
 		;
 		
 condicion_2 	: expresion_matematica comparador expresion_matematica
-		| patron comparador patron
+		| '(' patron ')' comparador '(' patron ')'
+		| '(' patron  comparador  patron ')' { lex.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón y el que abre la segunda");}
+		| '(' patron ')' comparador  patron ')' { lex.addErrorSintactico("Falta parentesis que abre la segunda lista del patrón");}
+		| '(' patron  comparador '(' patron ')' { lex.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón");}
 
-		| patron error patron { lex.addErrorSintactico("Falta comparador entre los patrones");}
+		| '(' patron ')' error '(' patron ')' { lex.addErrorSintactico("Falta comparador entre los patrones");}
 		| expresion_matematica error expresion_matematica { lex.addErrorSintactico("Falta comparador entre las expresiones");}
 		;
 
-patron		: '(' lista_patron ',' expresion_matematica ')'
-
-		//|  lista_patron ')' {}
-		//|  '(' lista_patron {}
-		//|  lista_patron {}
+patron		: lista_patron ',' expresion_matematica
 		;
 
 lista_patron    : lista_patron ',' expresion_matematica 
 		| expresion_matematica
 	
-		// ESTE QUITA 3 SHIFT REDUCE Y FUNCIONA EL - CTE
+		// ESTE GENERA 3 SHIFT REDUCE Y FUNCIONA EL - CTE
 		//| lista_patron expresion_matematica { lex.addErrorSintactico("Falta coma en la lista de variables del pattern matching");}
 		;
 		
@@ -148,7 +147,7 @@ lista_variables : lista_variables ',' ID {
 		;
 
 
-tipo	: DOUBLE
+tipo		: DOUBLE
 		| ULONGINT 
 		;
 
@@ -165,10 +164,13 @@ expresion_matematica 	: expresion_matematica '+' termino
 		| expresion_matematica '-' termino
 		| termino
 
-		// falta de operadores
-		//| expresion_matematica termino { lex.addErrorSintactico("Falta operando en la expresión matematica");}
+		
+		//| expresion_matematica termino { lex.addErrorSintactico("Falta operador en la expresión matematica");}
 		| '+' termino { lex.addErrorSintactico("Falta operando izquierdo");}
-		//| expresion_matematica '+' error { lex.addErrorSintactico("Falta operando derecho");}
+		| expresion_matematica '+' error ')'{ lex.addErrorSintactico("Falta operando derecho");} 
+		| expresion_matematica '+' error ';' { lex.addErrorSintactico("Falta operando derecho");}
+		| expresion_matematica '-' error ')'{ lex.addErrorSintactico("Falta operando derecho");} 
+		| expresion_matematica '-' error ';' { lex.addErrorSintactico("Falta operando derecho");}
 		//| '-' termino
 		;
 
@@ -177,11 +179,13 @@ termino 	: termino '*' factor
 		| termino '/' factor
 		| factor
 		
-		//| termino factor { lex.addErrorSintactico("Falta operador en el término");}
+		//| termino error factor { lex.addErrorSintactico("Falta operador en el término");}
 		| '*' factor { lex.addErrorSintactico("Falta operando izquierdo");}
 		| '/' factor { lex.addErrorSintactico("Falta operando izquierdo");}
-		//| termino '*' { lex.addErrorSintactico("Falta operando derecho");}
-		//| termino '/' { lex.addErrorSintactico("Falta operando derecho");}
+		| termino '/' error ')'{ lex.addErrorSintactico("Falta operando derecho");}
+		| termino '*' error ')'{ lex.addErrorSintactico("Falta operando derecho");}
+		| termino '*' error ';'{ lex.addErrorSintactico("Falta operando derecho");}
+		| termino '/' error ';'{ lex.addErrorSintactico("Falta operando derecho");}
 		;
 
 factor		: ID
@@ -190,9 +194,15 @@ factor		: ID
 		| triple
 		;
 
-constante 	: CTE
-		| '-' CTE 
-
+constante 	: CTE 		
+		| '-' CTE   {	System.out.println("EEEEEEEEEEEEEEEEEEEEE" + "\n" + lex.getLineaInicial());
+				if (ts.esUlongInt($2.sval)){
+					lex.addErrorSintactico("se utilizo un Ulongint negativo, son solo positivos");
+				}
+				else {
+					ts.convertirNegativo($2.sval);
+				}
+			}
 		;
 
 triple		: ID '{' expresion_matematica '}'
@@ -220,6 +230,8 @@ tipo_fun 	: tipo
 lista_parametro : lista_parametro ',' parametro { lex.addErrorSintactico("Se declaró más de un parametro");}
 		| parametro 
 
+		;
+
 parametro	: tipo ID {estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
 		| ID ID {estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
 
@@ -231,7 +243,6 @@ cuerpo_funcion_p : {ts.addClave(yylval.sval);} BEGIN bloques_funcion ';' END
 
 		 // No pudimos hacer que ese punto y coma falte, lo cual obliga a funciones anidadas llevar un ; luego del END
     		 ;
-
 
 bloques_funcion : bloques_funcion';' bloque_funcion
     		| bloque_funcion 
@@ -246,7 +257,14 @@ bloque_funcion : retorno
 retorno 	: RET '('expresion')' { this.cantRetornos.set(this.cantRetornos.size()-1, this.cantRetornos.get(this.cantRetornos.size()-1) + 1); }
 		;
 
-invoc_fun	: ID '(' param_real ')' {estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
+invoc_fun	: ID '(' lista_parametro_real ')' {estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
+		
+		| ID '(' ')' { lex.addErrorSintactico("Falta de parámetros en la invocación a la función");}
+
+		;
+
+lista_parametro_real : lista_parametro_real ',' param_real { lex.addErrorSintactico("Se utilizó más de un parámetro para invocar ala función");}
+		| param_real
 		;
 
 param_real	: tipo expresion_matematica
@@ -294,6 +312,8 @@ declar_tipo_trip: TYPEDEF TRIPLE '<' tipo '>' ID {System.out.println("Se declar�
 		| TYPEDEF TRIPLE  tipo '>' ID {lex.addErrorSintactico("falta < en la declaración del TRIPLE"); }
 		| TYPEDEF TRIPLE '<' tipo  ID {lex.addErrorSintactico("falta > en la declaración del TRIPLE"); }
 		| TYPEDEF TRIPLE  tipo  ID {lex.addErrorSintactico("falta > y < en la declaración del TRIPLE"); }
+		| TYPEDEF '<' tipo '>' ID { lex.addErrorSintactico("Falta la palabra clave TRIPLE");}
+		| TYPEDEF TRIPLE '<' tipo '>' error ';' { lex.addErrorSintactico("Falta el ID de la tripla definida.");}
 		;
 %%
 String nombreArchivo;
@@ -334,7 +354,7 @@ void estructurasSintacticas(String estructura){
 }
 
 public static void main(String[] args) {
-	String prueba= "PruebaGramaticaErrores";
+	String prueba= "programaAreconocer";
 	TablaSimbolos tb= new TablaSimbolos();
 	Parser p = new Parser(prueba,tb);
 	int valido = p.yyparse();

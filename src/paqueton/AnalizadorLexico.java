@@ -64,23 +64,24 @@ public class AnalizadorLexico {
  	// inicializaciones
  	private void inicializarMatTrans() { //chequear matriz jeje xD
 		this.matTrans = new Integer[][]{
-				{8,	9,	1,	8,	0, -1, 11, -1, 12, -1, 10, -1, 13, 2, 0, 15, 0, 16, -1, 0, 1,0}, //
-				{-1, -1, 1,	-1, -1, -1, -1, -1, -1, -1,	-1,	-1,	-1,	1, -1, -1, -1,	-1,	3, -1, 1,-1}, //
-				{-1, -1, 4,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	1, -1, -1, -1, -1, 3, -1, 4,-1}, //
-				{-1, -1, 3, -1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	3, -1, -1, -1,	5,	3,	-1,	3,-1}, //
-				{-1, -1, 4, -1, -1, -1, -1, -1, -1, 6, -1,	-1,	-1,	4, -1, -1, -1,	-1,	-1,	-1,	4,-1}, //
-				{-1, -1, 7, -1,	-1,	-1,	-1,	-1,	-1,	6, -1, -1, -1, 7, -1, -1, -1, -1, -1, -1, 7,-1}, //
-				{-1, -1, 7,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	7, -1, -1, -1, -1, -1, -1, 7,-1}, //
-				{-1, -1, 7,	-1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	7,	-1,	-1,	-1,	-1,	-1,	-1, 7,-1}, //
-				{8,	8,	8,	8,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	8, -1, -1, -1, 8, -1, -1, 8,-1}, //
-				{9,	9,	9,	9,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	9,	-1,	-1,	-1,	9,	-1,	-1,	9,-1}, //
-				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,-1}, //
-				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //
-				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, //
-				{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 0,	14,	14,	14,	14,	14,	14,14}, //
-				{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 0, 14,	14,	14,	14,	14,	14,14}, //
-				{15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, -1, 15, 15, 15, 15,15}, //
-				{16, 16, 16, 16, -1, -1, -1, -1, -1, -1, -1, -1, -1, 16, -1, -1, -1, 16, -1, -1, 16,-1}
+				{8,	9,	1,	8,	0, -1, 11, -1, 12, -1, 10, -1, 13, 2, 0, 15, 0, 16, -1, 0, 1,0, -1, -1}, //
+				{-1, -1, 1,	-1, -1, -1, -1, -1, -1, -1,	-1,	-1,	-1,	1, -1, -1, -1,	-1,	3, -1, 1,-1, -1, -1}, //
+				{-1, -1, 4,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	4, -1, -1, -1, -1, 3, -1, 4,-1, -1, -1}, //
+				{-1, -1, 3, -1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	3, -1, -1, -1,	5,	3,	-1,	3,-1, -1, -1}, //
+				{-1, -1, 4, -1, -1, -1, -1, -1, -1, 6, -1,	-1,	-1,	4, -1, -1, -1,	-1,	-1,	-1,	4,-1, -1, -1}, //
+				{-1, -1, 7, -1,	-1,	-1,	-1,	-1,	-1,	6, -1, -1, -1, 7, -1, -1, -1, -1, -1, -1, 7,-1, -1,-1}, //
+				{-1, -1, 7,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	7, -1, -1, -1, -1, -1, -1, 7,-1, -1,-1}, //
+				{-1, -1, 7,	-1, -1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	7,	-1,	-1,	-1,	-1,	-1,	-1, 7,-1, -1,-1}, //
+				{8,	8,	8,	8,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	8, -1, -1, -1, 8, -1, -1, 8,-1, -1,-1}, //
+				{9,	9,	9,	9,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	9,	-1,	-1,	-1,	9,	-1,	-1,	9,-1, -1,-1}, //
+				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,-1, -1,-1}, //
+				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,-1}, //
+				{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,-1}, //
+				{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 0,	14,	14,	14,	14,	14,	14,14, 14,14}, //
+				{14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 0, 14,	14,	14,	14,	14,	14,14, 14, 14}, //
+				{15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, -1, 15, 15, 15, 15,15, 15, 15}, //
+				{16, 16, 16, 16, -1, -1, -1, -1, -1, -1, -1, -1, -1, 16, -1, -1, -1, 16, -1, -1, 16,-1, -1,-1},
+				{-1,	-1,	4,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	17,	-1,	-1,	-1,	-1,	-1,	-1,	4, -1, -1,-1}
 		};
 	}
 	
@@ -92,7 +93,6 @@ public class AnalizadorLexico {
 		AccionSemantica.ASF1Comp asf1c = new AccionSemantica.ASF1Comp();
 		AccionSemantica.ASF1OCTAL asfoctal = new AccionSemantica.ASF1OCTAL();
 		AccionSemantica.ASF2OCTAL asf2octal = new AccionSemantica.ASF2OCTAL();
-		AccionSemantica.ASF1Constante asfconstante = new AccionSemantica.ASF1Constante();
 		AccionSemantica.ASBR asbr = new AccionSemantica.ASBR();
 		AccionSemantica.ASBR2 asbr2 = new AccionSemantica.ASBR2();
 		AccionSemantica.ASFBR asfbr = new AccionSemantica.ASFBR();
@@ -109,28 +109,30 @@ public class AnalizadorLexico {
 		AccionSemantica.ASE7 ase7 = new AccionSemantica.ASE7();
 		AccionSemantica.ASE8 ase8 = new AccionSemantica.ASE8();
 		AccionSemantica.ASE9 ase9 = new AccionSemantica.ASE9();
+		AccionSemantica.ASE10 ase10 = new AccionSemantica.ASE10();
 		AccionSemantica.ASE11 ase11 = new AccionSemantica.ASE11();
 		AccionSemantica.ASDescartaComentario asd = new AccionSemantica.ASDescartaComentario();
 		AccionSemantica.ASFGOTO asfgoto = new AccionSemantica.ASFGOTO();
         
  		this.matAcciones = new AccionSemantica[][]{
-			{as1, as1, as1, ase1, as0, asf1, as1, asf1,	as1, asf1, as1,	asf1, as1, as1, asbr, as1, ase2, as1, asf1, ase3, as1,ase3},
-			{asf2longint, asf2longint, as1, asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	as1,	asf2longint,	asf2longint,	asf2longint,	ase4,	as1,	asf2longint,	as1,asf2longint},
-			{asf2octal,	asf2octal,	ase5,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asfoctal,	asf2octal ,asf2octal,	asf2octal,	ase4, as1,	asf2octal,	as1,asf2octal},
-			{asf2double,	asf2double,	as1,	asf2double	,asf2double	,asf2double,	asf2double	,asf2double	,asf2double,	asf2double,	asf2double	,asf2double	,asf2double,	as1	,asf2double	,asf2double	,asf2double	,as1	,ase7,	asf2double	,as1,asf2double},
-			{asf2octal,	asf2octal,	ase5,	asf2octal,	asf2octal	,asf2octal	,asf2octal,	asf2octal	,asf2octal	,asf2octal	,asf2octal	,asf2octal,	asf2octal,	as1,	asf2octal	,asf2octal,	asf2octal	,asf2octal,	asf2octal,	asf2octal,	as1,asf2octal},
-			{ase8,	ase8, as1	,ase8	,ase8	,ase8,	ase8	,ase8,	ase8	,as1	,ase8,	ase8,	ase8,	as1,	ase8,	ase8	,ase8,	ase8	,ase8	,ase8,	as1,ase8},
-			{ase8,	ase8,	as1,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	as1,	ase8,	ase8,	ase8	,ase8,	ase8,	ase8,	as1,ase8},
-			{asf2double,	asf2double,	as1	,asf2double,	asf2double,	asf2double	,asf2double,	asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,as1	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,as1,asf2double},
-			{as1,	as1	,as1	,as1	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,as1	,asfbr3,	asfbr3,	asfbr3	,as1,	asfbr3,	asfbr3	,as1,asfgoto},
-			{as1,	as1	,as1	,as1,	asfbr4	,asfbr4,	asfbr4,	asfbr4	,asfbr4	,asfbr4,	asfbr4,	asfbr4	,asfbr4	,as1,	asfbr4	,asfbr4	,asfbr4,	as1,	asfbr4,	asfbr4,	as1,asfgoto},
-			{ase9	,ase9	,ase9,	ase9,	ase9,	ase9	,ase9,	asf1,	ase9	,ase9,	ase9,	ase9	,ase9	,ase9	,ase9,	ase9,	ase9	,ase9,	ase9,	ase9,	ase9,ase9},
-			{ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP	,asf1	,ASF2COMP,	ASF2COMP	,asf1,	ASF2COMP	,ASF2COMP,	ASF2COMP,	ASF2COMP	,ASF2COMP	,ASF2COMP,	ASF2COMP	,ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,ASF2COMP},
-			{ase9,	ase9,	ase9,	ase9,	ase9,	ase9,	ase9	,asf1,	ase9	,ase9	,ase9	,ase9	,ase9	,ase9	,ase9,	ase9	,ase9,	ase9	,ase9,	ase9,	ase9,ase9},
-			{ase11,	ase11	,ase11,	ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,as1	,ase11	,asd	,ase11,	ase11,	ase11	,ase11,	ase11,	ase11,ase11},
-			{as1,	as1	,as1,	as1,	as1,	as1	,as1,	as1	,as1	,as1	,as1,	as1,	as1,	as1,	asd,	as1,	as1,	as1,	as1,	as1,	as1,as1},
-			{as1,	as1,	as1,	as1	,as1,	as1,	as1	,as1	,as1	,as1	,as1	,as1	,as1	,as1,	asbr2,	as1,	asf1c	,as1,	as1,	ase3,	as1,ase3},
-			{as1,	as1,	as1	,as1	,asfbr5,	asfbr5,	asfbr5,	asfbr5	,asfbr5,	asfbr5,	asfbr5,	asfbr5,	asfbr5	,as1,	asfbr5,	asfbr5	,asfbr5	,as1	,asfbr5	,asfbr5,	as1,asfgoto}
+			{as1, as1, as1, ase1, as0, asf1, as1, asf1,	as1, asf1, as1,	asf1, as1, as1, asbr, as1, ase2, as1, asf1, ase3, as1,ase10, asf1, asf1},
+			{asf2longint, asf2longint, as1, asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	asf2longint,	as1,	asf2longint,	asf2longint,	asf2longint,	ase4,	as1,	asf2longint,	as1,asf2longint, asf2longint, asf2longint},
+			{asf2octal,	asf2octal,	ase5,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	as1,	asf2octal ,asf2octal,	asf2octal,	ase4, as1,	asf2octal,	as1,asf2octal, asf2octal, asf2octal},
+			{asf2double,	asf2double,	as1,	asf2double	,asf2double	,asf2double,	asf2double	,asf2double	,asf2double,	asf2double,	asf2double	,asf2double	,asf2double,	as1	,asf2double	,asf2double	,asf2double	,as1	,ase7,	asf2double	,as1,asf2double, asf2double, asf2double},
+			{asf2octal,	asf2octal,	ase5,	asf2octal,	asf2octal	,asf2octal	,asf2octal,	asf2octal	,asf2octal	,asf2octal	,asf2octal	,asf2octal,	asf2octal,	as1,	asf2octal	,asf2octal,	asf2octal	,asf2octal,	asf2octal,	asf2octal,	as1,asf2octal, asf2octal, asf2octal},
+			{ase8,	ase8, as1	,ase8	,ase8	,ase8,	ase8	,ase8,	ase8	,as1	,ase8,	ase8,	ase8,	as1,	ase8,	ase8	,ase8,	ase8	,ase8	,ase8,	as1,ase8, ase8, ase8},
+			{ase8,	ase8,	as1,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	ase8,	as1,	ase8,	ase8,	ase8	,ase8,	ase8,	ase8,	as1,ase8, ase8, ase8},
+			{asf2double,	asf2double,	as1	,asf2double,	asf2double,	asf2double	,asf2double,	asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,as1	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,asf2double	,as1,asf2double, asf2double, asf2double},
+			{as1,	as1	,as1	,as1	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,asfbr3	,as1	,asfbr3,	asfbr3,	asfbr3	,as1,	asfbr3,	asfbr3	,as1,asfgoto, asfbr3, asfbr3},
+			{as1,	as1	,as1	,as1,	asfbr4	,asfbr4,	asfbr4,	asfbr4	,asfbr4	,asfbr4,	asfbr4,	asfbr4	,asfbr4	,as1,	asfbr4	,asfbr4	,asfbr4,	as1,	asfbr4,	asfbr4,	as1,asfgoto, asfbr4, asfbr4},
+			{ase9	,ase9	,ase9,	ase9,	ase9,	ase9	,ase9,	asf1,	ase9	,ase9,	ase9,	ase9	,ase9	,ase9	,ase9,	ase9,	ase9	,ase9,	ase9,	ase9,	ase9,ase9, ase9, ase9},
+			{ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP	,asf1	,ASF2COMP,	ASF2COMP	,asf1,	ASF2COMP	,ASF2COMP,	ASF2COMP,	ASF2COMP	,ASF2COMP	,ASF2COMP,	ASF2COMP	,ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,	ASF2COMP,ASF2COMP, ASF2COMP, ASF2COMP},
+			{ase9,	ase9,	ase9,	ase9,	ase9,	ase9,	ase9	,asf1,	ase9	,ase9	,ase9	,ase9	,ase9	,ase9	,ase9,	ase9	,ase9,	ase9	,ase9,	ase9,	ase9,ase9, ase9, ase9},
+			{ase11,	ase11	,ase11,	ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,ase11	,as1	,ase11	,asd	,ase11,	ase11,	ase11	,ase11,	ase11,	ase11,ase11, ase11, ase11},
+			{as1,	as1	,as1,	as1,	as1,	as1	,as1,	as1	,as1	,as1	,as1,	as1,	as1,	as1,	asd,	as1,	as1,	as1,	as1,	as1,	as1,as1, as1, as1},
+			{as1,	as1,	as1,	as1	,as1,	as1,	as1	,as1	,as1	,as1	,as1	,as1	,as1	,as1,	asbr2,	as1,	asf1c	,as1,	as1,	ase3,	as1,as1, as1, as1},
+			{as1,	as1,	as1	,as1	,asfbr5,	asfbr5,	asfbr5,	asfbr5	,asfbr5,	asfbr5,	asfbr5,	asfbr5,	asfbr5	,as1,	asfbr5,	asfbr5	,asfbr5	,as1	,asfbr5	,asfbr5,	as1,asfgoto, asfbr5, asfbr5},
+			{asf2octal,	asf2octal,	ase5,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	asf2octal,	as0,	asf2octal,	asf2octal,	asf2octal,	ase4,	asf2octal,	asf2octal,	as1, asf2octal, asf2octal ,asf2octal}
 		};
  	}
 
@@ -325,6 +327,13 @@ public class AnalizadorLexico {
  	 	        
  	 	    case '@':
  	 	        return 21;
+ 	 	       
+ 	 	    case '{':
+ 	 	    	return 22;
+ 	 	    	
+ 	 	    case '}':
+ 	 	    	return 23;
+ 	 	 
  	 	    default:
  	 	        // Caso: otro (carácter no contemplado en los casos anteriores)
  	 	    	return 19;
