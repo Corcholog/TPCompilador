@@ -30,12 +30,14 @@ public class AnalizadorLexico {
 	private int lineaInicialDevolver;
 	private Parser parce;
 	private String listaTokens;
+	private String tokenErrorHandler;
 	
  	public AnalizadorLexico(String ruta, TablaSimbolos ts, Parser parce) {
  		this.parce = parce;
 		this.inicializarMatTrans();
 		this.inicializarIdTokens();
 		this.inicializarMatAcciones();
+		this.tokenErrorHandler = "";
 		this.saltoLinea = false;
 		this.huboError=false;
 		this.errores = "";
@@ -160,6 +162,12 @@ public class AnalizadorLexico {
 	//yylex()
  	
 	public int yylex() {
+		
+		if (!this.tokenErrorHandler.isEmpty()) {
+			String aux = this.tokenErrorHandler;
+			this.setErrorHandlerToken("");
+			return aux.charAt(0);
+		}
 		//chequeo errores
 		if(lineaInicial==0) {
 			lineaInicial=linea;
@@ -204,7 +212,7 @@ public class AnalizadorLexico {
 			return yylex();
 		}		
 		int devolver = nroToken;
-		listaTokens +=  "["+nroToken +"] - ";
+		listaTokens +=  "["+ nroToken +"] - ";
 		this.reset();	
 		return devolver;
 	}
@@ -416,6 +424,10 @@ public class AnalizadorLexico {
 	// setters
 	public void setConcatActual(String concatActual) {
 		this.concatActual = concatActual.toLowerCase();
+	}
+	
+	public void setErrorHandlerToken(String token) {
+		this.tokenErrorHandler = token;
 	}
     
 	public void setNroToken(int nroToken) {

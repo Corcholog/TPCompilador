@@ -2,6 +2,7 @@
 	package paqueton;
 	import java.io.*;
 	import java.util.ArrayList;
+	
 %}
 
 %token ID CTE MASI MENOSI ASIGN DIST GOTO UP DOWN TRIPLE FOR ULONGINT DOUBLE IF THEN ELSE BEGIN END END_IF OUTF TYPEDEF FUN RET CADMUL TAG
@@ -28,6 +29,7 @@ cuerpo		: BEGIN sentencias ';' END
 
 sentencias : sentencias ';' sentencia
 		| sentencia
+		| error ';' { lex.addErrorSintactico("Sentencia inválida.");}
 		
 		| sentencias sentencia {lex.addErrorSintactico("Falta punto y coma");}	
 		;
@@ -74,9 +76,6 @@ patron		: lista_patron ',' expresion_matematica
 
 lista_patron    : lista_patron ',' expresion_matematica 
 		| expresion_matematica
-	
-		// ESTE GENERA 3 SHIFT REDUCE Y FUNCIONA EL - CTE
-		//| lista_patron expresion_matematica { lex.addErrorSintactico("Falta coma en la lista de variables del pattern matching");}
 		;
 		
 seleccion 	: IF condicion THEN cuerpo_control END_IF {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
@@ -121,7 +120,7 @@ multip_cuerp_fun: multip_cuerp_fun ';' sentec_eject
 		
 		
 declaracion_var : tipo lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
-		// esta declaracion de tripla rompe con delimitador del cuerpo del programa si quitas BEGIN
+		
 		| ID lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
 		;
 
@@ -167,10 +166,14 @@ expresion_matematica 	: expresion_matematica '+' termino
 		
 		//| expresion_matematica termino { lex.addErrorSintactico("Falta operador en la expresión matematica");}
 		| '+' termino { lex.addErrorSintactico("Falta operando izquierdo");}
-		| expresion_matematica '+' error ')'{ lex.addErrorSintactico("Falta operando derecho");} 
-		| expresion_matematica '+' error ';' { lex.addErrorSintactico("Falta operando derecho");}
-		| expresion_matematica '-' error ')'{ lex.addErrorSintactico("Falta operando derecho");} 
-		| expresion_matematica '-' error ';' { lex.addErrorSintactico("Falta operando derecho");}
+		| expresion_matematica '+' error ')'{ lex.addErrorSintactico("Falta operando derecho");
+							lex.setErrorHandlerToken(")");} 
+		| expresion_matematica '+' error ';' { lex.addErrorSintactico("Falta operando derecho");
+							lex.setErrorHandlerToken(";");}
+		| expresion_matematica '-' error ')'{ lex.addErrorSintactico("Falta operando derecho");
+							lex.setErrorHandlerToken(")");} 
+		| expresion_matematica '-' error ';' { lex.addErrorSintactico("Falta operando derecho");
+							lex.setErrorHandlerToken(";");}
 		//| '-' termino
 		;
 
@@ -182,10 +185,14 @@ termino 	: termino '*' factor
 		//| termino error factor { lex.addErrorSintactico("Falta operador en el término");}
 		| '*' factor { lex.addErrorSintactico("Falta operando izquierdo");}
 		| '/' factor { lex.addErrorSintactico("Falta operando izquierdo");}
-		| termino '/' error ')'{ lex.addErrorSintactico("Falta operando derecho");}
-		| termino '*' error ')'{ lex.addErrorSintactico("Falta operando derecho");}
-		| termino '*' error ';'{ lex.addErrorSintactico("Falta operando derecho");}
-		| termino '/' error ';'{ lex.addErrorSintactico("Falta operando derecho");}
+		| termino '/' error ')'{ lex.addErrorSintactico("Falta operando derecho");
+					lex.setErrorHandlerToken(")");}
+		| termino '*' error ')'{ lex.addErrorSintactico("Falta operando derecho");
+					lex.setErrorHandlerToken(")");}
+		| termino '*' error ';'{ lex.addErrorSintactico("Falta operando derecho");
+					lex.setErrorHandlerToken(";");}
+		| termino '/' error ';'{ lex.addErrorSintactico("Falta operando derecho");
+					lex.setErrorHandlerToken(";");}
 		;
 
 factor		: ID
@@ -195,8 +202,7 @@ factor		: ID
 		;
 
 constante 	: CTE 		
-		| '-' CTE   {	System.out.println("EEEEEEEEEEEEEEEEEEEEE" + "\n" + lex.getLineaInicial());
-				if (ts.esUlongInt($2.sval)){
+		| '-' CTE   {	if (ts.esUlongInt($2.sval)){
 					lex.addErrorSintactico("se utilizo un Ulongint negativo, son solo positivos");
 				}
 				else {
@@ -277,7 +283,8 @@ param_real	: tipo expresion_matematica
 sald_mensaj	: OUTF '(' mensaje ')'
 
 		| OUTF '(' ')' { lex.addErrorSintactico("Falta el mensaje del OUTF");}
-		| OUTF '(' error ')' { lex.addErrorSintactico("Parámetro invalido del OUTF");}
+		| OUTF '(' error ')' { lex.addErrorSintactico("Parámetro invalido del OUTF");
+					lex.setErrorHandlerToken(")");}
 		;
 
 mensaje		: expresion
@@ -302,7 +309,8 @@ foravanc	: UP
 
 goto		: GOTO TAG
 
-		| GOTO error ';' {lex.addErrorSintactico("falta la etiqueta en el GOTO, en caso de faltar también el punto y coma es posible que no compile el resto del programa o lo haga mal.");}
+		| GOTO error ';' {lex.addErrorSintactico("falta la etiqueta en el GOTO, en caso de faltar también el punto y coma es posible que no compile el resto del programa o lo haga mal.");
+				lex.setErrorHandlerToken(";");}
 		;
 
 
@@ -354,19 +362,27 @@ void estructurasSintacticas(String estructura){
 }
 
 public static void main(String[] args) {
-	String prueba= "programaAreconocer";
-	TablaSimbolos tb= new TablaSimbolos();
-	Parser p = new Parser(prueba,tb);
-	int valido = p.yyparse();
-	System.out.println(p.lex.getListaTokens());
-	System.out.println("\n" + p.estructuras);	
-	System.out.println("Errores y Warnings detectados del codigo fuente :  \n" + p.errores());
-	System.out.println("Contenido de la tabla de simbolos:  \n" + tb);
-	if (valido == 0) {
-		System.out.println("Se analizo todo el codigo fuente");
-	}
-	else {
-		System.out.println("No se analizo completamente el codigo fuente , debido a uno o mas errores inesperados");
-	}
-	
+    // Verificamos que el nombre de "prueba" sea pasado como argumento
+    if (args.length < 1) {
+        System.out.println("Por favor, proporciona el nombre de la prueba como argumento.");
+        return;
+    }
+
+    // Tomamos el primer argumento como el valor de prueba
+    String prueba = args[0];
+    
+    TablaSimbolos tb = new TablaSimbolos();
+    Parser p = new Parser(prueba, tb);
+    int valido = p.yyparse();
+    
+    System.out.println(p.lex.getListaTokens());
+    System.out.println("\n" + p.estructuras);	
+    System.out.println("Errores y Warnings detectados del codigo fuente :  \n" + p.errores());
+    System.out.println("Contenido de la tabla de simbolos:  \n" + tb);
+    
+    if (valido == 0) {
+        System.out.println("Se analizo todo el codigo fuente");
+    } else {
+        System.out.println("No se analizo completamente el codigo fuente, debido a uno o mas errores inesperados");
+    }
 }

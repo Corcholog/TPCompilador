@@ -1,48 +1,9 @@
 nombre
 BEGIN
-	ulongint a, b, c;
-	double d, e, f;
-	ULONGINT FUN funcion1(double parametro)
-	BEGIN
-		ulongint pepe;
-		DOUBLE FUN funcion2(ulongint parametro2)
-		BEGIN
-			RET (parametro);
-		END;
-		RET (parametro);
-	END;
-
-	a := funcion1(ulongint b);
-	b := funcion1(a + 3);
-	
-	IF (a < b) THEN
-	BEGIN
-		a := b;
-	END
-	
-	ELSE
-	BEGIN
-		b := a;
-		
-	END	
-	END_IF;
-
-	IF (b < a) THEN
-	BEGIN
-		b := a;
-		OUTF( [b era 
-		menor que 
-		a] );
-	
-		OUTF( a + b );
-	END
-	END_IF;
-
-	
 	FOR ( i := 1 ; (i < 10) ; UP 1 ) 
 	BEGIN	
 		OUTF([ en el for]);
-		GOTO PEPE@;
+		GOTO;
 	END;
 	PEPE@;
 
@@ -53,11 +14,7 @@ BEGIN
 	END
 	END_IF;
 
-	TYPEDEF TRIPLE <double> tripleta;
-	tripleta t1, t2, t3;
-	t1{0} := 8;
-	t2 := t1;
-	x := t2{3};
+	
 	
 	
 END

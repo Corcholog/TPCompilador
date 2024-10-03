@@ -229,7 +229,7 @@ public abstract class AccionSemantica {
 	    	analizador.addWarning("Vino un @ sin antes especificar un ID, es descartado");
 	    	analizador.avanzarPos();
 	    }
-	}
+	} 
 
 	static class ASF2LongInt extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
