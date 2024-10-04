@@ -108,9 +108,7 @@ public abstract class AccionSemantica {
 	
 	static class ASF1Comp extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
-	        new AS1().ejecutar(analizador);
-	    	int numToken = analizador.getIdToken();
-	    	analizador.setNroToken(numToken);
+	        new ASF1().ejecutar(analizador);
 	    }
 	}
 	

@@ -9,29 +9,29 @@
 %%
 prog		: ID cuerpo { estructurasSintacticas("Se declaró el programa: " + $1.sval);}
 
-		| cuerpo_error { lex.addErrorSintactico("Falta el nombre del programa");}
+		| cuerpo_error { ErrorHandler.addErrorSintactico("Falta el nombre del programa", lex.getLineaInicial());}
 		;
 
 cuerpo_error	: BEGIN sentencias ';' END
 	
-		| BEGIN sentencia END { lex.addErrorSintactico("Falta punto y coma");}
-		| BEGIN sentencias ';' { lex.addErrorSintactico("Falta delimitador del programa");}
+		| BEGIN sentencia END { ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
+		| BEGIN sentencias ';' { ErrorHandler.addErrorSintactico("Falta delimitador del programa", lex.getLineaInicial());}
 		;
 
 cuerpo		: BEGIN sentencias ';' END
 
 		
-		| BEGIN sentencia END { lex.addErrorSintactico("Falta punto y coma");}
-		| BEGIN sentencias ';' { lex.addErrorSintactico("Falta delimitador END del programa");}
-		| sentencias ';' END { lex.addErrorSintactico("Falta delimitador BEGIN del programa");}
-		| sentencias ';' { lex.addErrorSintactico("Falta delimitador BEGIN y END del programa");}
+		| BEGIN sentencia END { ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
+		| BEGIN sentencias ';' { ErrorHandler.addErrorSintactico("Falta delimitador END del programa", lex.getLineaInicial());}
+		| sentencias ';' END { ErrorHandler.addErrorSintactico("Falta delimitador BEGIN del programa", lex.getLineaInicial());}
+		| sentencias ';' { ErrorHandler.addErrorSintactico("Falta delimitador BEGIN y END del programa", lex.getLineaInicial());}
 		;
 
 sentencias : sentencias ';' sentencia
 		| sentencia
-		| error ';' { lex.addErrorSintactico("Sentencia inválida.");}
+		| error ';' { ErrorHandler.addErrorSintactico("Sentencia inválida.", lex.getLineaInicial());}
 		
-		| sentencias sentencia {lex.addErrorSintactico("Falta punto y coma");}	
+		| sentencias sentencia {ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}	
 		;
 
 		
@@ -56,19 +56,19 @@ sentec_eject	: asignacion
 
 condicion	: '(' condicion_2 ')'
 
-		| condicion_2 { lex.addErrorSintactico("Falta de paréntesis en la condición");}
-		| '(' condicion_2 { lex.addErrorSintactico("Falta de paréntesis derecho en la condición");}
-		|  condicion_2 ')' { lex.addErrorSintactico("Falta de paréntesis izquierdo en la condición");}
+		| condicion_2 { ErrorHandler.addErrorSintactico("Falta de paréntesis en la condición", lex.getLineaInicial());}
+		| '(' condicion_2 { ErrorHandler.addErrorSintactico("Falta de paréntesis derecho en la condición", lex.getLineaInicial());}
+		|  condicion_2 ')' { ErrorHandler.addErrorSintactico("Falta de paréntesis izquierdo en la condición", lex.getLineaInicial());}
 		;
 		
 condicion_2 	: expresion_matematica comparador expresion_matematica
 		| '(' patron ')' comparador '(' patron ')'
-		| '(' patron  comparador  patron ')' { lex.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón y el que abre la segunda");}
-		| '(' patron ')' comparador  patron ')' { lex.addErrorSintactico("Falta parentesis que abre la segunda lista del patrón");}
-		| '(' patron  comparador '(' patron ')' { lex.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón");}
+		| '(' patron  comparador  patron ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón y el que abre la segunda", lex.getLineaInicial());}
+		| '(' patron ')' comparador  patron ')' { ErrorHandler.addErrorSintactico("Falta parentesis que abre la segunda lista del patrón", lex.getLineaInicial());}
+		| '(' patron  comparador '(' patron ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón", lex.getLineaInicial());}
 
-		| '(' patron ')' error '(' patron ')' { lex.addErrorSintactico("Falta comparador entre los patrones");}
-		| expresion_matematica error expresion_matematica { lex.addErrorSintactico("Falta comparador entre las expresiones");}
+		| '(' patron ')' error '(' patron ')' { ErrorHandler.addErrorSintactico("Falta comparador entre los patrones", lex.getLineaInicial());}
+		| expresion_matematica error expresion_matematica { ErrorHandler.addErrorSintactico("Falta comparador entre las expresiones", lex.getLineaInicial());}
 		;
 
 patron		: lista_patron ',' expresion_matematica
@@ -81,11 +81,11 @@ lista_patron    : lista_patron ',' expresion_matematica
 seleccion 	: IF condicion THEN cuerpo_control END_IF {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
         	| IF condicion THEN cuerpo_control ELSE cuerpo_control END_IF {estructurasSintacticas("Se definió una sentencia de control con else, en la linea: " + lex.getLineaInicial());}
 
-		| IF condicion THEN cuerpo_control ELSE cuerpo_control { lex.addErrorSintactico("Falta END_IF con ELSE");}
-		| IF condicion THEN cuerpo_control { lex.addErrorSintactico("Falta END_IF");}
-		| IF condicion THEN END_IF{ lex.addErrorSintactico("Falta el cuerpo de control del then");}
-		| IF condicion THEN cuerpo_control ELSE END_IF{ lex.addErrorSintactico("Falta el cuerpo de control del ELSE");}
-		| IF condicion THEN ELSE END_IF{ lex.addErrorSintactico("Falta el cuerpo de control tanto en THEN como ELSE");}
+		| IF condicion THEN cuerpo_control ELSE cuerpo_control { ErrorHandler.addErrorSintactico("Falta END_IF con ELSE", lex.getLineaInicial());}
+		| IF condicion THEN cuerpo_control { ErrorHandler.addErrorSintactico("Falta END_IF", lex.getLineaInicial());}
+		| IF condicion THEN END_IF{ ErrorHandler.addErrorSintactico("Falta el cuerpo de control del then", lex.getLineaInicial());}
+		| IF condicion THEN cuerpo_control ELSE END_IF{ ErrorHandler.addErrorSintactico("Falta el cuerpo de control del ELSE", lex.getLineaInicial());}
+		| IF condicion THEN ELSE END_IF{ ErrorHandler.addErrorSintactico("Falta el cuerpo de control tanto en THEN como ELSE", lex.getLineaInicial());}
 		;
 		
 comparador	: MASI
@@ -99,23 +99,23 @@ comparador	: MASI
 cuerpo_control	: BEGIN multip_cuerp_fun ';' END
 		| sentec_eject ';'
 			
-		| BEGIN ';' END { lex.addErrorSintactico("Falta el cuerpo del control");}
-		| BEGIN END { lex.addErrorSintactico("Falta el cuerpo del control");}
-		| BEGIN multip_cuerp_fun END { lex.addErrorSintactico("Falta punto y coma");}
+		| BEGIN ';' END { ErrorHandler.addErrorSintactico("Falta el cuerpo del control", lex.getLineaInicial());}
+		| BEGIN END { ErrorHandler.addErrorSintactico("Falta el cuerpo del control", lex.getLineaInicial());}
+		| BEGIN multip_cuerp_fun END { ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
 		;
 
 cuerpo_iteracion: BEGIN multip_cuerp_fun ';' END
 		| sentec_eject ';'
 			
-		| BEGIN ';' END { lex.addErrorSintactico("Falta el cuerpo de la iteracion");}
-		| BEGIN END { lex.addErrorSintactico("Falta el cuerpo de la iteracion");}
-		| BEGIN multip_cuerp_fun END { lex.addErrorSintactico("Falta punto y coma");}
+		| BEGIN ';' END { ErrorHandler.addErrorSintactico("Falta el cuerpo de la iteracion", lex.getLineaInicial());}
+		| BEGIN END { ErrorHandler.addErrorSintactico("Falta el cuerpo de la iteracion", lex.getLineaInicial());}
+		| BEGIN multip_cuerp_fun END { ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
 		;
 		
 multip_cuerp_fun: multip_cuerp_fun ';' sentec_eject
 		| sentec_eject
 		
-		| multip_cuerp_fun sentec_eject { lex.addErrorSintactico("Falta punto y coma");}
+		| multip_cuerp_fun sentec_eject { ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
 		;
 		
 		
@@ -130,7 +130,7 @@ lista_variables : lista_variables ',' ID {
 							ts.addAtributo($3.sval,AccionSemantica.TIPO,tipoVar);
 						}
 						else {
-							lex.addErrorSintactico("se declaro la variable "+ $3.sval + " que difiere del tipo declarado: " + tipoVar);
+							ErrorHandler.addErrorSintactico("se declaro la variable "+ $3.sval + " que difiere del tipo declarado: " + tipoVar, lex.getLineaInicial());
 						}
 					}
 		| ID {  
@@ -139,10 +139,10 @@ lista_variables : lista_variables ',' ID {
 				ts.addAtributo($1.sval,AccionSemantica.TIPO,tipoVar);
 		      } 
 		      else {
-		      	lex.addErrorSintactico("se declaro la variable "+ $1.sval + " que difiere del tipo declarado: " + tipoVar);
+		      	ErrorHandler.addErrorSintactico("se declaro la variable "+ $1.sval + " que difiere del tipo declarado: " + tipoVar, lex.getLineaInicial());
 		      }
 		}
-		| lista_variables error ID { lex.addErrorSintactico("Falta coma en la lista de variables, puede haber parado la compilacion en este punto");} // No funciona para dejarlo vacío pero si para cuando el usuario pone un caracter inesperado
+		| lista_variables error ID { ErrorHandler.addErrorSintactico("Falta coma en la lista de variables, puede haber parado la compilacion en este punto", lex.getLineaInicial());} // No funciona para dejarlo vacío pero si para cuando el usuario pone un caracter inesperado
 		;
 
 
@@ -164,15 +164,15 @@ expresion_matematica 	: expresion_matematica '+' termino
 		| termino
 
 		
-		//| expresion_matematica termino { lex.addErrorSintactico("Falta operador en la expresión matematica");}
-		| '+' termino { lex.addErrorSintactico("Falta operando izquierdo");}
-		| expresion_matematica '+' error ')'{ lex.addErrorSintactico("Falta operando derecho");
+		//| expresion_matematica termino { ErrorHandler.addErrorSintactico("Falta operador en la expresión matematica", lex.getLineaInicial());}
+		| '+' termino { ErrorHandler.addErrorSintactico("Falta operando izquierdo", lex.getLineaInicial());}
+		| expresion_matematica '+' error ')'{ ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 							lex.setErrorHandlerToken(")");} 
-		| expresion_matematica '+' error ';' { lex.addErrorSintactico("Falta operando derecho");
+		| expresion_matematica '+' error ';' { ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 							lex.setErrorHandlerToken(";");}
-		| expresion_matematica '-' error ')'{ lex.addErrorSintactico("Falta operando derecho");
+		| expresion_matematica '-' error ')'{ ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 							lex.setErrorHandlerToken(")");} 
-		| expresion_matematica '-' error ';' { lex.addErrorSintactico("Falta operando derecho");
+		| expresion_matematica '-' error ';' { ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 							lex.setErrorHandlerToken(";");}
 		//| '-' termino
 		;
@@ -182,16 +182,16 @@ termino 	: termino '*' factor
 		| termino '/' factor
 		| factor
 		
-		//| termino error factor { lex.addErrorSintactico("Falta operador en el término");}
-		| '*' factor { lex.addErrorSintactico("Falta operando izquierdo");}
-		| '/' factor { lex.addErrorSintactico("Falta operando izquierdo");}
-		| termino '/' error ')'{ lex.addErrorSintactico("Falta operando derecho");
+		//| termino error factor { ErrorHandler.addErrorSintactico("Falta operador en el término", lex.getLineaInicial());}
+		| '*' factor { ErrorHandler.addErrorSintactico("Falta operando izquierdo", lex.getLineaInicial());}
+		| '/' factor { ErrorHandler.addErrorSintactico("Falta operando izquierdo", lex.getLineaInicial());}
+		| termino '/' error ')'{ ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 					lex.setErrorHandlerToken(")");}
-		| termino '*' error ')'{ lex.addErrorSintactico("Falta operando derecho");
+		| termino '*' error ')'{ ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 					lex.setErrorHandlerToken(")");}
-		| termino '*' error ';'{ lex.addErrorSintactico("Falta operando derecho");
+		| termino '*' error ';'{ ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 					lex.setErrorHandlerToken(";");}
-		| termino '/' error ';'{ lex.addErrorSintactico("Falta operando derecho");
+		| termino '/' error ';'{ ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 					lex.setErrorHandlerToken(";");}
 		;
 
@@ -203,7 +203,7 @@ factor		: ID
 
 constante 	: CTE 		
 		| '-' CTE   {	if (ts.esUlongInt($2.sval)){
-					lex.addErrorSintactico("se utilizo un Ulongint negativo, son solo positivos");
+					ErrorHandler.addErrorSintactico("se utilizo un Ulongint negativo, son solo positivos", lex.getLineaInicial());
 				}
 				else {
 					ts.convertirNegativo($2.sval);
@@ -214,26 +214,20 @@ constante 	: CTE
 triple		: ID '{' expresion_matematica '}'
 		;
 
-declaracion_fun : tipo_fun FUN ID '(' lista_parametro ')' { this.cantRetornos.add(0); } cuerpo_funcion_p {
-										if (this.cantRetornos.get(this.cantRetornos.size()-1) > 0){
-											estructurasSintacticas("Se declaró la función: " + $3.sval);
-											ts.addClave($3.sval);
-											ts.addAtributo($3.sval,AccionSemantica.TIPO,AccionSemantica.FUNCION);
-											ts.addAtributo($3.sval,AccionSemantica.TIPORETORNO,tipoVar);
-										} else {
-											lex.addErrorSintactico("Falta el retorno de la función: " + $3.sval);
-										}
-										this.cantRetornos.remove(this.cantRetornos.size()-1);
-									}
-		| tipo_fun FUN '(' lista_parametro ')' cuerpo_funcion_p { lex.addErrorSintactico("Falta nombre de la funcion declarada");}
-		| tipo_fun FUN ID '(' ')' cuerpo_funcion_p { lex.addErrorSintactico("Falta el parametro en la declaracion de la funcion");}
+declaracion_fun : tipo_fun FUN ID '(' lista_parametro ')' { this.cantRetornos.add(0); } cuerpo_funcion_p {this.checkRet($3.sval);}
+		| tipo_fun FUN '(' lista_parametro ')'{ this.cantRetornos.add(0); } cuerpo_funcion_p { ErrorHandler.addErrorSintactico("Falta nombre de la funcion declarada", lex.getLineaInicial());
+													this.checkRet("");
+													}
+		| tipo_fun FUN ID '(' ')' { this.cantRetornos.add(0);} cuerpo_funcion_p { ErrorHandler.addErrorSintactico("Falta el parametro en la declaracion de la funcion", lex.getLineaInicial());
+							    this.checkRet($3.sval);
+							   }
 		;
 
 tipo_fun 	: tipo
 		| ID
 		;
 
-lista_parametro : lista_parametro ',' parametro { lex.addErrorSintactico("Se declaró más de un parametro");}
+lista_parametro : lista_parametro ',' parametro { ErrorHandler.addErrorSintactico("Se declaró más de un parametro", lex.getLineaInicial());}
 		| parametro 
 
 		;
@@ -241,8 +235,8 @@ lista_parametro : lista_parametro ',' parametro { lex.addErrorSintactico("Se dec
 parametro	: tipo ID {estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
 		| ID ID {estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
 
-		| tipo { lex.addErrorSintactico("Falta el nombre del parametro");}
-		| ID { lex.addErrorSintactico("Falta el nombre del parametro o el tipo");} //buscando en tabla de simbolos se puede saber lo que falta
+		| tipo { ErrorHandler.addErrorSintactico("Falta el nombre del parametro", lex.getLineaInicial());}
+		| ID { ErrorHandler.addErrorSintactico("Falta el nombre del parametro o el tipo", lex.getLineaInicial());} //buscando en tabla de simbolos se puede saber lo que falta
 		;
 
 cuerpo_funcion_p : {ts.addClave(yylval.sval);} BEGIN bloques_funcion ';' END
@@ -253,7 +247,7 @@ cuerpo_funcion_p : {ts.addClave(yylval.sval);} BEGIN bloques_funcion ';' END
 bloques_funcion : bloques_funcion';' bloque_funcion
     		| bloque_funcion 
     
-    		| bloques_funcion bloque_funcion {lex.addErrorSintactico("Falta punto y coma");}
+    		| bloques_funcion bloque_funcion {ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
     		;
     
 bloque_funcion : retorno
@@ -265,11 +259,11 @@ retorno 	: RET '('expresion')' { this.cantRetornos.set(this.cantRetornos.size()-
 
 invoc_fun	: ID '(' lista_parametro_real ')' {estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
 		
-		| ID '(' ')' { lex.addErrorSintactico("Falta de parámetros en la invocación a la función");}
+		| ID '(' ')' { ErrorHandler.addErrorSintactico("Falta de parámetros en la invocación a la función", lex.getLineaInicial());}
 
 		;
 
-lista_parametro_real : lista_parametro_real ',' param_real { lex.addErrorSintactico("Se utilizó más de un parámetro para invocar ala función");}
+lista_parametro_real : lista_parametro_real ',' param_real { ErrorHandler.addErrorSintactico("Se utilizó más de un parámetro para invocar a la función", lex.getLineaInicial());}
 		| param_real
 		;
 
@@ -282,8 +276,8 @@ param_real	: tipo expresion_matematica
 
 sald_mensaj	: OUTF '(' mensaje ')'
 
-		| OUTF '(' ')' { lex.addErrorSintactico("Falta el mensaje del OUTF");}
-		| OUTF '(' error ')' { lex.addErrorSintactico("Parámetro invalido del OUTF");
+		| OUTF '(' ')' { ErrorHandler.addErrorSintactico("Falta el mensaje del OUTF", lex.getLineaInicial());}
+		| OUTF '(' error ')' { ErrorHandler.addErrorSintactico("Parámetro invalido del OUTF", lex.getLineaInicial());
 					lex.setErrorHandlerToken(")");}
 		;
 
@@ -293,14 +287,14 @@ mensaje		: expresion
 
 for		: FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_iteracion {estructurasSintacticas("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial());}
 		
-		| FOR '(' ID ASIGN CTE ';' condicion  foravanc CTE ')' cuerpo_iteracion { lex.addErrorSintactico("Falta punto y coma entre condicion y avance");}
-		| FOR '(' ID ASIGN CTE  condicion ';' foravanc CTE ')' cuerpo_iteracion { lex.addErrorSintactico("Falta punto y coma entre asignacion y condicion");}
-		| FOR '(' ID ASIGN CTE  condicion foravanc CTE ')' cuerpo_iteracion { lex.addErrorSintactico("Faltan todos los punto y coma del for");}
-		| FOR '(' ID ASIGN CTE ';' condicion ';' CTE ')' cuerpo_iteracion { lex.addErrorSintactico("Falta UP/DOWN");}
-		| FOR '(' ID ASIGN CTE ';' condicion ';' foravanc ')' cuerpo_iteracion {lex.addErrorSintactico("Falta valor del UP/DOWN");}
-		| FOR '(' ID ASIGN CTE ';' condicion  CTE ')' cuerpo_iteracion { lex.addErrorSintactico("Falta UP/DOWN y punto y coma entre condicion y avance");}
-		| FOR '(' ID ASIGN CTE ';' condicion  foravanc ')' cuerpo_iteracion { lex.addErrorSintactico("Falta valor del UP/DOWN y punto y coma entre condicion y avance");}
-		| FOR '(' ID ASIGN CTE ';' condicion ';'  ')' cuerpo_iteracion { { lex.addErrorSintactico("Falta UP/DOWN, su valor, y punto y coma entre condicion y avance");}}
+		| FOR '(' ID ASIGN CTE ';' condicion  foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta punto y coma entre condicion y avance", lex.getLineaInicial());}
+		| FOR '(' ID ASIGN CTE  condicion ';' foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta punto y coma entre asignacion y condicion", lex.getLineaInicial());}
+		| FOR '(' ID ASIGN CTE  condicion foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Faltan todos los punto y coma del for", lex.getLineaInicial());}
+		| FOR '(' ID ASIGN CTE ';' condicion ';' CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta UP/DOWN", lex.getLineaInicial());}
+		| FOR '(' ID ASIGN CTE ';' condicion ';' foravanc ')' cuerpo_iteracion {ErrorHandler.addErrorSintactico("Falta valor del UP/DOWN", lex.getLineaInicial());}
+		| FOR '(' ID ASIGN CTE ';' condicion  CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta UP/DOWN y punto y coma entre condicion y avance", lex.getLineaInicial());}
+		| FOR '(' ID ASIGN CTE ';' condicion  foravanc ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta valor del UP/DOWN y punto y coma entre condicion y avance", lex.getLineaInicial());}
+		| FOR '(' ID ASIGN CTE ';' condicion ';'  ')' cuerpo_iteracion { { ErrorHandler.addErrorSintactico("Falta UP/DOWN, su valor, y punto y coma entre condicion y avance", lex.getLineaInicial());}}
 		;
 
 foravanc	: UP
@@ -309,19 +303,19 @@ foravanc	: UP
 
 goto		: GOTO TAG
 
-		| GOTO error ';' {lex.addErrorSintactico("falta la etiqueta en el GOTO, en caso de faltar también el punto y coma es posible que no compile el resto del programa o lo haga mal.");
+		| GOTO error ';' {ErrorHandler.addErrorSintactico("falta la etiqueta en el GOTO, en caso de faltar también el punto y coma es posible que no compile el resto del programa o lo haga mal.", lex.getLineaInicial());
 				lex.setErrorHandlerToken(";");}
 		;
 
 
 
-declar_tipo_trip: TYPEDEF TRIPLE '<' tipo '>' ID {System.out.println("Se declaró un tipo TRIPLE con el ID: " + $6.sval + " en la linea:" + lex.getLineaInicial());}
+declar_tipo_trip: TYPEDEF TRIPLE '<' tipo '>' ID {estructurasSintacticas("Se declaró un tipo TRIPLE con el ID: " + $6.sval + " en la linea:" + lex.getLineaInicial());}
 		
-		| TYPEDEF TRIPLE  tipo '>' ID {lex.addErrorSintactico("falta < en la declaración del TRIPLE"); }
-		| TYPEDEF TRIPLE '<' tipo  ID {lex.addErrorSintactico("falta > en la declaración del TRIPLE"); }
-		| TYPEDEF TRIPLE  tipo  ID {lex.addErrorSintactico("falta > y < en la declaración del TRIPLE"); }
-		| TYPEDEF '<' tipo '>' ID { lex.addErrorSintactico("Falta la palabra clave TRIPLE");}
-		| TYPEDEF TRIPLE '<' tipo '>' error ';' { lex.addErrorSintactico("Falta el ID de la tripla definida.");}
+		| TYPEDEF TRIPLE  tipo '>' ID {ErrorHandler.addErrorSintactico("falta < en la declaración del TRIPLE", lex.getLineaInicial()); }
+		| TYPEDEF TRIPLE '<' tipo  ID {ErrorHandler.addErrorSintactico("falta > en la declaración del TRIPLE", lex.getLineaInicial()); }
+		| TYPEDEF TRIPLE  tipo  ID {ErrorHandler.addErrorSintactico("falta > y < en la declaración del TRIPLE", lex.getLineaInicial()); }
+		| TYPEDEF '<' tipo '>' ID { ErrorHandler.addErrorSintactico("Falta la palabra clave TRIPLE", lex.getLineaInicial());}
+		| TYPEDEF TRIPLE '<' tipo '>' error ';' { ErrorHandler.addErrorSintactico("Falta el ID de la tripla definida.", lex.getLineaInicial());}
 		;
 %%
 String nombreArchivo;
@@ -343,7 +337,7 @@ String yyerror(String a) {
 	return a;
 }
 String errores() {
-	return lex.getErrores();
+	return ErrorHandler.getErrores();
 }
 int yylex() {
 	return lex.yylex();
@@ -361,15 +355,75 @@ void estructurasSintacticas(String estructura){
 	estructuras += estructura + "\n";
 }
 
+void checkRet(String nombreFuncion) {
+	if (!nombreFuncion.isEmpty()) {
+		if (this.cantRetornos.get(this.cantRetornos.size()-1) > 0){
+			estructurasSintacticas("Se declaró la función: " + nombreFuncion);
+			ts.addClave(nombreFuncion);
+			ts.addAtributo(nombreFuncion,AccionSemantica.TIPO,AccionSemantica.FUNCION);
+			ts.addAtributo(nombreFuncion,AccionSemantica.TIPORETORNO,tipoVar);
+		} else {
+			ErrorHandler.addErrorSintactico("Falta el retorno de la función: " + nombreFuncion, lex.getLineaInicial());
+		}
+		
+	} else {
+		if (this.cantRetornos.get(this.cantRetornos.size()-1) == 0){
+			ErrorHandler.addErrorSintactico("Falta el retorno de la función", lex.getLineaInicial());
+		}
+	}
+	this.cantRetornos.remove(this.cantRetornos.size()-1);
+}
+
+public static String getNombreVariable(int numero) {
+    switch (numero) {
+        case YYERRCODE: return "YYERRCODE";
+        case ID: return "ID";
+        case CTE: return "CTE";
+        case MASI: return ">=";
+        case MENOSI: return "<=";
+        case ASIGN: return ":=";
+        case DIST: return "!=";
+        case GOTO: return "GOTO";
+        case UP: return "UP";
+        case DOWN: return "DOWN";
+        case TRIPLE: return "TRIPLE";
+        case FOR: return "FOR";
+        case ULONGINT: return "ULONGINT";
+        case DOUBLE: return "DOUBLE";
+        case IF: return "IF";
+        case THEN: return "THEN";
+        case ELSE: return "ELSE";
+        case BEGIN: return "BEGIN";
+        case END: return "END";
+        case END_IF: return "END_IF";
+        case OUTF: return "OUTF";
+        case TYPEDEF: return "TYPEDEF";
+        case FUN: return "FUN";
+        case RET: return "RET";
+        case CADMUL: return "CADMUL";
+        case TAG: return "TAG";
+        default:
+            // Si el número está en el rango ASCII (0-255), convierte a carácter
+            if (numero >= 0 && numero <= 255) {
+            	char num = (char) numero;
+                return String.valueOf(num);
+            } else {
+                return null;
+            }
+    }
+}
+
 public static void main(String[] args) {
     // Verificamos que el nombre de "prueba" sea pasado como argumento
+/*
     if (args.length < 1) {
         System.out.println("Por favor, proporciona el nombre de la prueba como argumento.");
         return;
     }
 
     // Tomamos el primer argumento como el valor de prueba
-    String prueba = args[0];
+    String prueba = args[0];*/
+    String prueba = "PruebaGramaticaErrores";
     
     TablaSimbolos tb = new TablaSimbolos();
     Parser p = new Parser(prueba, tb);

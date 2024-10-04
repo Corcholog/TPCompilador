@@ -6,8 +6,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 
 public class AnalizadorLexico {
@@ -16,16 +18,14 @@ public class AnalizadorLexico {
 	private int estado = 0;
 	private boolean huboError;
 	private boolean saltoLinea;
-	private int cantErrores = 0;
 	private int nroToken;
 	private String concatActual;
 	private ArrayList<String> lineasCodigo;
 	private File archivo;
 	private Integer[][] matTrans ;
-	private Map<String, Integer> idTokens;
+	private Set<String> idTokens;
 	private TablaSimbolos tablaSimbolos;
 	private AccionSemantica[][] matAcciones;
-	private String errores;
 	private int lineaInicial;
 	private int lineaInicialDevolver;
 	private Parser parce;
@@ -40,7 +40,6 @@ public class AnalizadorLexico {
 		this.tokenErrorHandler = "";
 		this.saltoLinea = false;
 		this.huboError=false;
-		this.errores = "";
 		this.listaTokens = "Tokens: \n";
 		this.setConcatActual("");
 		this.tablaSimbolos = ts;
@@ -139,24 +138,24 @@ public class AnalizadorLexico {
  	}
 
  	private void inicializarIdTokens() { //cambiar el idToken a un set
-        this.idTokens = new HashMap<>();
-        idTokens.put("goto", 23);
-        idTokens.put("up", 24);
-        idTokens.put("down", 25);
-        idTokens.put("triple", 26);
-        idTokens.put("for", 27);
-        idTokens.put("ulongint", 28);
-        idTokens.put("double", 29);
-        idTokens.put("if", 30);
-        idTokens.put("then", 31);
-        idTokens.put("else", 32);
-        idTokens.put("begin", 33);
-        idTokens.put("end", 34);
-        idTokens.put("end_if", 35);
-        idTokens.put("outf", 36);
-        idTokens.put("typedef", 37);
-        idTokens.put("fun", 38);
-        idTokens.put("ret", 39);
+        this.idTokens = new HashSet<>();
+        idTokens.add("goto");
+        idTokens.add("up");
+        idTokens.add("down");
+        idTokens.add("triple");
+        idTokens.add("for");
+        idTokens.add("ulongint");
+        idTokens.add("double");
+        idTokens.add("if");
+        idTokens.add("then");
+        idTokens.add("else");
+        idTokens.add("begin");
+        idTokens.add("end");
+        idTokens.add("end_if");
+        idTokens.add("outf");
+        idTokens.add("typedef");
+        idTokens.add("fun");
+        idTokens.add("ret");
     }
  	
 	//yylex()
@@ -212,7 +211,7 @@ public class AnalizadorLexico {
 			return yylex();
 		}		
 		int devolver = nroToken;
-		listaTokens +=  "["+ nroToken +"] - ";
+		listaTokens +=  "[\""+ Parser.getNombreVariable(devolver) +"\"] - ";
 		this.reset();	
 		return devolver;
 	}
@@ -230,18 +229,12 @@ public class AnalizadorLexico {
 	}
 
  	public void addError(String e) {
- 		this.cantErrores++;
- 		errores += "Error Lexico en linea " + lineaInicial + ": " + e + "\n";
+ 		ErrorHandler.addErrorLexico(e, lineaInicial);
  		this.huboError=true;
  	}
  	
- 	public void addErrorSintactico(String e) {
- 		this.cantErrores++;
- 		errores += "Error Sintactico, en linea " + lineaInicialDevolver + " : " + e + "\n";
- 	}
- 	
  	public void addWarning(String e) {
- 		errores += "Warning Lexico en linea " + lineaInicial + ": " + e + "\n";
+ 		ErrorHandler.addWarningLexico(e, lineaInicial);
  	}
  	
 	public void addTablaSimbolos() { //yylval
@@ -254,7 +247,7 @@ public class AnalizadorLexico {
 		this.getTablaSimbolos().addAtributo(concatActual, claveAtributo, atributo);
 	}
 	public boolean esPalabraReservada() {
-		return (this.idTokens.containsKey(concatActual));
+		return (this.idTokens.contains(concatActual));
 	}
 	
 	public boolean finalArchivo() {
@@ -404,10 +397,6 @@ public class AnalizadorLexico {
  		}
 
  	}
- 	
-	public String getErrores() {
-		return errores;
-	}
 	
 	public TablaSimbolos getTablaSimbolos() {
 		return tablaSimbolos;
@@ -470,27 +459,15 @@ public class AnalizadorLexico {
 	}
 		
 	public static void main(String[] args) {
-        // Crear un objeto Scanner para leer la entrada del usuario
-        //Scanner scanner = new Scanner(System.in);
-
-        // Pedir al usuario que elija el nombre del archivo (sin extensión)
-        //System.out.print("Ingresa el nombre del archivo (con extensión): ");
-        //String nombreArchivo = scanner.nextLine();
-        //scanner.close();
+        String nombreArchivo = "pruebaCodigoLexico";
        
-        // Asumir que la ruta del proyecto es el directorio actual
-        String rutaProyecto = System.getProperty("user.dir");
-        String rutaArchivo = rutaProyecto + File.separator + "codes" + File.separator + "pruebagramatica.txt";
-        System.out.println("Se lee el archivo: " + rutaArchivo);
         TablaSimbolos ts = new TablaSimbolos();
-        //AnalizadorLexico anal = new AnalizadorLexico("pruebagramatica", ts);
-        //int fin = anal.yylex();
-        //System.out.println(fin);
-        //while (fin != 0) {
-        //	fin = anal.yylex();
-        //	System.out.println(fin);
-       // }
-       // System.out.println(anal.getErrores());
+        AnalizadorLexico anal = new AnalizadorLexico(nombreArchivo, ts, new Parser());
+        int fin = anal.yylex();
+        while (fin != 0) {
+        	fin = anal.yylex();
+        }
+        System.out.println(anal.parce.errores());
     }
 }
 
