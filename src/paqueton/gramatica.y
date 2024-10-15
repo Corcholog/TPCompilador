@@ -41,7 +41,12 @@ sentencia       : sentec_declar
 		
 sentec_declar	: declaracion_var
 		| declaracion_fun  {	estructurasSintacticas("Se declaro la funcion, en linea: " + lex.getLineaInicial()); }
-		| TAG {	estructurasSintacticas("Se declaro una etiqueta goto, en linea: " + lex.getLineaInicial()); }
+		| TAG {	if(esEmbebido($1.sval)){
+			ErrorHandler.addErrorSemantico("No se puede declarar una etiqueta que tenga tipos embebidos", lex.getLineaInicial());
+			} else {
+				estructurasSintacticas("Se declaro una etiqueta goto, en linea: " + lex.getLineaInicial());
+			}
+		}
 		| declar_tipo_trip
 		;
 		
@@ -61,8 +66,8 @@ condicion	: '(' condicion_2 ')'
 		|  condicion_2 ')' { ErrorHandler.addErrorSintactico("Falta de paréntesis izquierdo en la condición", lex.getLineaInicial());}
 		;
 		
-condicion_2 	: expresion_matematica comparador expresion_matematica
-		| '(' patron ')' comparador '(' patron ')'
+condicion_2 	: expresion_matematica comparador expresion_matematica { $$.sval = gc.addTerceto($2.sval, $1.sval, $3.sval);}
+		| '(' patron ')' comparador '(' patron ')' { $$.sval = gc.addTerceto($4.sval, $2.sval, $6.sval);}
 		| '(' patron  comparador  patron ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón y el que abre la segunda", lex.getLineaInicial());}
 		| '(' patron ')' comparador  patron ')' { ErrorHandler.addErrorSintactico("Falta parentesis que abre la segunda lista del patrón", lex.getLineaInicial());}
 		| '(' patron  comparador '(' patron ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón", lex.getLineaInicial());}
@@ -78,22 +83,47 @@ lista_patron    : lista_patron ',' expresion_matematica
 		| expresion_matematica
 		;
 		
-seleccion 	: IF condicion THEN cuerpo_control END_IF {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
-        	| IF condicion THEN cuerpo_control ELSE cuerpo_control END_IF {estructurasSintacticas("Se definió una sentencia de control con else, en la linea: " + lex.getLineaInicial());}
+seleccion 	: IF condicion_punto_control THEN cuerpo_control sinelse_punto_control {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
+        	| IF condicion_punto_control THEN cuerpo_control else_punto_control cuerpo_control endif_punto_control
+		// ANDA, PERO VAN A FUNCIONAR MAL LOS TERCETOS. HAY Q CONTROLAR O ALGO
 
-		| IF condicion THEN cuerpo_control ELSE cuerpo_control { ErrorHandler.addErrorSintactico("Falta END_IF con ELSE", lex.getLineaInicial());}
-		| IF condicion THEN cuerpo_control { ErrorHandler.addErrorSintactico("Falta END_IF", lex.getLineaInicial());}
-		| IF condicion THEN END_IF{ ErrorHandler.addErrorSintactico("Falta el cuerpo de control del then", lex.getLineaInicial());}
-		| IF condicion THEN cuerpo_control ELSE END_IF{ ErrorHandler.addErrorSintactico("Falta el cuerpo de control del ELSE", lex.getLineaInicial());}
-		| IF condicion THEN ELSE END_IF{ ErrorHandler.addErrorSintactico("Falta el cuerpo de control tanto en THEN como ELSE", lex.getLineaInicial());}
-		;
+		| IF condicion_punto_control THEN cuerpo_control { ErrorHandler.addErrorSintactico("Falta END_IF con ELSE", lex.getLineaInicial());}
+		| IF condicion_punto_control THEN else_punto_control { ErrorHandler.addErrorSintactico("Falta END_IF", lex.getLineaInicial());}
+		| IF condicion_punto_control THEN sinelse_punto_control { ErrorHandler.addErrorSintactico("Falta el cuerpo de control del then", lex.getLineaInicial());}
+		| IF condicion_punto_control THEN cuerpo_control else_punto_control endif_punto_control { ErrorHandler.addErrorSintactico("Falta el cuerpo de control del ELSE", lex.getLineaInicial());}
+		| IF condicion_punto_control THEN else_punto_control endif_punto_control { ErrorHandler.addErrorSintactico("Falta el cuerpo de control tanto en THEN como ELSE", lex.getLineaInicial());}
+		; 
+
+
 		
+sinelse_punto_control : END_IF {gc.actualizarBF(gc.getCantTercetos()); 
+			gc.pop();}
+		;
+condicion_punto_control : condicion {
+			gc.addTerceto("BF", $1.sval, ""); 
+			gc.push(gc.getPosActual());
+		}
+		;
+
+else_punto_control : ELSE { 
+			gc.addTerceto("BI", "", "-"); 
+			gc.actualizarBF(gc.getCantTercetos()); 
+			gc.pop(); 
+			gc.push(gc.getPosActual());
+		}
+		;
+endif_punto_control : END_IF {
+			gc.actualizarBI(gc.getPosActual()); 
+			gc.pop();
+			estructurasSintacticas("Se definió una sentencia de control con else, en la linea: " + lex.getLineaInicial());
+		}
+		;
 comparador	: MASI
 		| MENOSI
 		| DIST
-		| '='	
-		| '<'
-		| '>'
+		| '='{$$.sval = "=";}
+		| '<' {$$.sval = "<";}
+		| '>' {$$.sval = ">";}
 		;
 		
 cuerpo_control	: BEGIN multip_cuerp_fun ';' END
@@ -121,27 +151,21 @@ multip_cuerp_fun: multip_cuerp_fun ';' sentec_eject
 		
 declaracion_var : tipo lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
 		
-		| ID lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
+		| ID '>' lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());} // preguntar
+		| embed {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
 		;
 
-lista_variables : lista_variables ',' ID {      
-						if (matcheanTipos()){
-							ts.addClave($3.sval);
-							ts.addAtributo($3.sval,AccionSemantica.TIPO,tipoVar);
-						}
-						else {
-							ErrorHandler.addErrorSintactico("se declaro la variable "+ $3.sval + " que difiere del tipo declarado: " + tipoVar, lex.getLineaInicial());
-						}
-					}
-		| ID {  
-			if (matcheanTipos()){
-				ts.addClave($1.sval);
-				ts.addAtributo($1.sval,AccionSemantica.TIPO,tipoVar);
-		      } 
-		      else {
-		      	ErrorHandler.addErrorSintactico("se declaro la variable "+ $1.sval + " que difiere del tipo declarado: " + tipoVar, lex.getLineaInicial());
-		      }
-		}
+
+embed           : lista_variables_e
+		;
+
+lista_variables_e : lista_variables_e ',' ID {if(!esEmbebido($3.sval)){ErrorHandler.addErrorSemantico("No se puede omitir el tipo en declaracion de tipos no-embebidos.", lex.getLineaInicial());};}
+		| ID {if(!esEmbebido($1.sval)){ErrorHandler.addErrorSemantico("No se puede omitir el tipo en declaracion de tipos no-embebidos.", lex.getLineaInicial());};}
+		;
+
+
+lista_variables : lista_variables ',' ID {checkRedeclaracion($3.sval);}
+		| ID {checkRedeclaracion($1.sval);}
 		| lista_variables error ID { ErrorHandler.addErrorSintactico("Falta coma en la lista de variables, puede haber parado la compilacion en este punto", lex.getLineaInicial());} // No funciona para dejarlo vacío pero si para cuando el usuario pone un caracter inesperado
 		;
 
@@ -150,18 +174,22 @@ tipo		: DOUBLE
 		| ULONGINT 
 		;
 
-asignacion 	: triple ASIGN expresion {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
-		| ID ASIGN expresion {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
-
+asignacion 	: triple ASIGN expresion {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
+						
+					}
+		| ID ASIGN expresion {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
+					$$.sval = gc.addTerceto(":=", $1.sval, $3.sval);
+		}
+			
 	 	;
 
 expresion : expresion_matematica
 	  | condicion_2
 	  ;
 
-expresion_matematica 	: expresion_matematica '+' termino
-		| expresion_matematica '-' termino
-		| termino
+expresion_matematica 	: expresion_matematica '+' termino {$$.sval = gc.addTerceto("+", $1.sval, $3.sval);}
+		| expresion_matematica '-' termino {$$.sval = gc.addTerceto("-", $1.sval, $3.sval);}
+		| termino 
 
 		
 		//| expresion_matematica termino { ErrorHandler.addErrorSintactico("Falta operador en la expresión matematica", lex.getLineaInicial());}
@@ -178,8 +206,8 @@ expresion_matematica 	: expresion_matematica '+' termino
 		;
 
 
-termino 	: termino '*' factor
-		| termino '/' factor
+termino 	: termino '*' factor {$$.sval = gc.addTerceto("*", $1.sval, $3.sval);}
+		| termino '/' factor {$$.sval = gc.addTerceto("/", $1.sval, $3.sval);}
 		| factor
 		
 		//| termino error factor { ErrorHandler.addErrorSintactico("Falta operador en el término", lex.getLineaInicial());}
@@ -214,12 +242,16 @@ constante 	: CTE
 triple		: ID '{' expresion_matematica '}'
 		;
 
-declaracion_fun : tipo_fun FUN ID '(' lista_parametro ')' { this.cantRetornos.add(0); } cuerpo_funcion_p {this.checkRet($3.sval);}
+declaracion_fun : tipo_fun FUN ID '(' lista_parametro ')' { this.cantRetornos.add(0); } cuerpo_funcion_p {this.checkRet($3.sval);
+								if (esEmbebido($3.sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());};
+							}
 		| tipo_fun FUN '(' lista_parametro ')'{ this.cantRetornos.add(0); } cuerpo_funcion_p { ErrorHandler.addErrorSintactico("Falta nombre de la funcion declarada", lex.getLineaInicial());
 													this.checkRet("");
 													}
 		| tipo_fun FUN ID '(' ')' { this.cantRetornos.add(0);} cuerpo_funcion_p { ErrorHandler.addErrorSintactico("Falta el parametro en la declaracion de la funcion", lex.getLineaInicial());
 							    this.checkRet($3.sval);
+							    if (esEmbebido($3.sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());}
+
 							   }
 		;
 
@@ -254,7 +286,9 @@ bloque_funcion : retorno
 		| sentencia
 		;
 
-retorno 	: RET '('expresion')' { this.cantRetornos.set(this.cantRetornos.size()-1, this.cantRetornos.get(this.cantRetornos.size()-1) + 1); }
+retorno 	: RET '('expresion')' { this.cantRetornos.set(this.cantRetornos.size()-1, this.cantRetornos.get(this.cantRetornos.size()-1) + 1); 
+					$$.sval = gc.addTerceto("RET", $3.sval, "");		
+		}
 		;
 
 invoc_fun	: ID '(' lista_parametro_real ')' {estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
@@ -274,7 +308,7 @@ param_real	: tipo expresion_matematica
 		//| ID expresion_matematica
 		;
 
-sald_mensaj	: OUTF '(' mensaje ')'
+sald_mensaj	: OUTF '(' mensaje ')' {$$.sval = gc.addTerceto("OUTF", $3.sval, "");}
 
 		| OUTF '(' ')' { ErrorHandler.addErrorSintactico("Falta el mensaje del OUTF", lex.getLineaInicial());}
 		| OUTF '(' error ')' { ErrorHandler.addErrorSintactico("Parámetro invalido del OUTF", lex.getLineaInicial());
@@ -301,7 +335,7 @@ foravanc	: UP
 		| DOWN
 		;
 
-goto		: GOTO TAG
+goto		: GOTO TAG { $$.sval = gc.addTerceto("GOTO", $2.sval,"");} // luego se deberá setear a donde salta
 
 		| GOTO error ';' {ErrorHandler.addErrorSintactico("falta la etiqueta en el GOTO, en caso de faltar también el punto y coma es posible que no compile el resto del programa o lo haga mal.", lex.getLineaInicial());
 				lex.setErrorHandlerToken(";");}
@@ -321,18 +355,19 @@ declar_tipo_trip: TYPEDEF TRIPLE '<' tipo '>' ID {estructurasSintacticas("Se dec
 String nombreArchivo;
 AnalizadorLexico lex;
 TablaSimbolos ts;
+GeneradorCodigo gc;
 String tipoVar;
 ArrayList<Integer> cantRetornos;
 String estructuras;
-public Parser(String nombreArchivo, TablaSimbolos t)
+public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 {
 	this.nombreArchivo=nombreArchivo;
 	this.ts=t;
+	this.gc = gc;
 	this.cantRetornos = new ArrayList<>();
 	this.estructuras = "Estructuras sintacticas detectadas en el codigo fuente :  \n";
 	this.lex= new AnalizadorLexico(nombreArchivo, t, this);
 }
-
 String yyerror(String a) {
 	return a;
 }
@@ -343,12 +378,50 @@ int yylex() {
 	return lex.yylex();
 }
 
-boolean matcheanTipos(){
+boolean esEmbebido(String sval){
+	char firstC=sval.charAt(0);
+	if ( firstC =='x' || firstC =='y' || firstC =='z' || firstC == 'd' ) {
+		return true;
+	}
+	return false;
+}
+
+boolean varRedeclarada(){
+	char firstC=yylval.sval.charAt(0);
+	if ( (tipoVar.equals(AccionSemantica.ULONGINT) && (firstC =='x' || firstC =='y' || firstC =='z')) || (tipoVar.equals(AccionSemantica.DOUBLE) && (firstC == 'd')) ) {
+		return true;
+	}
+	return false;
+}
+
+boolean redeclaracionTipoErroneo(){
 	char firstC=yylval.sval.charAt(0);
 	if ( (tipoVar.equals(AccionSemantica.DOUBLE) && (firstC =='x' || firstC =='y' || firstC =='z')) || (tipoVar.equals(AccionSemantica.ULONGINT) && (firstC == 'd')) ) {
-		return false;
+		return true;
 	}
-	return true;
+	return false;
+}
+
+void checkRedeclaracion(String val){
+	if (varRedeclarada()){
+		ErrorHandler.addErrorSemantico("Se redeclaro el tipo de la variable", lex.getLineaInicial());
+	}
+	else if (redeclaracionTipoErroneo()){
+		ErrorHandler.addErrorSemantico("Se redeclaro el tipo de la variable y con tipos erroneos", lex.getLineaInicial());
+	}
+	else {
+		ts.addClave(val);
+		ts.addAtributo(val,AccionSemantica.TIPO,tipoVar);lex.getLineaInicial();
+	}
+}
+
+void checkRedeclaracionFuncion(){
+	if (varRedeclarada()){
+		ErrorHandler.addErrorSemantico("Se redeclaro el tipo de la funcion", lex.getLineaInicial());
+	}
+	else if (redeclaracionTipoErroneo()){
+		ErrorHandler.addErrorSemantico("Se redeclaro el tipo de la funcion y con tipos erroneos", lex.getLineaInicial());
+	}
 }
 
 void estructurasSintacticas(String estructura){
@@ -423,16 +496,18 @@ public static void main(String[] args) {
 
     // Tomamos el primer argumento como el valor de prueba
     String prueba = args[0];*/
-    String prueba = "PruebaGramaticaErrores";
-    
+    String prueba = "pruebaCodigoSemantica";
     TablaSimbolos tb = new TablaSimbolos();
-    Parser p = new Parser(prueba, tb);
+    GeneradorCodigo gc = new GeneradorCodigo();
+    Parser p = new Parser(prueba, tb, gc);
+    
     int valido = p.yyparse();
     
     System.out.println(p.lex.getListaTokens());
     System.out.println("\n" + p.estructuras);	
     System.out.println("Errores y Warnings detectados del codigo fuente :  \n" + p.errores());
     System.out.println("Contenido de la tabla de simbolos:  \n" + tb);
+    System.out.println("Codigo intermedio en tercetos: " + gc);
     
     if (valido == 0) {
         System.out.println("Se analizo todo el codigo fuente");

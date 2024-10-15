@@ -43,7 +43,7 @@ public class AnalizadorLexico {
 		this.listaTokens = "Tokens: \n";
 		this.setConcatActual("");
 		this.tablaSimbolos = ts;
-		String camino = System.getProperty("user.dir")+ File.separator + "codes" + File.separator + ruta +".txt";
+		String camino = System.getProperty("user.dir")+ File.separator + "src\\codes" + File.separator + ruta +".txt";
 		this.archivo = new File(camino);
 		this.lineaInicial=0;
 		this.lineaInicialDevolver=1;

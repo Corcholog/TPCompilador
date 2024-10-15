@@ -15,6 +15,10 @@ public class ErrorHandler {
 		
 	}
 	
+	public static void addErrorSemantico(String e, int linea) {
+		ErrorHandler.errores += "Error Semantico en linea " + linea + ": " + e + "\n";
+	}
+	
 	public static void addWarningLexico(String e, int linea) {
 		ErrorHandler.errores += "Warning Lexico en linea " + linea + ": " + e + "\n";
 		

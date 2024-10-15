@@ -1,0 +1,28 @@
+nombre
+BEGIN
+	ulongint a, b, c;
+	ulongint a, y, c;
+	double d, e, f;
+	dardo;
+	ULONGINT FUN funcion1(double parametro)
+	BEGIN
+		RET (3+4);
+	END;
+
+	b := funcion1(a + 3);
+	goto pepe@;
+	pepe@;
+	OUTF(3 + 4);
+	
+	IF (a < b) THEN
+	BEGIN
+		a := b;
+	END
+	
+	ELSE
+	BEGIN
+		b := a;
+		
+	END	
+	END_IF;
+END
