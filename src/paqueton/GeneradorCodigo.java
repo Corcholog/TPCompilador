@@ -6,6 +6,7 @@ import java.util.Stack;
 public class GeneradorCodigo {
 	private ArrayList<Terceto> tercetos;
 	private Stack<Integer> flujoControl;
+	private boolean huboError = false;
 	
 	public GeneradorCodigo() {
 		this.tercetos = new ArrayList<Terceto>();
@@ -20,6 +21,10 @@ public class GeneradorCodigo {
 		this.flujoControl.pop();
 	}
 	
+	public Integer peek(){
+		return this.flujoControl.peek();
+	}
+	
 	public int getPosActual() {
 		return this.tercetos.size()-1;
 	}
@@ -32,9 +37,16 @@ public class GeneradorCodigo {
 		return this.tercetos;
 	}
 	
+	public void huboError() {
+		this.huboError = true;
+	}
+	
 	public String addTerceto(String op, String op1, String op2) {
-		this.tercetos.add(new Terceto(op, op1, op2));
-		return "[" + (this.tercetos.size()-1) + "]";
+		if(!huboError) {
+			this.tercetos.add(new Terceto(op, op1, op2));
+			return "[" + (this.tercetos.size()-1) + "]";
+		}
+		return "";
 	}
 	
 	public Terceto getTerceto(int pos) {
@@ -42,11 +54,17 @@ public class GeneradorCodigo {
 	}
 	
 	public void actualizarBI(int ref) {
-		this.tercetos.get(this.flujoControl.peek()).setOp1(String.valueOf(ref));
+		if(!huboError) {
+			this.tercetos.get(this.flujoControl.peek()).setOp1("[" + String.valueOf(ref) + "]");
+		}
+		
 	}
 	
 	public void actualizarBF(int ref) {
-		this.tercetos.get(this.flujoControl.peek()).setOp2(String.valueOf(ref));
+		if(!huboError) {
+			this.tercetos.get(this.flujoControl.peek()).setOp2("[" + String.valueOf(ref) + "]");
+		}
+		
 	}
 	
 	@Override

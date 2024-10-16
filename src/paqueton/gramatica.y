@@ -2,7 +2,7 @@
 	package paqueton;
 	import java.io.*;
 	import java.util.ArrayList;
-	
+	import java.util.Stack;
 %}
 
 %token ID CTE MASI MENOSI ASIGN DIST GOTO UP DOWN TRIPLE FOR ULONGINT DOUBLE IF THEN ELSE BEGIN END END_IF OUTF TYPEDEF FUN RET CADMUL TAG
@@ -59,7 +59,7 @@ sentec_eject	: asignacion
 		
 		;
 
-condicion	: '(' condicion_2 ')'
+condicion	: '(' condicion_2 ')' { $$.sval = $2.sval;}
 
 		| condicion_2 { ErrorHandler.addErrorSintactico("Falta de paréntesis en la condición", lex.getLineaInicial());}
 		| '(' condicion_2 { ErrorHandler.addErrorSintactico("Falta de paréntesis derecho en la condición", lex.getLineaInicial());}
@@ -67,20 +67,20 @@ condicion	: '(' condicion_2 ')'
 		;
 		
 condicion_2 	: expresion_matematica comparador expresion_matematica { $$.sval = gc.addTerceto($2.sval, $1.sval, $3.sval);}
-		| '(' patron ')' comparador '(' patron ')' { $$.sval = gc.addTerceto($4.sval, $2.sval, $6.sval);}
+		| '(' patron ')' comparador '(' patron ')' { $$.sval = gc.addTerceto($4.sval, "{" + $2.sval + "}", "{" + $6.sval + "}");}
+
 		| '(' patron  comparador  patron ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón y el que abre la segunda", lex.getLineaInicial());}
 		| '(' patron ')' comparador  patron ')' { ErrorHandler.addErrorSintactico("Falta parentesis que abre la segunda lista del patrón", lex.getLineaInicial());}
 		| '(' patron  comparador '(' patron ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón", lex.getLineaInicial());}
-
 		| '(' patron ')' error '(' patron ')' { ErrorHandler.addErrorSintactico("Falta comparador entre los patrones", lex.getLineaInicial());}
 		| expresion_matematica error expresion_matematica { ErrorHandler.addErrorSintactico("Falta comparador entre las expresiones", lex.getLineaInicial());}
 		;
 
-patron		: lista_patron ',' expresion_matematica
+patron		: lista_patron ',' expresion_matematica { $$.sval = $1.sval + "," + $3.sval; }
 		;
 
-lista_patron    : lista_patron ',' expresion_matematica 
-		| expresion_matematica
+lista_patron    : lista_patron ',' expresion_matematica { $$.sval = $1.sval + "," + $3.sval; }
+		| expresion_matematica {$$.sval = $1.sval;}
 		;
 		
 seleccion 	: IF condicion_punto_control THEN cuerpo_control sinelse_punto_control {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
@@ -92,13 +92,16 @@ seleccion 	: IF condicion_punto_control THEN cuerpo_control sinelse_punto_contro
 		| IF condicion_punto_control THEN sinelse_punto_control { ErrorHandler.addErrorSintactico("Falta el cuerpo de control del then", lex.getLineaInicial());}
 		| IF condicion_punto_control THEN cuerpo_control else_punto_control endif_punto_control { ErrorHandler.addErrorSintactico("Falta el cuerpo de control del ELSE", lex.getLineaInicial());}
 		| IF condicion_punto_control THEN else_punto_control endif_punto_control { ErrorHandler.addErrorSintactico("Falta el cuerpo de control tanto en THEN como ELSE", lex.getLineaInicial());}
-		; 
-
+		;
+ 
 
 		
-sinelse_punto_control : END_IF {gc.actualizarBF(gc.getCantTercetos()); 
-			gc.pop();}
-		;
+sinelse_punto_control : END_IF {
+			gc.actualizarBF(gc.getCantTercetos()); 
+			gc.pop();
+			}
+			;
+
 condicion_punto_control : condicion {
 			gc.addTerceto("BF", $1.sval, ""); 
 			gc.push(gc.getPosActual());
@@ -113,7 +116,7 @@ else_punto_control : ELSE {
 		}
 		;
 endif_punto_control : END_IF {
-			gc.actualizarBI(gc.getPosActual()); 
+			gc.actualizarBI(gc.getCantTercetos()); 
 			gc.pop();
 			estructurasSintacticas("Se definió una sentencia de control con else, en la linea: " + lex.getLineaInicial());
 		}
@@ -121,7 +124,7 @@ endif_punto_control : END_IF {
 comparador	: MASI
 		| MENOSI
 		| DIST
-		| '='{$$.sval = "=";}
+		| '=' {$$.sval = "=";}
 		| '<' {$$.sval = "<";}
 		| '>' {$$.sval = ">";}
 		;
@@ -175,7 +178,7 @@ tipo		: DOUBLE
 		;
 
 asignacion 	: triple ASIGN expresion {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
-						
+						$$.sval = gc.addTerceto(":=", $1.sval, $3.sval);
 					}
 		| ID ASIGN expresion {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
 					$$.sval = gc.addTerceto(":=", $1.sval, $3.sval);
@@ -239,19 +242,20 @@ constante 	: CTE
 			}
 		;
 
-triple		: ID '{' expresion_matematica '}'
+triple		: ID '{' expresion_matematica '}' {$$.sval = gc.addTerceto("ACCESOTRIPLE", $1.sval, $3.sval);}
 		;
 
-declaracion_fun : tipo_fun FUN ID '(' lista_parametro ')' { this.cantRetornos.add(0); } cuerpo_funcion_p {this.checkRet($3.sval);
-								if (esEmbebido($3.sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());};
+declaracion_fun : tipo_fun FUN ID '(' lista_parametro ')' { this.cantRetornos.add(0); this.gc_funciones.push(this.ts.getGCFuncion($3.sval)); this.gc = this.gc_funciones.peek();} cuerpo_funcion_p {this.checkRet($3.sval);
+								this.gc_funciones.pop();
+								this.gc = this.gc_funciones.peek();
+								if (esEmbebido($3.sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());}										;
 							}
-		| tipo_fun FUN '(' lista_parametro ')'{ this.cantRetornos.add(0); } cuerpo_funcion_p { ErrorHandler.addErrorSintactico("Falta nombre de la funcion declarada", lex.getLineaInicial());
+		| tipo_fun FUN '(' lista_parametro ')'{ this.cantRetornos.add(0);} cuerpo_funcion_p { ErrorHandler.addErrorSintactico("Falta nombre de la funcion declarada", lex.getLineaInicial());
 													this.checkRet("");
 													}
 		| tipo_fun FUN ID '(' ')' { this.cantRetornos.add(0);} cuerpo_funcion_p { ErrorHandler.addErrorSintactico("Falta el parametro en la declaracion de la funcion", lex.getLineaInicial());
 							    this.checkRet($3.sval);
 							    if (esEmbebido($3.sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());}
-
 							   }
 		;
 
@@ -291,18 +295,20 @@ retorno 	: RET '('expresion')' { this.cantRetornos.set(this.cantRetornos.size()-
 		}
 		;
 
-invoc_fun	: ID '(' lista_parametro_real ')' {estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());}
+invoc_fun	: ID '(' lista_parametro_real ')' {estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());
+							$$.sval = gc.addTerceto("INVOC_FUN", $1.sval, $3.sval);
+		}
 		
 		| ID '(' ')' { ErrorHandler.addErrorSintactico("Falta de parámetros en la invocación a la función", lex.getLineaInicial());}
 
 		;
 
 lista_parametro_real : lista_parametro_real ',' param_real { ErrorHandler.addErrorSintactico("Se utilizó más de un parámetro para invocar a la función", lex.getLineaInicial());}
-		| param_real
+		| param_real { $$.sval = $1.sval;}
 		;
 
-param_real	: tipo expresion_matematica
-		| expresion
+param_real	: tipo expresion_matematica {$$.sval = gc.addTerceto("TO".concat($1.sval), $2.sval, "");}
+		| expresion {$$.sval = $1.sval;}
 
 		// genera 4 shift reduce en -CTE (conversión explícita como tripla (tipos definidos por el usuario))
 		//| ID expresion_matematica
@@ -319,20 +325,39 @@ mensaje		: expresion
 		| CADMUL
 		;
 
-for		: FOR '(' ID ASIGN CTE ';' condicion ';' foravanc CTE ')' cuerpo_iteracion {estructurasSintacticas("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial());}
-		
-		| FOR '(' ID ASIGN CTE ';' condicion  foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta punto y coma entre condicion y avance", lex.getLineaInicial());}
-		| FOR '(' ID ASIGN CTE  condicion ';' foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta punto y coma entre asignacion y condicion", lex.getLineaInicial());}
-		| FOR '(' ID ASIGN CTE  condicion foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Faltan todos los punto y coma del for", lex.getLineaInicial());}
-		| FOR '(' ID ASIGN CTE ';' condicion ';' CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta UP/DOWN", lex.getLineaInicial());}
-		| FOR '(' ID ASIGN CTE ';' condicion ';' foravanc ')' cuerpo_iteracion {ErrorHandler.addErrorSintactico("Falta valor del UP/DOWN", lex.getLineaInicial());}
-		| FOR '(' ID ASIGN CTE ';' condicion  CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta UP/DOWN y punto y coma entre condicion y avance", lex.getLineaInicial());}
-		| FOR '(' ID ASIGN CTE ';' condicion  foravanc ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta valor del UP/DOWN y punto y coma entre condicion y avance", lex.getLineaInicial());}
-		| FOR '(' ID ASIGN CTE ';' condicion ';'  ')' cuerpo_iteracion { { ErrorHandler.addErrorSintactico("Falta UP/DOWN, su valor, y punto y coma entre condicion y avance", lex.getLineaInicial());}}
+for		: FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iteracion {	estructurasSintacticas("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial());
+													String var = this.varFors.get(this.varFors.size()-1);
+													gc.addTerceto("+", var, String.valueOf($7.ival * Integer.parseInt($8.sval)));
+													this.varFors.remove(this.varFors.size()-1);
+													gc.addTerceto("BI", $5.sval, "");
+													gc.actualizarBF(gc.getCantTercetos());
+													gc.pop();
+		}
+
+		| FOR '(' asignacion_for ';' condicion_for  foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta punto y coma entre condicion y avance", lex.getLineaInicial());}
+		| FOR '(' asignacion_for  condicion_for ';' foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta punto y coma entre asignacion y condicion", lex.getLineaInicial());}
+		| FOR '(' asignacion_for  condicion_for foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Faltan todos los punto y coma del for", lex.getLineaInicial());}
+		| FOR '(' asignacion_for ';' condicion_for ';' CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta UP/DOWN", lex.getLineaInicial());}
+		| FOR '(' asignacion_for ';' condicion_for ';' foravanc ')' cuerpo_iteracion {ErrorHandler.addErrorSintactico("Falta valor del UP/DOWN", lex.getLineaInicial());}
+		| FOR '(' asignacion_for ';' condicion_for  CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta UP/DOWN y punto y coma entre condicion y avance", lex.getLineaInicial());}
+		| FOR '(' asignacion_for ';' condicion_for  foravanc ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta valor del UP/DOWN y punto y coma entre condicion y avance", lex.getLineaInicial());}
+		| FOR '(' asignacion_for ';' condicion_for ';'  ')' cuerpo_iteracion { { ErrorHandler.addErrorSintactico("Falta UP/DOWN, su valor, y punto y coma entre condicion y avance", lex.getLineaInicial());}}
 		;
 
-foravanc	: UP
-		| DOWN
+
+condicion_for   : condicion { $$.sval = $1.sval;
+				gc.addTerceto("BF", $1.sval, "");
+				gc.push(gc.getPosActual());
+			}
+		;
+
+asignacion_for  : ID ASIGN CTE { gc.addTerceto(":=", $1.sval, $3.sval);
+				this.varFors.add($1.sval);
+				}
+		;
+
+foravanc	: UP {$$.ival = 1;}
+		| DOWN {$$.ival = -1;}
 		;
 
 goto		: GOTO TAG { $$.sval = gc.addTerceto("GOTO", $2.sval,"");} // luego se deberá setear a donde salta
@@ -356,17 +381,24 @@ String nombreArchivo;
 AnalizadorLexico lex;
 TablaSimbolos ts;
 GeneradorCodigo gc;
+Stack<GeneradorCodigo> gc_funciones;
 String tipoVar;
 ArrayList<Integer> cantRetornos;
 String estructuras;
+ArrayList<String> varFors;
+String ambitoActual;
 public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 {
 	this.nombreArchivo=nombreArchivo;
+	this.ambitoActual = "";
 	this.ts=t;
 	this.gc = gc;
+	this.gc_funciones = new Stack<GeneradorCodigo>();
+	this.gc_funciones.push(gc);
 	this.cantRetornos = new ArrayList<>();
 	this.estructuras = "Estructuras sintacticas detectadas en el codigo fuente :  \n";
 	this.lex= new AnalizadorLexico(nombreArchivo, t, this);
+	this.varFors = new ArrayList<>();
 }
 String yyerror(String a) {
 	return a;
@@ -499,7 +531,9 @@ public static void main(String[] args) {
     String prueba = "pruebaCodigoSemantica";
     TablaSimbolos tb = new TablaSimbolos();
     GeneradorCodigo gc = new GeneradorCodigo();
+    
     Parser p = new Parser(prueba, tb, gc);
+    ErrorHandler.setGeneradorCodigo(p.gc);
     
     int valido = p.yyparse();
     

@@ -1,20 +1,27 @@
 nombre
 BEGIN
 	ulongint a, b, c;
-	ulongint a, y, c;
-	double d, e, f;
+	##ulongint a, y, c;
+	##double d, e, f;
 	dardo;
 	ULONGINT FUN funcion1(double parametro)
 	BEGIN
+		tinitinitini{2} := 3 + 4 * 2;
+		ULONGINT FUN funcion2(double parametro)
+		BEGIN
+			RET (1);
+		END;
 		RET (3+4);
 	END;
+	
+	
 
 	b := funcion1(a + 3);
 	goto pepe@;
 	pepe@;
 	OUTF(3 + 4);
 	
-	IF (a < b) THEN
+	IF ((a, b, c) < (d, e, f)) THEN
 	BEGIN
 		a := b;
 	END
@@ -25,4 +32,17 @@ BEGIN
 		
 	END	
 	END_IF;
+	
+	FOR ( i := 1 ; (i < 10) ; UP 1 ) 
+	BEGIN	
+		OUTF([ en el for]);
+		FOR ( j := 1 ; (j < 10) ; DOWN 2 ) 
+		BEGIN
+			paqui := 3;	
+		END;
+		GOTO PEPE@;
+	END;
+	PEPE@;
+	
+	l := 3;
 END

@@ -5,13 +5,26 @@ import java.util.Map;
 
 public class TablaSimbolos {
 	private Map<String, Map<String, String>> tablaSimbolos;
+	private Map<String, GeneradorCodigo> funciones;
 	
 	public TablaSimbolos() {
 		this.tablaSimbolos = new HashMap<String, Map<String, String>>();
+		this.funciones = new HashMap<String, GeneradorCodigo>();
 	}
 	
 	public Map<String, String> getAtributos(String key) {
 		return this.tablaSimbolos.get(key);
+	}
+	
+	public GeneradorCodigo getGCFuncion(String clave) {
+		if(!this.funciones.containsKey(clave)) {
+			this.addFuncion(clave);
+		}
+		return this.funciones.get(clave);
+	}
+	
+	public void addFuncion(String clave) {
+		this.funciones.put(clave, new GeneradorCodigo());
 	}
 	
 	public String getAtributo(String clave, String claveAtributo) {
@@ -95,6 +108,11 @@ public class TablaSimbolos {
 
             sb.append("\n"); // Línea en blanco para separar los símbolos
         }
+        for (Map.Entry<String, GeneradorCodigo> gc : this.funciones.entrySet()) {
+			String key = gc.getKey();
+			GeneradorCodigo val = gc.getValue();
+			sb.append("Tercetos de " + key).append("\n" + val);
+		}
         return sb.toString();
     }
 
