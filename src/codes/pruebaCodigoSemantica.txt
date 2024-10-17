@@ -2,11 +2,13 @@ nombre
 BEGIN
 	ulongint a, b, c;
 	##ulongint a, y, c;
-	##double d, e, f;
-	dardo;
+	double e, f;
+	TYPEDEF TRIPLE <DOUBLE> tinitinitini;
+	tinitinitini t1, t2, t3;
 	ULONGINT FUN funcion1(double parametro)
 	BEGIN
-		tinitinitini{2} := 3 + 4 * 2;
+		t1{2} := 2.0;
+		e := 2;
 		ULONGINT FUN funcion2(double parametro)
 		BEGIN
 			RET (1);
@@ -21,7 +23,7 @@ BEGIN
 	pepe@;
 	OUTF(3 + 4);
 	
-	IF ((a, b, c) < (d, e, f)) THEN
+	IF (a < d) THEN
 	BEGIN
 		a := b;
 	END
@@ -29,7 +31,6 @@ BEGIN
 	ELSE
 	BEGIN
 		b := a;
-		
 	END	
 	END_IF;
 	

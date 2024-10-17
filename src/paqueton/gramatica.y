@@ -59,28 +59,35 @@ sentec_eject	: asignacion
 		
 		;
 
-condicion	: '(' condicion_2 ')' { $$.sval = $2.sval;}
+condicion	: '('  condicion_2 ')' { $$.sval = $2.sval;}
 
 		| condicion_2 { ErrorHandler.addErrorSintactico("Falta de paréntesis en la condición", lex.getLineaInicial());}
 		| '(' condicion_2 { ErrorHandler.addErrorSintactico("Falta de paréntesis derecho en la condición", lex.getLineaInicial());}
 		|  condicion_2 ')' { ErrorHandler.addErrorSintactico("Falta de paréntesis izquierdo en la condición", lex.getLineaInicial());}
 		;
 		
-condicion_2 	: expresion_matematica comparador expresion_matematica { $$.sval = gc.addTerceto($2.sval, $1.sval, $3.sval);}
-		| '(' patron ')' comparador '(' patron ')' { $$.sval = gc.addTerceto($4.sval, "{" + $2.sval + "}", "{" + $6.sval + "}");}
+condicion_2 	: expresion_matematica comparador expresion_matematica { $$.sval = gc.addTerceto($2.sval, $1.sval, $3.sval); gc.checkTipo(gc.getPosActual(), lex.getLineaInicial(), this.ts);}
+		| '(' patron_izq ')' comparador '(' patron_der ')' { if(gc.getTerceto(gc.getPosActual()).getOp2().isEmpty()){ErrorHandler.addErrorSemantico("La longitud de los patrones a matchear es distinta.", lex.getLineaInicial());}else { $$.sval = gc.updateCompAndGenerate(this.inicioPatron, $4.sval);} this.inicioPatron = Integer.MAX_VALUE;}
 
-		| '(' patron  comparador  patron ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón y el que abre la segunda", lex.getLineaInicial());}
-		| '(' patron ')' comparador  patron ')' { ErrorHandler.addErrorSintactico("Falta parentesis que abre la segunda lista del patrón", lex.getLineaInicial());}
-		| '(' patron  comparador '(' patron ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón", lex.getLineaInicial());}
-		| '(' patron ')' error '(' patron ')' { ErrorHandler.addErrorSintactico("Falta comparador entre los patrones", lex.getLineaInicial());}
+		| '(' patron_izq  comparador  patron_der ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón y el que abre la segunda", lex.getLineaInicial());}
+		| '(' patron_izq ')' comparador  patron_der ')' { ErrorHandler.addErrorSintactico("Falta parentesis que abre la segunda lista del patrón", lex.getLineaInicial());}
+		| '(' patron_izq  comparador '(' patron_der ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón", lex.getLineaInicial());}
+		| '(' patron_izq ')' error '(' patron_der ')' { ErrorHandler.addErrorSintactico("Falta comparador entre los patrones", lex.getLineaInicial());}
 		| expresion_matematica error expresion_matematica { ErrorHandler.addErrorSintactico("Falta comparador entre las expresiones", lex.getLineaInicial());}
 		;
 
-patron		: lista_patron ',' expresion_matematica { $$.sval = $1.sval + "," + $3.sval; }
+patron_izq	: lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); $$.sval = gc.addTerceto("COMP", $3.sval, "");}
 		;
 
-lista_patron    : lista_patron ',' expresion_matematica { $$.sval = $1.sval + "," + $3.sval; }
-		| expresion_matematica {$$.sval = $1.sval;}
+lista_patron_izq    : lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); $$.sval = gc.addTerceto("COMP", $3.sval, "");}
+		| expresion_matematica {this.iniciarPatron(); $$.sval = gc.addTerceto("COMP", $1.sval, "");}
+		;
+
+patron_der	: lista_patron_der ',' expresion_matematica { gc.updateAndCheckSize(this.posPatron, $3.sval, lex.getLineaInicial(), this.ts); this.posPatron++;}
+		;
+
+lista_patron_der    : lista_patron_der ',' expresion_matematica { gc.updateAndCheckSize(this.posPatron, $3.sval, lex.getLineaInicial(), this.ts); this.posPatron++;}
+		| expresion_matematica { gc.updateAndCheckSize(this.posPatron, $1.sval, lex.getLineaInicial(), this.ts); this.posPatron++;}
 		;
 		
 seleccion 	: IF condicion_punto_control THEN cuerpo_control sinelse_punto_control {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
@@ -154,18 +161,8 @@ multip_cuerp_fun: multip_cuerp_fun ';' sentec_eject
 		
 declaracion_var : tipo lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
 		
-		| ID '>' lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());} // preguntar
-		| embed {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
+		| ID {tipoVar = $1.sval;}lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());} // preguntar
 		;
-
-
-embed           : lista_variables_e
-		;
-
-lista_variables_e : lista_variables_e ',' ID {if(!esEmbebido($3.sval)){ErrorHandler.addErrorSemantico("No se puede omitir el tipo en declaracion de tipos no-embebidos.", lex.getLineaInicial());};}
-		| ID {if(!esEmbebido($1.sval)){ErrorHandler.addErrorSemantico("No se puede omitir el tipo en declaracion de tipos no-embebidos.", lex.getLineaInicial());};}
-		;
-
 
 lista_variables : lista_variables ',' ID {checkRedeclaracion($3.sval);}
 		| ID {checkRedeclaracion($1.sval);}
@@ -173,15 +170,16 @@ lista_variables : lista_variables ',' ID {checkRedeclaracion($3.sval);}
 		;
 
 
-tipo		: DOUBLE
-		| ULONGINT 
+tipo		: DOUBLE {$$.sval = "double";}
+		| ULONGINT {$$.sval = "ulongint";}
 		;
 
 asignacion 	: triple ASIGN expresion {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
-						$$.sval = gc.addTerceto(":=", $1.sval, $3.sval);
+						$$.sval = gc.addTerceto(":=", $1.sval, $3.sval); gc.checkTipoAsignacion($1.sval, lex.getLineaInicial(), $3.sval, this.ts);
+
 					}
-		| ID ASIGN expresion {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
-					$$.sval = gc.addTerceto(":=", $1.sval, $3.sval);
+		| ID ASIGN expresion {  estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
+					$$.sval = gc.addTerceto(":=", $1.sval, $3.sval); gc.checkTipoAsignacion($1.sval, lex.getLineaInicial(), $3.sval, this.ts);
 		}
 			
 	 	;
@@ -190,9 +188,11 @@ expresion : expresion_matematica
 	  | condicion_2
 	  ;
 
-expresion_matematica 	: expresion_matematica '+' termino {$$.sval = gc.addTerceto("+", $1.sval, $3.sval);}
-		| expresion_matematica '-' termino {$$.sval = gc.addTerceto("-", $1.sval, $3.sval);}
+expresion_matematica 	: expresion_matematica '+' termino {$$.sval = gc.checkTipoExpresion($1.sval, $3.sval, lex.getLineaInicial(), this.ts, "+");}
+		| expresion_matematica '-' termino {$$.sval = gc.checkTipoExpresion($1.sval, $3.sval, lex.getLineaInicial(), this.ts, "-");}
 		| termino 
+
+
 
 		
 		//| expresion_matematica termino { ErrorHandler.addErrorSintactico("Falta operador en la expresión matematica", lex.getLineaInicial());}
@@ -209,8 +209,8 @@ expresion_matematica 	: expresion_matematica '+' termino {$$.sval = gc.addTercet
 		;
 
 
-termino 	: termino '*' factor {$$.sval = gc.addTerceto("*", $1.sval, $3.sval);}
-		| termino '/' factor {$$.sval = gc.addTerceto("/", $1.sval, $3.sval);}
+termino 	: termino '*' factor {$$.sval = gc.checkTipoExpresion($1.sval, $3.sval, lex.getLineaInicial(), this.ts, "*");}
+		| termino '/' factor {$$.sval = gc.checkTipoExpresion($1.sval, $3.sval, lex.getLineaInicial(), this.ts, "/");}
 		| factor
 		
 		//| termino error factor { ErrorHandler.addErrorSintactico("Falta operador en el término", lex.getLineaInicial());}
@@ -226,23 +226,24 @@ termino 	: termino '*' factor {$$.sval = gc.addTerceto("*", $1.sval, $3.sval);}
 					lex.setErrorHandlerToken(";");}
 		;
 
-factor		: ID
+factor		: ID { gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts);}
 		| constante
 		| invoc_fun
 		| triple
 		;
 
-constante 	: CTE 		
+constante 	: CTE 	{ $$.sval = $1.sval;}	
 		| '-' CTE   {	if (ts.esUlongInt($2.sval)){
 					ErrorHandler.addErrorSintactico("se utilizo un Ulongint negativo, son solo positivos", lex.getLineaInicial());
 				}
 				else {
 					ts.convertirNegativo($2.sval);
 				}
+				$$.sval = $2.sval;
 			}
 		;
 
-triple		: ID '{' expresion_matematica '}' {$$.sval = gc.addTerceto("ACCESOTRIPLE", $1.sval, $3.sval);}
+triple		: ID '{' expresion_matematica '}' {$$.sval = gc.addTerceto("ACCESOTRIPLE", $1.sval, $3.sval, this.ts.getAtributo($1.sval, "tipo"));}
 		;
 
 declaracion_fun : tipo_fun FUN ID '(' lista_parametro ')' { this.cantRetornos.add(0); this.gc_funciones.push(this.ts.getGCFuncion($3.sval)); this.gc = this.gc_funciones.peek();} cuerpo_funcion_p {this.checkRet($3.sval);
@@ -296,7 +297,7 @@ retorno 	: RET '('expresion')' { this.cantRetornos.set(this.cantRetornos.size()-
 		;
 
 invoc_fun	: ID '(' lista_parametro_real ')' {estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());
-							$$.sval = gc.addTerceto("INVOC_FUN", $1.sval, $3.sval);
+							$$.sval = gc.addTerceto("INVOC_FUN", $1.sval, $3.sval, this.ts.getAtributo($1.sval, AccionSemantica.TIPO));
 		}
 		
 		| ID '(' ')' { ErrorHandler.addErrorSintactico("Falta de parámetros en la invocación a la función", lex.getLineaInicial());}
@@ -368,7 +369,7 @@ goto		: GOTO TAG { $$.sval = gc.addTerceto("GOTO", $2.sval,"");} // luego se deb
 
 
 
-declar_tipo_trip: TYPEDEF TRIPLE '<' tipo '>' ID {estructurasSintacticas("Se declaró un tipo TRIPLE con el ID: " + $6.sval + " en la linea:" + lex.getLineaInicial());}
+declar_tipo_trip: TYPEDEF TRIPLE '<' tipo '>' ID {estructurasSintacticas("Se declaró un tipo TRIPLE con el ID: " + $6.sval + " en la linea:" + lex.getLineaInicial()); this.ts.addAtributo($6.sval, "tipotripla", $4.sval); this.ts.addAtributo($6.sval, "tipo", $4.sval);}
 		
 		| TYPEDEF TRIPLE  tipo '>' ID {ErrorHandler.addErrorSintactico("falta < en la declaración del TRIPLE", lex.getLineaInicial()); }
 		| TYPEDEF TRIPLE '<' tipo  ID {ErrorHandler.addErrorSintactico("falta > en la declaración del TRIPLE", lex.getLineaInicial()); }
@@ -387,10 +388,14 @@ ArrayList<Integer> cantRetornos;
 String estructuras;
 ArrayList<String> varFors;
 String ambitoActual;
+Integer inicioPatron;
+Integer posPatron;
 public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 {
 	this.nombreArchivo=nombreArchivo;
 	this.ambitoActual = "";
+	this.inicioPatron = Integer.MAX_VALUE;
+	this.posPatron = -1;
 	this.ts=t;
 	this.gc = gc;
 	this.gc_funciones = new Stack<GeneradorCodigo>();
@@ -408,6 +413,13 @@ String errores() {
 }
 int yylex() {
 	return lex.yylex();
+}
+
+void iniciarPatron(){
+	if(this.inicioPatron > gc.getCantTercetos()){
+		this.inicioPatron = gc.getCantTercetos();
+		this.posPatron = this.inicioPatron;
+	}
 }
 
 boolean esEmbebido(String sval){
@@ -443,7 +455,9 @@ void checkRedeclaracion(String val){
 	}
 	else {
 		ts.addClave(val);
-		ts.addAtributo(val,AccionSemantica.TIPO,tipoVar);lex.getLineaInicial();
+
+		ts.addAtributo(val,AccionSemantica.TIPO,tipoVar);
+		lex.getLineaInicial();
 	}
 }
 

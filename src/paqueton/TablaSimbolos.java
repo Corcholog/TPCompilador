@@ -28,8 +28,14 @@ public class TablaSimbolos {
 	}
 	
 	public String getAtributo(String clave, String claveAtributo) {
-		return this.tablaSimbolos.get(clave).get(claveAtributo);
+	    if (this.tablaSimbolos.containsKey(clave)) {
+	        if (this.tablaSimbolos.get(clave).containsKey(claveAtributo)) {
+	            return this.tablaSimbolos.get(clave).get(claveAtributo);
+	        }
+	    }
+	    return "";
 	}
+
 	
 	public void updateAtributo(String clave, String claveAtributo, String valor) {
 		this.tablaSimbolos.get(clave).put(claveAtributo, valor);
