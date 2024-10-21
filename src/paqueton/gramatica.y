@@ -7,7 +7,7 @@
 
 %token ID CTE MASI MENOSI ASIGN DIST GOTO UP DOWN TRIPLE FOR ULONGINT DOUBLE IF THEN ELSE BEGIN END END_IF OUTF TYPEDEF FUN RET CADMUL TAG
 %%
-prog		: ID cuerpo { estructurasSintacticas("Se declaró el programa: " + $1.sval);}
+prog		: ID {this.ambitoActual = $1.sval;} cuerpo { estructurasSintacticas("Se declaró el programa: " + $1.sval); }
 
 		| cuerpo_error { ErrorHandler.addErrorSintactico("Falta el nombre del programa", lex.getLineaInicial());}
 		;
@@ -161,7 +161,7 @@ multip_cuerp_fun: multip_cuerp_fun ';' sentec_eject
 		
 declaracion_var : tipo lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
 		
-		| ID {tipoVar = $1.sval;}lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());} // preguntar
+		| ID {tipoVar = $1.sval;} lista_variables {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());} // preguntar
 		;
 
 lista_variables : lista_variables ',' ID {checkRedeclaracion($3.sval);}
@@ -174,19 +174,15 @@ tipo		: DOUBLE {$$.sval = "double";}
 		| ULONGINT {$$.sval = "ulongint";}
 		;
 
-asignacion 	: triple ASIGN expresion {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
+asignacion 	: triple ASIGN expresion_matematica {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
 						$$.sval = gc.addTerceto(":=", $1.sval, $3.sval); gc.checkTipoAsignacion($1.sval, lex.getLineaInicial(), $3.sval, this.ts);
 
 					}
-		| ID ASIGN expresion {  estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
+		| ID ASIGN expresion_matematica {  estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
 					$$.sval = gc.addTerceto(":=", $1.sval, $3.sval); gc.checkTipoAsignacion($1.sval, lex.getLineaInicial(), $3.sval, this.ts);
 		}
 			
 	 	;
-
-expresion : expresion_matematica
-	  | condicion_2
-	  ;
 
 expresion_matematica 	: expresion_matematica '+' termino {$$.sval = gc.checkTipoExpresion($1.sval, $3.sval, lex.getLineaInicial(), this.ts, "+");}
 		| expresion_matematica '-' termino {$$.sval = gc.checkTipoExpresion($1.sval, $3.sval, lex.getLineaInicial(), this.ts, "-");}
@@ -243,13 +239,15 @@ constante 	: CTE 	{ $$.sval = $1.sval;}
 			}
 		;
 
-triple		: ID '{' expresion_matematica '}' {$$.sval = gc.addTerceto("ACCESOTRIPLE", $1.sval, $3.sval, this.ts.getAtributo($1.sval, "tipo"));}
+triple		: ID '{' expresion_matematica '}' {String tipo = this.ts.getAtributo($1.sval, AccionSemantica.TIPO_BASICO); if(tipo.equals("")){ ErrorHandler.addErrorSemantico( "La tripla " + $1.sval + " nunca fue declarada.", lex.getLineaInicial()) ; tipo = "error";}$$.sval = gc.addTerceto("ACCESOTRIPLE", $1.sval, $3.sval, tipo);}
 		;
 
-declaracion_fun : tipo_fun FUN ID '(' lista_parametro ')' { this.cantRetornos.add(0); this.gc_funciones.push(this.ts.getGCFuncion($3.sval)); this.gc = this.gc_funciones.peek();} cuerpo_funcion_p {this.checkRet($3.sval);
+declaracion_fun : tipo_fun FUN ID '(' {this.funcionActual = $3.sval;} lista_parametro ')' { this.cantRetornos.add(0); this.gc_funciones.push(this.ts.getGCFuncion($3.sval)); this.gc = this.gc_funciones.peek(); this.ambitoActual += ":" + $3.sval;} cuerpo_funcion_p {
+								
+								tipoVar = $1.sval; this.checkRet($3.sval);
 								this.gc_funciones.pop();
 								this.gc = this.gc_funciones.peek();
-								if (esEmbebido($3.sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());}										;
+								if (esEmbebido($3.sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());} this.cambiarAmbito();
 							}
 		| tipo_fun FUN '(' lista_parametro ')'{ this.cantRetornos.add(0);} cuerpo_funcion_p { ErrorHandler.addErrorSintactico("Falta nombre de la funcion declarada", lex.getLineaInicial());
 													this.checkRet("");
@@ -269,8 +267,8 @@ lista_parametro : lista_parametro ',' parametro { ErrorHandler.addErrorSintactic
 
 		;
 
-parametro	: tipo ID {estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
-		| ID ID {estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
+parametro	: tipo ID { this.ts.addAtributo($2.sval,AccionSemantica.TIPO, $1.sval); this.ts.addAtributo(funcionActual, AccionSemantica.PARAMETRO, $2.sval); estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
+		| ID ID { this.ts.addAtributo($2.sval,AccionSemantica.TIPO, $1.sval); this.ts.addAtributo(funcionActual, AccionSemantica.PARAMETRO, $2.sval); estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
 
 		| tipo { ErrorHandler.addErrorSintactico("Falta el nombre del parametro", lex.getLineaInicial());}
 		| ID { ErrorHandler.addErrorSintactico("Falta el nombre del parametro o el tipo", lex.getLineaInicial());} //buscando en tabla de simbolos se puede saber lo que falta
@@ -291,13 +289,19 @@ bloque_funcion : retorno
 		| sentencia
 		;
 
-retorno 	: RET '('expresion')' { this.cantRetornos.set(this.cantRetornos.size()-1, this.cantRetornos.get(this.cantRetornos.size()-1) + 1); 
+retorno 	: RET '('expresion_matematica')' { this.cantRetornos.set(this.cantRetornos.size()-1, this.cantRetornos.get(this.cantRetornos.size()-1) + 1); 
 					$$.sval = gc.addTerceto("RET", $3.sval, "");		
 		}
 		;
 
-invoc_fun	: ID '(' lista_parametro_real ')' {estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());
-							$$.sval = gc.addTerceto("INVOC_FUN", $1.sval, $3.sval, this.ts.getAtributo($1.sval, AccionSemantica.TIPO));
+invoc_fun	: ID '('{funcionActual = $1.sval; } lista_parametro_real ')' { 
+							estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());
+							String tipo = this.ts.getAtributo($1.sval, AccionSemantica.TIPO);
+							if(tipo.equals("")){
+								ErrorHandler.addErrorSemantico("La funcion invocada " + $1.sval + " no existe.", lex.getLineaInicial());
+								tipo = "error";
+							}
+							$$.sval = gc.addTerceto("INVOC_FUN", $1.sval, $3.sval, tipo);
 		}
 		
 		| ID '(' ')' { ErrorHandler.addErrorSintactico("Falta de parámetros en la invocación a la función", lex.getLineaInicial());}
@@ -308,8 +312,8 @@ lista_parametro_real : lista_parametro_real ',' param_real { ErrorHandler.addErr
 		| param_real { $$.sval = $1.sval;}
 		;
 
-param_real	: tipo expresion_matematica {$$.sval = gc.addTerceto("TO".concat($1.sval), $2.sval, "");}
-		| expresion {$$.sval = $1.sval;}
+param_real	: tipo expresion_matematica { $$.sval = gc.addTerceto("TO".concat($1.sval), $2.sval, $1.sval); if(!this.ts.getAtributo(this.ts.getAtributo(funcionActual, AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals($1.sval)){ ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lex.getLineaInicial());}}
+		| expresion_matematica {$$.sval = $1.sval; gc.checkParamReal($1.sval, lex.getLineaInicial(), this.ts, funcionActual);}
 
 		// genera 4 shift reduce en -CTE (conversión explícita como tripla (tipos definidos por el usuario))
 		//| ID expresion_matematica
@@ -322,17 +326,22 @@ sald_mensaj	: OUTF '(' mensaje ')' {$$.sval = gc.addTerceto("OUTF", $3.sval, "")
 					lex.setErrorHandlerToken(")");}
 		;
 
-mensaje		: expresion
+mensaje		: expresion_matematica
 		| CADMUL
 		;
 
-for		: FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iteracion {	estructurasSintacticas("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial());
-													String var = this.varFors.get(this.varFors.size()-1);
-													gc.addTerceto("+", var, String.valueOf($7.ival * Integer.parseInt($8.sval)));
-													this.varFors.remove(this.varFors.size()-1);
-													gc.addTerceto("BI", $5.sval, "");
-													gc.actualizarBF(gc.getCantTercetos());
-													gc.pop();
+for		: FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iteracion {	estructurasSintacticas("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial()); 
+				String var = this.varFors.get(this.varFors.size()-1);
+				if(!this.ts.getAtributo($3.sval, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){
+					ErrorHandler.addErrorSemantico("La constante de avance no es de tipo entero.", lex.getLineaInicial()); 
+					gc.addTerceto("+", var, String.valueOf($7.ival * Double.parseDouble($8.sval)));
+				} else {
+					gc.addTerceto("+", var, String.valueOf($7.ival * Integer.parseInt($8.sval)));
+				}		
+				this.varFors.remove(this.varFors.size()-1);
+				gc.addTerceto("BI", $5.sval, "");
+				gc.actualizarBF(gc.getCantTercetos());
+				gc.pop();
 		}
 
 		| FOR '(' asignacion_for ';' condicion_for  foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta punto y coma entre condicion y avance", lex.getLineaInicial());}
@@ -352,7 +361,10 @@ condicion_for   : condicion { $$.sval = $1.sval;
 			}
 		;
 
-asignacion_for  : ID ASIGN CTE { gc.addTerceto(":=", $1.sval, $3.sval);
+asignacion_for  : ID ASIGN CTE {
+				if(!this.ts.getAtributo($1.sval, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La constante asignada a " + $1.sval + " no es de tipo entero.", lex.getLineaInicial());}
+				if(!this.ts.getAtributo($3.sval, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La constante " + $3.sval + " no es de tipo entero.", lex.getLineaInicial());}
+				gc.addTerceto(":=", $1.sval, $3.sval);
 				this.varFors.add($1.sval);
 				}
 		;
@@ -388,11 +400,13 @@ ArrayList<Integer> cantRetornos;
 String estructuras;
 ArrayList<String> varFors;
 String ambitoActual;
+String funcionActual;
 Integer inicioPatron;
 Integer posPatron;
 public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 {
 	this.nombreArchivo=nombreArchivo;
+	this.funcionActual = "";
 	this.ambitoActual = "";
 	this.inicioPatron = Integer.MAX_VALUE;
 	this.posPatron = -1;
@@ -420,6 +434,15 @@ void iniciarPatron(){
 		this.inicioPatron = gc.getCantTercetos();
 		this.posPatron = this.inicioPatron;
 	}
+}
+
+void cambiarAmbito(){
+	int index = this.ambitoActual.lastIndexOf(":");
+	System.out.println("Ambito antes: " + ambitoActual);
+        if (index != -1) {
+            this.ambitoActual = this.ambitoActual.substring(0, index); // Retorna todo hasta el ":"
+        }
+	System.out.println("Ambito despues: " + ambitoActual);
 }
 
 boolean esEmbebido(String sval){
@@ -455,8 +478,14 @@ void checkRedeclaracion(String val){
 	}
 	else {
 		ts.addClave(val);
-
 		ts.addAtributo(val,AccionSemantica.TIPO,tipoVar);
+		if(!tipoVar.equals(AccionSemantica.DOUBLE) && !tipoVar.equals(AccionSemantica.ULONGINT)){
+			if(!this.ts.getAtributo(tipoVar, AccionSemantica.TIPO).equals("")){
+				ts.addAtributo(val, AccionSemantica.TIPO_BASICO, this.ts.getAtributo(tipoVar, AccionSemantica.TIPO));
+			} else {
+				ErrorHandler.addErrorSemantico("No existe la tripla con el ID " + tipoVar, lex.getLineaInicial());
+			}
+		}
 		lex.getLineaInicial();
 	}
 }
@@ -479,8 +508,7 @@ void checkRet(String nombreFuncion) {
 		if (this.cantRetornos.get(this.cantRetornos.size()-1) > 0){
 			estructurasSintacticas("Se declaró la función: " + nombreFuncion);
 			ts.addClave(nombreFuncion);
-			ts.addAtributo(nombreFuncion,AccionSemantica.TIPO,AccionSemantica.FUNCION);
-			ts.addAtributo(nombreFuncion,AccionSemantica.TIPORETORNO,tipoVar);
+			ts.addAtributo(nombreFuncion,AccionSemantica.TIPO,tipoVar);
 		} else {
 			ErrorHandler.addErrorSintactico("Falta el retorno de la función: " + nombreFuncion, lex.getLineaInicial());
 		}

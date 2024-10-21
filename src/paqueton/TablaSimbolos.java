@@ -57,6 +57,10 @@ public class TablaSimbolos {
 		return tablaSimbolos.containsKey(s.toUpperCase());
 	}
 	
+	public boolean estaDeclarada(String s) {
+		return tablaSimbolos.containsKey(s) && !getAtributo(s, AccionSemantica.TIPO).equals("");
+	}
+	
 	public boolean esUlongInt(String key) {
 		return this.tablaSimbolos.get(key).get(AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT);
 	}

@@ -15,35 +15,7 @@ BEGIN
 		END;
 		RET (3+4);
 	END;
-	
-	
 
 	b := funcion1(a + 3);
-	goto pepe@;
-	pepe@;
-	OUTF(3 + 4);
-	
-	IF (a < d) THEN
-	BEGIN
-		a := b;
-	END
-	
-	ELSE
-	BEGIN
-		b := a;
-	END	
-	END_IF;
-	
-	FOR ( i := 1 ; (i < 10) ; UP 1 ) 
-	BEGIN	
-		OUTF([ en el for]);
-		FOR ( j := 1 ; (j < 10) ; DOWN 2 ) 
-		BEGIN
-			paqui := 3;	
-		END;
-		GOTO PEPE@;
-	END;
-	PEPE@;
-	
-	l := 3;
+
 END

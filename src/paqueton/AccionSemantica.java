@@ -8,7 +8,8 @@ public abstract class AccionSemantica {
     public static final String REPRESENTACION = "representacion";
     public static final String CANTIDAD = "cantidad";
     public static final String TIPO = "tipo";
-    public static final String TIPORETORNO = "tiporetorno";
+    public static final String TIPO_BASICO = "tipo_basico";
+    public static final String PARAMETRO = "parametro";
     public static final String FUNCION = "funcion";
     public static final String ULONGINT = "ulongint";
     public static final String DOUBLE = "double";
