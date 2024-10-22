@@ -243,9 +243,22 @@ public class AnalizadorLexico {
 		}
 	}
 	
+	public void addTablaSimbolos(String ambitoVar) { //yylval
+		if (!tablaSimbolos.estaEnTablaSimbolos(ambitoVar + concatActual)){
+			tablaSimbolos.addClave(ambitoVar + concatActual);
+		}
+	}
+	
 	public void addAtributoTablaSimbolos(String claveAtributo, String atributo) {
 		this.getTablaSimbolos().addAtributo(concatActual, claveAtributo, atributo);
 	}
+	
+	public void addAtributoTablaSimbolos(String claveAtributo, String atributo,String ambitoVar) {
+		this.getTablaSimbolos().addAtributo(ambitoVar+concatActual, claveAtributo, atributo);
+	}
+	
+	
+	
 	public boolean esPalabraReservada() {
 		return (this.idTokens.contains(concatActual));
 	}

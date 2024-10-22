@@ -7,6 +7,7 @@ public abstract class AccionSemantica {
     public static final double MAX_DOUBLE = 1.7976931348623156e+308;
     public static final String REPRESENTACION = "representacion";
     public static final String CANTIDAD = "cantidad";
+    public static final String USO = "uso";
     public static final String TIPO = "tipo";
     public static final String TIPO_BASICO = "tipo_basico";
     public static final String PARAMETRO = "parametro";
@@ -181,8 +182,9 @@ public abstract class AccionSemantica {
 	static class ASFBR4 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			super.checkString(analizador);
-			analizador.addTablaSimbolos();
-			analizador.addAtributoTablaSimbolos(TIPO,ULONGINT);
+			analizador.addTablaSimbolos("global:");
+			analizador.addAtributoTablaSimbolos(TIPO,ULONGINT,"global:");
+			analizador.addAtributoTablaSimbolos(USO,"nombre variable","global:");
 			analizador.getParser().yylval = new ParserVal(analizador.getConcatActual());
 			int numToken = Parser.ID;
 			analizador.setNroToken(numToken);
@@ -200,8 +202,9 @@ public abstract class AccionSemantica {
 			}
 			else {
 				super.checkString(analizador);
-				analizador.addTablaSimbolos();
-				analizador.addAtributoTablaSimbolos(TIPO,DOUBLE);
+				analizador.addTablaSimbolos("global:");
+				analizador.addAtributoTablaSimbolos(TIPO,DOUBLE,"global:");
+				analizador.addAtributoTablaSimbolos(USO,"nombre variable","global:");
 				analizador.getParser().yylval = new ParserVal(analizador.getConcatActual()); 
 				int numToken = Parser.ID;
 				analizador.setNroToken(numToken);				

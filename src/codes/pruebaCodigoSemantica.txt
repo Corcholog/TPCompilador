@@ -1,21 +1,17 @@
 nombre
 BEGIN
-	ulongint a, b, c;
-	##ulongint a, y, c;
-	double e, f;
-	TYPEDEF TRIPLE <DOUBLE> tinitinitini;
-	tinitinitini t1, t2, t3;
+	ulongint a;
 	ULONGINT FUN funcion1(double parametro)
 	BEGIN
-		t1{2} := 2.0;
-		e := 2;
+		ulongint a;	
 		ULONGINT FUN funcion2(double parametro)
 		BEGIN
-			RET (1);
+			a := 2; 
+			ulongint a;
+			a := 3;
 		END;
 		RET (3+4);
 	END;
-
-	b := funcion1(a + 3);
-
+	ulongint parki;
+	b := funcion2(cork + 3);
 END

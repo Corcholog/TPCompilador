@@ -1,6 +1,7 @@
 package paqueton;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -90,15 +91,21 @@ public class GeneradorCodigo {
 	    return Integer.parseInt(matcher.group(1));
 	}
 
-	public void checkParamReal(String expresion, int lineaActual, TablaSimbolos ts, String funcionActual) {
+	public void checkParamReal(String expresion, int lineaActual, TablaSimbolos ts, String funcionActual,String ambitoActual) {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 	    Matcher matcher = pattern.matcher(expresion);
 	    String tipo = "";
+	    String estaDeclarado = "";
 	    if(!matcher.find()) {
+	    	estaDeclarado = checkDeclaracion(expresion, lineaActual, ts, ambitoActual);
 	    	tipo = ts.getAtributo(expresion, AccionSemantica.TIPO);
 	    } else {
 	    	Terceto tripla = this.getTerceto(Integer.parseInt(matcher.group(1)));
 	    	tipo = ts.getAtributo(tripla.getOp1(), AccionSemantica.TIPO_BASICO);
+	    }
+	    
+	    if (estaDeclarado.equals("")) {
+	    	ErrorHandler.addErrorSemantico("el parametro real " +expresion+ "  no esta al alcance", lineaActual);
 	    }
 	    
 	    if(!ts.getAtributo(ts.getAtributo(funcionActual, AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals(tipo)){ 
@@ -106,7 +113,7 @@ public class GeneradorCodigo {
     	}
 	}
 	
-	public void checkTipoAsignacion(String id, int lineaActual, String opAsig, TablaSimbolos ts) {
+	public void checkTipoAsignacion(String id, int lineaActual, String opAsig, TablaSimbolos ts, String ambitoActual) {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 	    Matcher matcher = pattern.matcher(opAsig);
 	    
@@ -123,12 +130,15 @@ public class GeneradorCodigo {
 	    if(matchres_id) {
 	    	Terceto tripla = this.getTerceto(Integer.parseInt(matcher_id.group(1)));
 	    	id_izq = tripla.getOp1();
+		    id_izq = checkDeclaracion(id_izq, lineaActual, ts,ambitoActual); 
 	    	tipo_izq = ts.getAtributo(id_izq, AccionSemantica.TIPO_BASICO);
 	    } else {
 	    	id_izq = id;
+		    id_izq = checkDeclaracion(id_izq, lineaActual, ts,ambitoActual); 
 	    	tipo_izq = ts.getAtributo(id_izq, AccionSemantica.TIPO);
 	    }
-	    if(!checkDeclaracion(id_izq, lineaActual, ts)) {
+	    
+	    if(id_izq == null) {
 	    	noDeclarado = true;
 	    }
 	    
@@ -136,7 +146,8 @@ public class GeneradorCodigo {
 	    	Terceto asig = this.getTerceto(Integer.parseInt(matcher.group(1)));
 	    	if(asig.getOperador().equals("ACCESOTRIPLE")) {
 	    		id_der = asig.getOp1();
-		    	tipo_der = asig.getTipo();
+			    id_der = checkDeclaracion(id_der, lineaActual, ts,ambitoActual); 
+	    		tipo_der = asig.getTipo();
 	    	} else {
 	    		tipo_der = asig.getTipo();
 	    	}
@@ -145,9 +156,10 @@ public class GeneradorCodigo {
     		}
 	    } else {
 	    	id_der = opAsig;
-	    	tipo_der = ts.getAtributo(id_der, AccionSemantica.TIPO);
-	    	
-	    	if(!checkDeclaracion(id_der, lineaActual, ts)) {
+		    id_der = checkDeclaracion(id_der, lineaActual, ts,ambitoActual); 
+		    tipo_der = ts.getAtributo(id_der, AccionSemantica.TIPO);
+
+	    	if(id_der == null) {
 	    		noDeclarado = true;
 	    	}
 	    }
@@ -161,67 +173,118 @@ public class GeneradorCodigo {
 	    			ErrorHandler.addErrorSemantico("Tipo inesperado en asignacion. La variable izquierda " + id_izq + " es " + tipo_izq + " y la variable derecha " + id_der +  " es " + tipo_der, lineaActual);
 	    		}
 	    	}
+	    }else {
+	    	ErrorHandler.addErrorSemantico("la variable no esta declarada en la Asignacion",lineaActual);
 	    }
 	}
+
 	
-	public boolean checkDeclaracion(String id, int lineaInicial, TablaSimbolos ts) {
-		if(!ts.estaDeclarada(id)) {
-			ErrorHandler.addErrorSemantico("La variable " + id + " nunca fue declarada", lineaInicial);
-			return false;
+	
+	public String checkDeclaracion(String id, int lineaInicial, TablaSimbolos ts,String ambito) {
+		if (id.matches("^[0-9].*")) {//expr regular para ver que no sea una CTE
+			return id;
+		} 
+		else {
+			String[] partes = ambito.split(":");
+			// Usamos un for inverso para eliminar desde funcion2 hacia global
+			for (int i = partes.length - 1; i >= 0; i--) {
+			    // Unimos las partes desde el índice 0 hasta i
+			    String nuevaCadena = String.join(":", Arrays.copyOfRange(partes, 0, i + 1));
+			    String claveTs= nuevaCadena + ":" + id;
+			    System.out.println(claveTs);
+			    if (ts.estaEnTablaSimbolos(claveTs)) {
+			    	return claveTs;
+			    }
+			}
+			ErrorHandler.addErrorSemantico("La variable " + id + " no esta al alcance o no fue declarada",  lineaInicial);
+			return null;
 		}
-		return true;
 	}
 	
-	public String checkTipoExpresion(String op_izq, String op_der, int lineaInicial, TablaSimbolos ts, String operando) {
-		Pattern pattern_izq = Pattern.compile("\\[(\\d+)\\]");
-	    Matcher matcher_izq = pattern_izq.matcher(op_izq);
-	    Pattern pattern_der = Pattern.compile("\\[(\\d+)\\]");
-	    Matcher matcher_der = pattern_der.matcher(op_der);
+	public String checkTipoExpresion(String op_izq, String op_der, int lineaActual, TablaSimbolos ts, String operando,String ambitoActual) {
+		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+	    Matcher matcher = pattern.matcher(op_der);
 	    
-	    // ambos son tercetos
-	    if (matcher_izq.find() && matcher_der.find()) {
-	    	Terceto t_izq = this.getTerceto(Integer.parseInt(matcher_izq.group(1)));
-	    	Terceto t_der = this.getTerceto(Integer.parseInt(matcher_der.group(1)));
-	    	String tipo_izq = t_izq.getTipo();
-	    	String tipo_der = t_der.getTipo();
-	    	if(!tipo_izq.equals(tipo_der)) {
-	    		ErrorHandler.addErrorSemantico("El tipo de los operandos es distinto. Del lado izquierdo se tiene " + tipo_izq + " y del lado derecho se tiene " + tipo_der + " .", lineaInicial);
-	    		return this.addTerceto(operando, op_izq, op_der, "error");
-	    	}
-	    	return this.addTerceto(operando, op_izq, op_der, tipo_izq);
-	    } else if(!matcher_izq.find() && !matcher_der.find()){
-	    	String tipo_izq = ts.getAtributo(op_izq, "tipo");
-	    	String tipo_der = ts.getAtributo(op_der, "tipo");
-	    	if(!tipo_izq.equals(tipo_der)) {
-	    		ErrorHandler.addErrorSemantico("El tipo de los operandos es distinto. Del lado izquierdo se tiene " + op_izq + " del tipo " + tipo_izq + " y del lado derecho se tiene " + op_der + " del tipo " + tipo_der + " .", lineaInicial);
-	    		return this.addTerceto(operando, op_izq, op_der, "error");
-	    	}
-	    	return this.addTerceto(operando, op_izq, op_der, tipo_izq);
-	    } else if(matcher_izq.find() && !matcher_der.find()) {
-	    	Terceto t_izq = this.getTerceto(Integer.parseInt(matcher_izq.group(1)));
-	    	String tipo_izq = t_izq.getTipo();
-	    	String tipo_der = ts.getAtributo(op_der, "tipo");
-	    	if(!tipo_izq.equals(tipo_der)) {
-	    		ErrorHandler.addErrorSemantico("El tipo de los operandos es distinto. Del lado izquierdo se tiene " + tipo_izq + " y del lado derecho se tiene "+ op_der + " del tipo " + tipo_der + " .", lineaInicial);
-	    		return this.addTerceto(operando, op_izq, op_der, "error");
-	    	}
-	    	return this.addTerceto(operando, op_izq, op_der, tipo_izq);
+	    Matcher matcher_id = pattern.matcher(op_izq);
+	    boolean matchres_id = matcher_id.find();
+	    boolean matchres = matcher.find();
+	    boolean noDeclarado = false;
+	    
+	    String id_izq="";
+	    String id_der="";
+	    String tipo_der="";
+	    String tipo_izq = "";
+	    
+	    
+	    if(matchres_id) {
+	    	id_izq = op_izq;
+	    	Terceto tripla = this.getTerceto(Integer.parseInt(matcher_id.group(1)));
+	    	tipo_izq = tripla.getTipo();
+	    	if(tipo_der.equals("error")) {
+    			noDeclarado = true;	    
+	    	}	
 	    } else {
-	    	Terceto t_der = this.getTerceto(Integer.parseInt(matcher_der.group(1)));
-	    	String tipo_der = t_der.getTipo();
-	    	String tipo_izq = ts.getAtributo(op_izq, "tipo");
-	    	if(!tipo_izq.equals(tipo_der)) {
-	    		ErrorHandler.addErrorSemantico("El tipo de los operandos es distinto. Del lado izquierdo se tiene " + tipo_izq + " y del lado derecho se tiene " + tipo_der + " .", lineaInicial);
-	    		return this.addTerceto(operando, op_izq, op_der, "error");
+	    	id_izq = op_izq;
+		    id_izq = checkDeclaracion(id_izq, lineaActual, ts,ambitoActual); 
+	    	tipo_izq = ts.getAtributo(id_izq, AccionSemantica.TIPO);
+	    	if (tipo_izq.equals("")) {
+	    		tipo_izq = "error";
 	    	}
-	    	return this.addTerceto(operando, op_izq, op_der, tipo_izq);
 	    }
 	    
+	    if(id_izq == null) {
+	    	noDeclarado = true;
+	    }
 	    
+	    if(matchres) { // tengo terceto lado derecho
+	    	id_der = op_der;
+	    	Terceto asig = this.getTerceto(Integer.parseInt(matcher.group(1)));
+	    	tipo_der = asig.getTipo();
+	    	if(tipo_der.equals("error")) {
+    			noDeclarado = true;
+	    	}
+    		
+	    } else {
+	    	id_der = op_der;
+		    id_der = checkDeclaracion(id_der, lineaActual, ts,ambitoActual); 
+		    tipo_der = ts.getAtributo(id_der, AccionSemantica.TIPO);
+
+	    	if(id_der == null) {
+	    		noDeclarado = true;
+	    	}
+	    }
+	    
+	    if(!noDeclarado) {
+	    	if(!tipo_der.equals(tipo_izq)) {
+	    			ErrorHandler.addErrorSemantico("Tipo inesperado en la expresion. La variable izquierda " + id_izq + " es " + tipo_izq + " y la variable derecha " + id_der +  " es " + tipo_der, lineaActual);
+	    	}
+	    }
+	    else {
+			ErrorHandler.addErrorSemantico("alguna de las variables no esta declarada en la expresion",lineaActual);
+	    }
+    	return this.addTerceto(operando, id_izq, id_der, tipo_izq);
+
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 	}
 	
 	public String updateCompAndGenerate(int pos, String comp) {
-		System.out.println("AAAAA");
 	    for (int i = pos; i < this.tercetos.size(); i++) {
 	        Terceto t = this.getTerceto(i);
 	        t.setOperador(comp);

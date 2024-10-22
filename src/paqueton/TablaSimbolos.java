@@ -36,7 +36,6 @@ public class TablaSimbolos {
 	    return "";
 	}
 
-	
 	public void updateAtributo(String clave, String claveAtributo, String valor) {
 		this.tablaSimbolos.get(clave).put(claveAtributo, valor);
 	}
@@ -48,13 +47,18 @@ public class TablaSimbolos {
 	}
 	
 	public void addAtributo(String clave, String claveAtributo, String atributo) {
-		if (!this.tablaSimbolos.get(clave).containsKey(claveAtributo)) {			
-			this.tablaSimbolos.get(clave).put(claveAtributo, atributo);
+		if (this.tablaSimbolos.containsKey(clave)) {
+			if (!this.tablaSimbolos.get(clave).containsKey(claveAtributo)) {			
+				this.tablaSimbolos.get(clave).put(claveAtributo, atributo);
+			}	
 		}
 	}
 	
+
+	
+	
 	public boolean estaEnTablaSimbolos(String s) {
-		return tablaSimbolos.containsKey(s.toUpperCase());
+		return tablaSimbolos.containsKey(s);
 	}
 	
 	public boolean estaDeclarada(String s) {
