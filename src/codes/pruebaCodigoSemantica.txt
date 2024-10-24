@@ -3,15 +3,19 @@ BEGIN
 	ulongint a;
 	ULONGINT FUN funcion1(double parametro)
 	BEGIN
-		ulongint a;	
+		goto sottile@;	
 		ULONGINT FUN funcion2(double parametro)
 		BEGIN
-			a := 2; 
+			sottile@;
+			A := 2; 
 			ulongint a;
 			a := 3;
+			goto sOtTiLe@;
 		END;
 		RET (3+4);
 	END;
-	ulongint parki;
-	b := funcion2(cork + 3);
+	dOuBlE parki;
+	goto sottile@;
+	A := funcion1(PaRkI + 3.0);
+	sottile@;
 END

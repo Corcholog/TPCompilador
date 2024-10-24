@@ -95,16 +95,17 @@ public class GeneradorCodigo {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 	    Matcher matcher = pattern.matcher(expresion);
 	    String tipo = "";
-	    String estaDeclarado = "";
-	    if(!matcher.find()) {
-	    	estaDeclarado = checkDeclaracion(expresion, lineaActual, ts, ambitoActual);
+	    boolean estaDeclarado = false;
+	    if(!matcher.find()) {	
+	    	estaDeclarado = !checkDeclaracion(expresion, lineaActual, ts, ambitoActual).isEmpty();
 	    	tipo = ts.getAtributo(expresion, AccionSemantica.TIPO);
 	    } else {
 	    	Terceto tripla = this.getTerceto(Integer.parseInt(matcher.group(1)));
+	    	estaDeclarado = true;
 	    	tipo = ts.getAtributo(tripla.getOp1(), AccionSemantica.TIPO_BASICO);
 	    }
 	    
-	    if (estaDeclarado.equals("")) {
+	    if (!estaDeclarado) {
 	    	ErrorHandler.addErrorSemantico("el parametro real " +expresion+ "  no esta al alcance", lineaActual);
 	    }
 	    

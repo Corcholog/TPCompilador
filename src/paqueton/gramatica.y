@@ -7,7 +7,7 @@
 
 %token ID CTE MASI MENOSI ASIGN DIST GOTO UP DOWN TRIPLE FOR ULONGINT DOUBLE IF THEN ELSE BEGIN END END_IF OUTF TYPEDEF FUN RET CADMUL TAG
 %%
-prog		: ID {this.ts.addClave($1.sval); this.ts.addAtributo($1.sval,AccionSemantica.USO,"nombre programa"); } cuerpo { estructurasSintacticas("Se declaró el programa: " + $1.sval); }
+prog		: ID {this.ts.addClave($1.sval); this.ts.addAtributo($1.sval,AccionSemantica.USO,"nombre programa"); } cuerpo { tags.get(this.tags.size()-1).tagsValidos(lex.getLineaInicial()); estructurasSintacticas("Se declaró el programa: " + $1.sval); }
 
 		| cuerpo_error { ErrorHandler.addErrorSintactico("Falta el nombre del programa", lex.getLineaInicial());}
 		;
@@ -45,6 +45,10 @@ sentec_declar	: declaracion_var
 			ErrorHandler.addErrorSemantico("No se puede declarar una etiqueta que tenga tipos embebidos", lex.getLineaInicial());
 			} else {
 				estructurasSintacticas("Se declaro una etiqueta goto, en linea: " + lex.getLineaInicial());
+				String etiquetaAmbito=ambitoActual+":"+$1.sval;
+				this.ts.addClave(etiquetaAmbito);
+				this.ts.addAtributo(etiquetaAmbito,AccionSemantica.USO,"nombre de tag");
+				this.tags.get(tags.size()-1).declaracionTag(etiquetaAmbito);
 			}
 		}
 		| declar_tipo_trip
@@ -258,10 +262,14 @@ declaracion_fun : tipo_fun FUN ID '(' { if (esEmbebido($3.sval)){ErrorHandler.ad
 					this.checkRedFuncion($3.sval);
 					this.funcionActual = $3.sval;  this.ts.addAtributo(ambitoActual+":"+$3.sval,AccionSemantica.USO,"nombre funcion");}
 					} lista_parametro ')' { 
-								this.cantRetornos.add(0); this.gc_funciones.push(this.ts.getGCFuncion($3.sval)); this.gc = this.gc_funciones.peek(); this.ambitoActual += ":" + $3.sval;} cuerpo_funcion_p {
+								this.cantRetornos.add(0); this.gc_funciones.push(this.ts.getGCFuncion($3.sval)); this.gc = this.gc_funciones.peek(); this.ambitoActual += ":" + $3.sval;
+								this.tags.add(new ControlTagAmbito());
+								} cuerpo_funcion_p {
 								tipoVar = $1.sval; this.checkRet($3.sval);
 								this.gc_funciones.pop();
 								this.gc = this.gc_funciones.peek();
+								tags.get(this.tags.size()-1).tagsValidos(lex.getLineaInicial());
+								tags.remove(this.tags.size()-1);
 								this.cambiarAmbito();
 							}
 					
@@ -321,14 +329,14 @@ invoc_fun	: ID '('{funcionActual = $1.sval; } lista_parametro_real ')' {
 								ErrorHandler.addErrorSemantico("La funcion invocada " + $1.sval + " no existe.", lex.getLineaInicial());
 								tipo = "error";
 							}
-							$$.sval = gc.addTerceto("INVOC_FUN", $1.sval, $3.sval, tipo);
+							$$.sval = gc.addTerceto("INVOC_FUN", $1.sval, $4.sval, tipo);//porque $4? :c
 		}
 		
 		| ID '(' ')' { ErrorHandler.addErrorSintactico("Falta de parámetros en la invocación a la función", lex.getLineaInicial());}
 
 		;
 
-lista_parametro_real : lista_parametro_real ',' param_real { ErrorHandler.addErrorSintactico("Se utilizó más de un parámetro para invocar a la función", lex.getLineaInicial());}
+lista_parametro_real : lista_parametro_real ',' param_real { $$.sval = $3.sval;ErrorHandler.addErrorSintactico("Se utilizó más de un parámetro para invocar a la función", lex.getLineaInicial());}
 		| param_real { $$.sval = $1.sval;}
 		;
 
@@ -398,7 +406,9 @@ foravanc	: UP {$$.ival = 1;}
 		| DOWN {$$.ival = -1;}
 		;
 
-goto		: GOTO TAG { $$.sval = gc.addTerceto("GOTO", $2.sval,""); this.ts.addAtributo($2.sval,AccionSemantica.USO,"nombre etiqueta");} // luego se deberá setear a donde salta
+goto		: GOTO TAG { $$.sval = gc.addTerceto("GOTO", $2.sval,""); this.ts.addAtributo($2.sval,AccionSemantica.USO,"nombre etiqueta");
+			     this.tags.get(tags.size()-1).huboGoto(this.ambitoActual+":"+$2.sval);
+			} // luego se deberá setear a donde salta
 
 		| GOTO error ';' {ErrorHandler.addErrorSintactico("falta la etiqueta en el GOTO, en caso de faltar también el punto y coma es posible que no compile el resto del programa o lo haga mal.", lex.getLineaInicial());
 				lex.setErrorHandlerToken(";");}
@@ -422,6 +432,7 @@ GeneradorCodigo gc;
 Stack<GeneradorCodigo> gc_funciones;
 String tipoVar;
 ArrayList<Integer> cantRetornos;
+ArrayList<ControlTagAmbito> tags; 
 String estructuras;
 ArrayList<String> varFors;
 String ambitoActual;
@@ -443,6 +454,8 @@ public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 	this.estructuras = "Estructuras sintacticas detectadas en el codigo fuente :  \n";
 	this.lex= new AnalizadorLexico(nombreArchivo, t, this);
 	this.varFors = new ArrayList<>();
+	this.tags = new ArrayList<>();
+	this.tags.add(new ControlTagAmbito());
 }
 String yyerror(String a) {
 	return a;
