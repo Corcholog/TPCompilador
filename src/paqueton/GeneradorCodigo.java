@@ -210,7 +210,7 @@ public class GeneradorCodigo {
 	    Matcher matcher_id = pattern.matcher(id);
 	    boolean matchres_id = matcher_id.find();
 	    boolean matchres = matcher.find();
-	    boolean noDeclarado = false;
+	    boolean declarado = true;
 	    
 	    String id_izq="";
 	    String id_der="";
@@ -218,8 +218,8 @@ public class GeneradorCodigo {
 	    String tipo_izq = "";
 	    
 	    if(matchres_id) {
-	    	Terceto tripla = this.getTerceto(Integer.parseInt(matcher_id.group(1)));
-	    	id_izq = tripla.getOp1();
+	    	Terceto t = this.getTerceto(Integer.parseInt(matcher_id.group(1)));
+	    	id_izq = t.getOp1();
 		    id_izq = checkDeclaracion(id_izq, lineaActual, ts,ambitoActual); 
 	    	tipo_izq = ts.getAtributo(id_izq, AccionSemantica.TIPO_BASICO);
 	    } else {
@@ -229,21 +229,21 @@ public class GeneradorCodigo {
 	    }
 	    
 	    if(id_izq == null) {
-	    	noDeclarado = true;
+	    	declarado = false;
 	    }
 	    
 	    if(matchres) { // tengo terceto lado derecho
-	    	Terceto asig = this.getTerceto(Integer.parseInt(matcher.group(1)));
-	    	if(asig.getOperador().equals("ACCESOTRIPLE")) {
-	    		id_der = asig.getOp1();
+	    	Terceto t = this.getTerceto(Integer.parseInt(matcher.group(1)));
+	    	if(t.getOperador().equals("ACCESOTRIPLE")) {
+	    		id_der = t.getOp1();
 			    id_der = checkDeclaracion(id_der, lineaActual, ts,ambitoActual); 
-	    		tipo_der = asig.getTipo();
+	    		tipo_der = t.getTipo();
 	    	} else {
 	    		id_der = opAsig;
-	    		tipo_der = asig.getTipo();
+	    		tipo_der = t.getTipo();
 	    	}
 	    	if(tipo_der.equals("error")) {
-    			noDeclarado = true;
+    			declarado = false;
     		}
 	    } else {
 	    	id_der = opAsig;
@@ -251,11 +251,11 @@ public class GeneradorCodigo {
 		    tipo_der = ts.getAtributo(id_der, AccionSemantica.TIPO);
 
 	    	if(id_der == null) {
-	    		noDeclarado = true;
+	    		declarado = false;
 	    	}
 	    }
 	    
-	    if(!noDeclarado) {
+	    if(declarado) {
 	    	if(!tipo_der.equals(tipo_izq)) {
 	    		if(id_der.equals("")) {
 	    			ErrorHandler.addErrorSemantico("Tipo inesperado en asignacion. La variable izquierda " + id_izq + " es " + tipo_izq + " y lo que se asigna es " + tipo_der, lineaActual);
@@ -265,7 +265,7 @@ public class GeneradorCodigo {
 	    		}
 	    	}
 	    }else {
-	    	ErrorHandler.addErrorSemantico("la variable no esta declarada en la Asignacion",lineaActual);
+	    	ErrorHandler.addErrorSemantico("La variable no esta declarada en la Asignacion",lineaActual);
 	    }
 	    
 	    return this.addTerceto(":=", id_izq, id_der, tipo_der);
@@ -280,8 +280,6 @@ public class GeneradorCodigo {
         }
     }
 
-
-	
 	public String checkDeclaracion(String id, int lineaInicial, TablaSimbolos ts,String ambito) {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 	    Matcher matcher = pattern.matcher(id);

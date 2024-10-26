@@ -97,7 +97,8 @@ lista_patron_der    : lista_patron_der ',' expresion_matematica { this.cantPatro
 		
 seleccion 	: IF condicion_punto_control THEN cuerpo_control sinelse_punto_control {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
         	| IF condicion_punto_control THEN cuerpo_control else_punto_control cuerpo_control endif_punto_control
-		// ANDA, PERO VAN A FUNCIONAR MAL LOS TERCETOS. HAY Q CONTROLAR O ALGO
+
+
 
 		| IF condicion_punto_control THEN cuerpo_control { ErrorHandler.addErrorSintactico("Falta END_IF con ELSE", lex.getLineaInicial());}
 		| IF condicion_punto_control THEN else_punto_control { ErrorHandler.addErrorSintactico("Falta END_IF", lex.getLineaInicial());}
@@ -136,6 +137,8 @@ endif_punto_control : END_IF {
 			estructurasSintacticas("Se definió una sentencia de control con else, en la linea: " + lex.getLineaInicial());
 		}
 		;
+
+
 comparador	: MASI
 		| MENOSI
 		| DIST
@@ -383,6 +386,7 @@ for		: FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iter
 				gc.pop();
 				this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "-", "-");
 		}
+
 		| FOR '(' asignacion_for ';' condicion_for  foravanc '-' CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("No se puede utilizar una constante negativa, en su lugar se debe utilizar el avance descendiente DOWN.", lex.getLineaInicial());}
 		| FOR '(' asignacion_for ';' condicion_for  foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta punto y coma entre condicion y avance", lex.getLineaInicial());}
 		| FOR '(' asignacion_for  condicion_for ';' foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta punto y coma entre asignacion y condicion", lex.getLineaInicial());}
@@ -403,7 +407,7 @@ condicion_for   : condicion { $$.sval = $1.sval;
 
 asignacion_for  : ID ASIGN CTE {String varFor = gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts,ambitoActual);
 				if (varFor != null){
-					if(!this.ts.getAtributo(varFor, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La constante asignada a " + $1.sval + " no es de tipo entero.", lex.getLineaInicial());}
+					if(!this.ts.getAtributo(varFor, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La variable " + $1.sval + " no es de tipo entero.", lex.getLineaInicial());}
 					gc.addTerceto(":=",varFor, $3.sval);
 				}
 				else{
@@ -494,24 +498,14 @@ void iniciarPatron(){
 
 void cambiarAmbito(){
 	int index = this.ambitoActual.lastIndexOf(":");
-	System.out.println("Ambito antes: " + ambitoActual);
         if (index != -1) {
             this.ambitoActual = this.ambitoActual.substring(0, index); // Retorna todo hasta el ":"
         }
-	System.out.println("Ambito despues: " + ambitoActual);
 }
 
 boolean esEmbebido(String sval){
 	char firstC=sval.charAt(0);
 	if ( firstC =='x' || firstC =='y' || firstC =='z' || firstC == 'd' ) {
-		return true;
-	}
-	return false;
-}
-
-boolean varRedeclarada(){
-	char firstC=yylval.sval.charAt(0);
-	if ( (tipoVar.equals(AccionSemantica.ULONGINT) && (firstC =='x' || firstC =='y' || firstC =='z')) || (tipoVar.equals(AccionSemantica.DOUBLE) && (firstC == 'd')) ) {
 		return true;
 	}
 	return false;
@@ -527,7 +521,7 @@ boolean redeclaracionTipoErroneo(){
 
 void checkRedeclaracion(String val){
 	String varAmbito = ambitoActual +":"+val;
-	if (varRedeclarada()){
+	if (esEmbebido(val)){
 		ErrorHandler.addErrorSemantico("Se redeclaro el tipo de la variable", lex.getLineaInicial());
 	}
 	else if (redeclaracionTipoErroneo()){
