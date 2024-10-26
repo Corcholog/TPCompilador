@@ -55,7 +55,7 @@ public class GeneradorCodigo {
 	
 	public String addTerceto(String op, String op1, String op2, String tipo) {
 		this.tercetos.add(new Terceto(op, op1, op2, tipo));
-		System.out.println("Agregamos: [" + op + ", " + op1 + ", "+ op2 + "]");
+		//System.out.println("Agregamos: [" + op + ", " + op1 + ", "+ op2 + "]");
 		return "[" + (this.tercetos.size()-1) + "]";
 	}
 	
@@ -72,12 +72,12 @@ public class GeneradorCodigo {
 		} else {
 			Terceto t = this.getTerceto(pos);
 			int newPos = pos;
-			System.out.println("ANTES WHILE: operador " + t.getOperador() + ", operandos " + t.getOp1() + " y "+ op2);
+			//System.out.println("ANTES WHILE: operador " + t.getOperador() + ", operandos " + t.getOp1() + " y "+ op2);
 			while(newPos < this.getPosActual() && !t.getOperador().equals("COMP")) {
 				newPos++;
 				t = this.getTerceto(newPos);
 			}
-			System.out.println("DESPUES WHILE: operador " + t.getOperador() + ", operandos " + t.getOp1() + " y "+ op2);
+			//System.out.println("DESPUES WHILE: operador " + t.getOperador() + ", operandos " + t.getOp1() + " y "+ op2);
 			if(t.getOperador().equals("COMP")) {
 				t.setOp2(op2);
 			}
@@ -292,13 +292,13 @@ public class GeneradorCodigo {
 		else {
 			String var = obtenerVariableSinAmbito(id);
 			String[] partes = ambito.split(":");
-			System.out.println("Variable: " + var);
+			//System.out.println("Variable: " + var);
 			// Usamos un for inverso para eliminar desde funcion2 hacia global
 			for (int i = partes.length - 1; i >= 0; i--) {
 			    // Unimos las partes desde el índice 0 hasta i
 			    String nuevaCadena = String.join(":", Arrays.copyOfRange(partes, 0, i + 1));
 			    String claveTs= nuevaCadena + ":" + var;
-			    System.out.println("clave ts "+claveTs);
+			    //System.out.println("clave ts "+claveTs);
 			    if (ts.estaEnTablaSimbolos(claveTs)) {
 			    	return claveTs;
 			    }
@@ -371,39 +371,46 @@ public class GeneradorCodigo {
 	    }
 	    
 	    String retorno = this.addTerceto(operando, id_izq, id_der, tipo_izq);
-	    System.out.println("SE AGREGA " + retorno);
+	    //System.out.println("SE AGREGA " + retorno);
     	return retorno;
 		
 	}
 	
-	public String updateCompAndGenerate(int pos, String comp) {
-		ArrayList<Integer> comparadores = new ArrayList<>();
-	    for (int i = pos; i < this.tercetos.size(); i++) {
-	    	
-	        Terceto t = this.getTerceto(i);
-	        if(t.getOperador().equals("COMP")) {
-	        	t.setOperador(comp);
-	        	comparadores.add(i);
-	        }
-	    }
+	public String updateCompAndGenerate(int pos, String comp, int sizePatronIzq, int sizePatronDer, int lineaActual) {
+		if(sizePatronIzq < sizePatronDer) {
+			ErrorHandler.addErrorSemantico("La cantidad de elementos del patron izquierdo es menor a la del patron derecho", lineaActual);
+		} else if (sizePatronIzq > sizePatronDer){
+			ErrorHandler.addErrorSemantico("La cantidad de elementos del patron derecho es menor a la del patron izquierdo", lineaActual);
+		} else {
+			ArrayList<Integer> comparadores = new ArrayList<>();
+		    for (int i = pos; i < this.tercetos.size(); i++) {
+		    	
+		        Terceto t = this.getTerceto(i);
+		        if(t.getOperador().equals("COMP")) {
+		        	t.setOperador(comp);
+		        	comparadores.add(i);
+		        }
+		    }
 
-	    int ultimoTercetoGenerado = pos;
-	    
-	    this.addTerceto("AND", "[" + comparadores.getFirst() + "]", "[" + comparadores.get(1) + "]");
-	    ultimoTercetoGenerado = this.tercetos.size() - 1; 
-	    
-	    int size = this.tercetos.size();
+		    int ultimoTercetoGenerado = pos;
+		    
+		    this.addTerceto("AND", "[" + comparadores.getFirst() + "]", "[" + comparadores.get(1) + "]");
+		    ultimoTercetoGenerado = this.tercetos.size() - 1; 
+		    
+		    int size = this.tercetos.size();
 
-	    
-	    
-	    for (int i = 2; i < comparadores.size(); i++) {
-	    	
-	    	this.addTerceto("AND", "[" + ultimoTercetoGenerado + "]", "[" + comparadores.get(i) + "]");
-	        ultimoTercetoGenerado = this.tercetos.size() - 1; 
+		    
+		    
+		    for (int i = 2; i < comparadores.size(); i++) {
+		    	
+		    	this.addTerceto("AND", "[" + ultimoTercetoGenerado + "]", "[" + comparadores.get(i) + "]");
+		        ultimoTercetoGenerado = this.tercetos.size() - 1; 
+			}
+		    
+
+		    return "[" + ultimoTercetoGenerado + "]";
 		}
-	    
-
-	    return "[" + ultimoTercetoGenerado + "]";
+		return "error";
 	}
 	
 	public void actualizarBI(int ref) {

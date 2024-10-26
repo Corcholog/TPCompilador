@@ -70,8 +70,9 @@ condicion	: '('  condicion_2 ')' { $$.sval = $2.sval;}
 		|  condicion_2 ')' { ErrorHandler.addErrorSintactico("Falta de paréntesis izquierdo en la condición", lex.getLineaInicial());}
 		;
 		
-condicion_2 	: expresion_matematica comparador expresion_matematica { $$.sval = gc.addTerceto($2.sval, gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual)); gc.checkTipo(gc.getPosActual(), lex.getLineaInicial(), this.ts, this.ambitoActual, $2.sval);}
-		| '(' patron_izq ')' comparador '(' patron_der ')' { if(gc.getTerceto(gc.getPosActual()).getOp2().isEmpty()){ErrorHandler.addErrorSemantico("La longitud de los patrones a matchear es distinta.", lex.getLineaInicial());}else { $$.sval = gc.updateCompAndGenerate(this.inicioPatron, $4.sval);} this.inicioPatron = Integer.MAX_VALUE; $$.sval = "[" + this.gc.getPosActual() + "]";}
+condicion_2 	: expresion_matematica comparador expresion_matematica { 
+				$$.sval = gc.addTerceto($2.sval, gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual)); 					gc.checkTipo(gc.getPosActual(), lex.getLineaInicial(), this.ts, this.ambitoActual, $2.sval);}
+		| '(' patron_izq ')' comparador '(' patron_der ')' { if(gc.getTerceto(gc.getPosActual()).getOp2().isEmpty()){ErrorHandler.addErrorSemantico("La longitud de los patrones a matchear es distinta.", lex.getLineaInicial());} else { $$.sval = gc.updateCompAndGenerate(this.inicioPatron, $4.sval, this.cantPatronIzq, this.cantPatronDer, lex.getLineaInicial());} this.inicioPatron = Integer.MAX_VALUE; $$.sval = "[" + this.gc.getPosActual() + "]";}
 
 		| '(' patron_izq  comparador  patron_der ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón y el que abre la segunda", lex.getLineaInicial());}
 		| '(' patron_izq ')' comparador  patron_der ')' { ErrorHandler.addErrorSintactico("Falta parentesis que abre la segunda lista del patrón", lex.getLineaInicial());}
@@ -80,18 +81,18 @@ condicion_2 	: expresion_matematica comparador expresion_matematica { $$.sval = 
 		| expresion_matematica error expresion_matematica { ErrorHandler.addErrorSintactico("Falta comparador entre las expresiones", lex.getLineaInicial());}
 		;
 
-patron_izq	: lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
+patron_izq	: lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); this.cantPatronIzq++; $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 		;
 
-lista_patron_izq    : lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
-		| expresion_matematica {this.iniciarPatron(); $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
+lista_patron_izq    : lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); this.cantPatronIzq++;$$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
+		| expresion_matematica {this.iniciarPatron(); this.cantPatronIzq=1; $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 		;
 
-patron_der	: lista_patron_der ',' expresion_matematica { posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
+patron_der	: lista_patron_der ',' expresion_matematica { this.cantPatronDer++; posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
 		;
 
-lista_patron_der    : lista_patron_der ',' expresion_matematica {posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
-		| expresion_matematica { posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
+lista_patron_der    : lista_patron_der ',' expresion_matematica { this.cantPatronDer++;posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
+		| expresion_matematica { this.cantPatronDer = 1; posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
 		;
 		
 seleccion 	: IF condicion_punto_control THEN cuerpo_control sinelse_punto_control {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
@@ -429,7 +430,7 @@ goto		: GOTO TAG { $$.sval = gc.addTerceto("GOTO", ambitoActual + ":" + $2.sval,
 
 
 
-declar_tipo_trip: TYPEDEF TRIPLE '<' tipo '>' ID {this.ts.addAtributo($6.sval,AccionSemantica.USO,"nombre de tipo tripla"); estructurasSintacticas("Se declaró un tipo TRIPLE con el ID: " + $6.sval + " en la linea:" + lex.getLineaInicial()); this.ts.addAtributo($6.sval, "tipotripla", $4.sval); this.ts.addAtributo($6.sval, "tipo", $4.sval);}
+declar_tipo_trip: TYPEDEF TRIPLE '<' tipo '>' ID {this.ts.addClave($6.sval); this.ts.addAtributo($6.sval,AccionSemantica.USO,"nombre de tipo tripla"); estructurasSintacticas("Se declaró un tipo TRIPLE con el ID: " + $6.sval + " en la linea:" + lex.getLineaInicial()); this.ts.addAtributo($6.sval, "tipotripla", $4.sval); this.ts.addAtributo($6.sval, "tipo", $4.sval);}
 		
 		| TYPEDEF TRIPLE  tipo '>' ID {ErrorHandler.addErrorSintactico("falta < en la declaración del TRIPLE", lex.getLineaInicial()); }
 		| TYPEDEF TRIPLE '<' tipo  ID {ErrorHandler.addErrorSintactico("falta > en la declaración del TRIPLE", lex.getLineaInicial()); }
@@ -452,6 +453,8 @@ String ambitoActual;
 String funcionActual;
 Integer inicioPatron;
 Integer posPatron;
+int cantPatronIzq;
+int cantPatronDer;
 public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 {
 	this.nombreArchivo=nombreArchivo;
@@ -459,6 +462,8 @@ public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 	this.ambitoActual = "global";
 	this.inicioPatron = Integer.MAX_VALUE;
 	this.posPatron = -1;
+	this.cantPatronIzq = 0;
+	this.cantPatronDer = 0;
 	this.ts=t;
 	this.gc = gc;
 	this.gc_funciones = new Stack<GeneradorCodigo>();
@@ -634,8 +639,8 @@ public static void main(String[] args) {
     
     int valido = p.yyparse();
     
-    System.out.println(p.lex.getListaTokens());
-    System.out.println("\n" + p.estructuras);	
+    //System.out.println(p.lex.getListaTokens());
+    //System.out.println("\n" + p.estructuras);	
     System.out.println("Errores y Warnings detectados del codigo fuente :  \n" + p.errores());
     System.out.println("Contenido de la tabla de simbolos:  \n" + tb);
     System.out.println("Codigo intermedio en tercetos: " + gc);
