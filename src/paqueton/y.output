@@ -199,31 +199,32 @@
  143          | CADMUL
 
  144  for : FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iteracion
- 145      | FOR '(' asignacion_for ';' condicion_for foravanc CTE ')' cuerpo_iteracion
- 146      | FOR '(' asignacion_for condicion_for ';' foravanc CTE ')' cuerpo_iteracion
- 147      | FOR '(' asignacion_for condicion_for foravanc CTE ')' cuerpo_iteracion
- 148      | FOR '(' asignacion_for ';' condicion_for ';' CTE ')' cuerpo_iteracion
- 149      | FOR '(' asignacion_for ';' condicion_for ';' foravanc ')' cuerpo_iteracion
- 150      | FOR '(' asignacion_for ';' condicion_for CTE ')' cuerpo_iteracion
- 151      | FOR '(' asignacion_for ';' condicion_for foravanc ')' cuerpo_iteracion
- 152      | FOR '(' asignacion_for ';' condicion_for ';' ')' cuerpo_iteracion
+ 145      | FOR '(' asignacion_for ';' condicion_for foravanc '-' CTE ')' cuerpo_iteracion
+ 146      | FOR '(' asignacion_for ';' condicion_for foravanc CTE ')' cuerpo_iteracion
+ 147      | FOR '(' asignacion_for condicion_for ';' foravanc CTE ')' cuerpo_iteracion
+ 148      | FOR '(' asignacion_for condicion_for foravanc CTE ')' cuerpo_iteracion
+ 149      | FOR '(' asignacion_for ';' condicion_for ';' CTE ')' cuerpo_iteracion
+ 150      | FOR '(' asignacion_for ';' condicion_for ';' foravanc ')' cuerpo_iteracion
+ 151      | FOR '(' asignacion_for ';' condicion_for CTE ')' cuerpo_iteracion
+ 152      | FOR '(' asignacion_for ';' condicion_for foravanc ')' cuerpo_iteracion
+ 153      | FOR '(' asignacion_for ';' condicion_for ';' ')' cuerpo_iteracion
 
- 153  condicion_for : condicion
+ 154  condicion_for : condicion
 
- 154  asignacion_for : ID ASIGN CTE
+ 155  asignacion_for : ID ASIGN CTE
 
- 155  foravanc : UP
- 156           | DOWN
+ 156  foravanc : UP
+ 157           | DOWN
 
- 157  goto : GOTO TAG
- 158       | GOTO error ';'
+ 158  goto : GOTO TAG
+ 159       | GOTO error ';'
 
- 159  declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' ID
- 160                   | TYPEDEF TRIPLE tipo '>' ID
- 161                   | TYPEDEF TRIPLE '<' tipo ID
- 162                   | TYPEDEF TRIPLE tipo ID
- 163                   | TYPEDEF '<' tipo '>' ID
- 164                   | TYPEDEF TRIPLE '<' tipo '>' error ';'
+ 160  declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' ID
+ 161                   | TYPEDEF TRIPLE tipo '>' ID
+ 162                   | TYPEDEF TRIPLE '<' tipo ID
+ 163                   | TYPEDEF TRIPLE tipo ID
+ 164                   | TYPEDEF '<' tipo '>' ID
+ 165                   | TYPEDEF TRIPLE '<' tipo '>' error ';'
 
 state 0
 	$accept : . prog $end  (0)
@@ -353,8 +354,8 @@ state 7
 
 
 state 8
-	goto : GOTO . TAG  (157)
-	goto : GOTO . error ';'  (158)
+	goto : GOTO . TAG  (158)
+	goto : GOTO . error ';'  (159)
 
 	error  shift 41
 	TAG  shift 42
@@ -363,14 +364,15 @@ state 8
 
 state 9
 	for : FOR . '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iteracion  (144)
-	for : FOR . '(' asignacion_for ';' condicion_for foravanc CTE ')' cuerpo_iteracion  (145)
-	for : FOR . '(' asignacion_for condicion_for ';' foravanc CTE ')' cuerpo_iteracion  (146)
-	for : FOR . '(' asignacion_for condicion_for foravanc CTE ')' cuerpo_iteracion  (147)
-	for : FOR . '(' asignacion_for ';' condicion_for ';' CTE ')' cuerpo_iteracion  (148)
-	for : FOR . '(' asignacion_for ';' condicion_for ';' foravanc ')' cuerpo_iteracion  (149)
-	for : FOR . '(' asignacion_for ';' condicion_for CTE ')' cuerpo_iteracion  (150)
-	for : FOR . '(' asignacion_for ';' condicion_for foravanc ')' cuerpo_iteracion  (151)
-	for : FOR . '(' asignacion_for ';' condicion_for ';' ')' cuerpo_iteracion  (152)
+	for : FOR . '(' asignacion_for ';' condicion_for foravanc '-' CTE ')' cuerpo_iteracion  (145)
+	for : FOR . '(' asignacion_for ';' condicion_for foravanc CTE ')' cuerpo_iteracion  (146)
+	for : FOR . '(' asignacion_for condicion_for ';' foravanc CTE ')' cuerpo_iteracion  (147)
+	for : FOR . '(' asignacion_for condicion_for foravanc CTE ')' cuerpo_iteracion  (148)
+	for : FOR . '(' asignacion_for ';' condicion_for ';' CTE ')' cuerpo_iteracion  (149)
+	for : FOR . '(' asignacion_for ';' condicion_for ';' foravanc ')' cuerpo_iteracion  (150)
+	for : FOR . '(' asignacion_for ';' condicion_for CTE ')' cuerpo_iteracion  (151)
+	for : FOR . '(' asignacion_for ';' condicion_for foravanc ')' cuerpo_iteracion  (152)
+	for : FOR . '(' asignacion_for ';' condicion_for ';' ')' cuerpo_iteracion  (153)
 
 	'('  shift 43
 	.  error
@@ -427,12 +429,12 @@ state 13
 
 
 state 14
-	declar_tipo_trip : TYPEDEF . TRIPLE '<' tipo '>' ID  (159)
-	declar_tipo_trip : TYPEDEF . TRIPLE tipo '>' ID  (160)
-	declar_tipo_trip : TYPEDEF . TRIPLE '<' tipo ID  (161)
-	declar_tipo_trip : TYPEDEF . TRIPLE tipo ID  (162)
-	declar_tipo_trip : TYPEDEF . '<' tipo '>' ID  (163)
-	declar_tipo_trip : TYPEDEF . TRIPLE '<' tipo '>' error ';'  (164)
+	declar_tipo_trip : TYPEDEF . TRIPLE '<' tipo '>' ID  (160)
+	declar_tipo_trip : TYPEDEF . TRIPLE tipo '>' ID  (161)
+	declar_tipo_trip : TYPEDEF . TRIPLE '<' tipo ID  (162)
+	declar_tipo_trip : TYPEDEF . TRIPLE tipo ID  (163)
+	declar_tipo_trip : TYPEDEF . '<' tipo '>' ID  (164)
+	declar_tipo_trip : TYPEDEF . TRIPLE '<' tipo '>' error ';'  (165)
 
 	TRIPLE  shift 61
 	'<'  shift 62
@@ -743,28 +745,29 @@ state 40
 
 
 state 41
-	goto : GOTO error . ';'  (158)
+	goto : GOTO error . ';'  (159)
 
 	';'  shift 78
 	.  error
 
 
 state 42
-	goto : GOTO TAG .  (157)
+	goto : GOTO TAG .  (158)
 
-	.  reduce 157
+	.  reduce 158
 
 
 state 43
 	for : FOR '(' . asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iteracion  (144)
-	for : FOR '(' . asignacion_for ';' condicion_for foravanc CTE ')' cuerpo_iteracion  (145)
-	for : FOR '(' . asignacion_for condicion_for ';' foravanc CTE ')' cuerpo_iteracion  (146)
-	for : FOR '(' . asignacion_for condicion_for foravanc CTE ')' cuerpo_iteracion  (147)
-	for : FOR '(' . asignacion_for ';' condicion_for ';' CTE ')' cuerpo_iteracion  (148)
-	for : FOR '(' . asignacion_for ';' condicion_for ';' foravanc ')' cuerpo_iteracion  (149)
-	for : FOR '(' . asignacion_for ';' condicion_for CTE ')' cuerpo_iteracion  (150)
-	for : FOR '(' . asignacion_for ';' condicion_for foravanc ')' cuerpo_iteracion  (151)
-	for : FOR '(' . asignacion_for ';' condicion_for ';' ')' cuerpo_iteracion  (152)
+	for : FOR '(' . asignacion_for ';' condicion_for foravanc '-' CTE ')' cuerpo_iteracion  (145)
+	for : FOR '(' . asignacion_for ';' condicion_for foravanc CTE ')' cuerpo_iteracion  (146)
+	for : FOR '(' . asignacion_for condicion_for ';' foravanc CTE ')' cuerpo_iteracion  (147)
+	for : FOR '(' . asignacion_for condicion_for foravanc CTE ')' cuerpo_iteracion  (148)
+	for : FOR '(' . asignacion_for ';' condicion_for ';' CTE ')' cuerpo_iteracion  (149)
+	for : FOR '(' . asignacion_for ';' condicion_for ';' foravanc ')' cuerpo_iteracion  (150)
+	for : FOR '(' . asignacion_for ';' condicion_for CTE ')' cuerpo_iteracion  (151)
+	for : FOR '(' . asignacion_for ';' condicion_for foravanc ')' cuerpo_iteracion  (152)
+	for : FOR '(' . asignacion_for ';' condicion_for ';' ')' cuerpo_iteracion  (153)
 
 	ID  shift 79
 	.  error
@@ -1045,11 +1048,11 @@ state 60
 
 
 state 61
-	declar_tipo_trip : TYPEDEF TRIPLE . '<' tipo '>' ID  (159)
-	declar_tipo_trip : TYPEDEF TRIPLE . tipo '>' ID  (160)
-	declar_tipo_trip : TYPEDEF TRIPLE . '<' tipo ID  (161)
-	declar_tipo_trip : TYPEDEF TRIPLE . tipo ID  (162)
-	declar_tipo_trip : TYPEDEF TRIPLE . '<' tipo '>' error ';'  (164)
+	declar_tipo_trip : TYPEDEF TRIPLE . '<' tipo '>' ID  (160)
+	declar_tipo_trip : TYPEDEF TRIPLE . tipo '>' ID  (161)
+	declar_tipo_trip : TYPEDEF TRIPLE . '<' tipo ID  (162)
+	declar_tipo_trip : TYPEDEF TRIPLE . tipo ID  (163)
+	declar_tipo_trip : TYPEDEF TRIPLE . '<' tipo '>' error ';'  (165)
 
 	ULONGINT  shift 10
 	DOUBLE  shift 11
@@ -1060,7 +1063,7 @@ state 61
 
 
 state 62
-	declar_tipo_trip : TYPEDEF '<' . tipo '>' ID  (163)
+	declar_tipo_trip : TYPEDEF '<' . tipo '>' ID  (164)
 
 	ULONGINT  shift 10
 	DOUBLE  shift 11
@@ -1349,13 +1352,13 @@ state 77
 
 
 state 78
-	goto : GOTO error ';' .  (158)
+	goto : GOTO error ';' .  (159)
 
-	.  reduce 158
+	.  reduce 159
 
 
 state 79
-	asignacion_for : ID . ASIGN CTE  (154)
+	asignacion_for : ID . ASIGN CTE  (155)
 
 	ASIGN  shift 127
 	.  error
@@ -1363,14 +1366,15 @@ state 79
 
 state 80
 	for : FOR '(' asignacion_for . ';' condicion_for ';' foravanc CTE ')' cuerpo_iteracion  (144)
-	for : FOR '(' asignacion_for . ';' condicion_for foravanc CTE ')' cuerpo_iteracion  (145)
-	for : FOR '(' asignacion_for . condicion_for ';' foravanc CTE ')' cuerpo_iteracion  (146)
-	for : FOR '(' asignacion_for . condicion_for foravanc CTE ')' cuerpo_iteracion  (147)
-	for : FOR '(' asignacion_for . ';' condicion_for ';' CTE ')' cuerpo_iteracion  (148)
-	for : FOR '(' asignacion_for . ';' condicion_for ';' foravanc ')' cuerpo_iteracion  (149)
-	for : FOR '(' asignacion_for . ';' condicion_for CTE ')' cuerpo_iteracion  (150)
-	for : FOR '(' asignacion_for . ';' condicion_for foravanc ')' cuerpo_iteracion  (151)
-	for : FOR '(' asignacion_for . ';' condicion_for ';' ')' cuerpo_iteracion  (152)
+	for : FOR '(' asignacion_for . ';' condicion_for foravanc '-' CTE ')' cuerpo_iteracion  (145)
+	for : FOR '(' asignacion_for . ';' condicion_for foravanc CTE ')' cuerpo_iteracion  (146)
+	for : FOR '(' asignacion_for . condicion_for ';' foravanc CTE ')' cuerpo_iteracion  (147)
+	for : FOR '(' asignacion_for . condicion_for foravanc CTE ')' cuerpo_iteracion  (148)
+	for : FOR '(' asignacion_for . ';' condicion_for ';' CTE ')' cuerpo_iteracion  (149)
+	for : FOR '(' asignacion_for . ';' condicion_for ';' foravanc ')' cuerpo_iteracion  (150)
+	for : FOR '(' asignacion_for . ';' condicion_for CTE ')' cuerpo_iteracion  (151)
+	for : FOR '(' asignacion_for . ';' condicion_for foravanc ')' cuerpo_iteracion  (152)
+	for : FOR '(' asignacion_for . ';' condicion_for ';' ')' cuerpo_iteracion  (153)
 
 	ID  shift 44
 	CTE  shift 45
@@ -1768,9 +1772,9 @@ state 108
 
 
 state 109
-	declar_tipo_trip : TYPEDEF TRIPLE '<' . tipo '>' ID  (159)
-	declar_tipo_trip : TYPEDEF TRIPLE '<' . tipo ID  (161)
-	declar_tipo_trip : TYPEDEF TRIPLE '<' . tipo '>' error ';'  (164)
+	declar_tipo_trip : TYPEDEF TRIPLE '<' . tipo '>' ID  (160)
+	declar_tipo_trip : TYPEDEF TRIPLE '<' . tipo ID  (162)
+	declar_tipo_trip : TYPEDEF TRIPLE '<' . tipo '>' error ';'  (165)
 
 	ULONGINT  shift 10
 	DOUBLE  shift 11
@@ -1780,8 +1784,8 @@ state 109
 
 
 state 110
-	declar_tipo_trip : TYPEDEF TRIPLE tipo . '>' ID  (160)
-	declar_tipo_trip : TYPEDEF TRIPLE tipo . ID  (162)
+	declar_tipo_trip : TYPEDEF TRIPLE tipo . '>' ID  (161)
+	declar_tipo_trip : TYPEDEF TRIPLE tipo . ID  (163)
 
 	ID  shift 157
 	'>'  shift 158
@@ -1789,7 +1793,7 @@ state 110
 
 
 state 111
-	declar_tipo_trip : TYPEDEF '<' tipo . '>' ID  (163)
+	declar_tipo_trip : TYPEDEF '<' tipo . '>' ID  (164)
 
 	'>'  shift 159
 	.  error
@@ -1969,7 +1973,7 @@ state 126
 
 
 state 127
-	asignacion_for : ID ASIGN . CTE  (154)
+	asignacion_for : ID ASIGN . CTE  (155)
 
 	CTE  shift 171
 	.  error
@@ -1977,12 +1981,13 @@ state 127
 
 state 128
 	for : FOR '(' asignacion_for ';' . condicion_for ';' foravanc CTE ')' cuerpo_iteracion  (144)
-	for : FOR '(' asignacion_for ';' . condicion_for foravanc CTE ')' cuerpo_iteracion  (145)
-	for : FOR '(' asignacion_for ';' . condicion_for ';' CTE ')' cuerpo_iteracion  (148)
-	for : FOR '(' asignacion_for ';' . condicion_for ';' foravanc ')' cuerpo_iteracion  (149)
-	for : FOR '(' asignacion_for ';' . condicion_for CTE ')' cuerpo_iteracion  (150)
-	for : FOR '(' asignacion_for ';' . condicion_for foravanc ')' cuerpo_iteracion  (151)
-	for : FOR '(' asignacion_for ';' . condicion_for ';' ')' cuerpo_iteracion  (152)
+	for : FOR '(' asignacion_for ';' . condicion_for foravanc '-' CTE ')' cuerpo_iteracion  (145)
+	for : FOR '(' asignacion_for ';' . condicion_for foravanc CTE ')' cuerpo_iteracion  (146)
+	for : FOR '(' asignacion_for ';' . condicion_for ';' CTE ')' cuerpo_iteracion  (149)
+	for : FOR '(' asignacion_for ';' . condicion_for ';' foravanc ')' cuerpo_iteracion  (150)
+	for : FOR '(' asignacion_for ';' . condicion_for CTE ')' cuerpo_iteracion  (151)
+	for : FOR '(' asignacion_for ';' . condicion_for foravanc ')' cuerpo_iteracion  (152)
+	for : FOR '(' asignacion_for ';' . condicion_for ';' ')' cuerpo_iteracion  (153)
 
 	ID  shift 44
 	CTE  shift 45
@@ -2005,14 +2010,14 @@ state 128
 
 
 state 129
-	condicion_for : condicion .  (153)
+	condicion_for : condicion .  (154)
 
-	.  reduce 153
+	.  reduce 154
 
 
 state 130
-	for : FOR '(' asignacion_for condicion_for . ';' foravanc CTE ')' cuerpo_iteracion  (146)
-	for : FOR '(' asignacion_for condicion_for . foravanc CTE ')' cuerpo_iteracion  (147)
+	for : FOR '(' asignacion_for condicion_for . ';' foravanc CTE ')' cuerpo_iteracion  (147)
+	for : FOR '(' asignacion_for condicion_for . foravanc CTE ')' cuerpo_iteracion  (148)
 
 	UP  shift 173
 	DOWN  shift 174
@@ -2392,9 +2397,9 @@ state 155
 
 
 state 156
-	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo . '>' ID  (159)
-	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo . ID  (161)
-	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo . '>' error ';'  (164)
+	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo . '>' ID  (160)
+	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo . ID  (162)
+	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo . '>' error ';'  (165)
 
 	ID  shift 201
 	'>'  shift 202
@@ -2402,20 +2407,20 @@ state 156
 
 
 state 157
-	declar_tipo_trip : TYPEDEF TRIPLE tipo ID .  (162)
+	declar_tipo_trip : TYPEDEF TRIPLE tipo ID .  (163)
 
-	.  reduce 162
+	.  reduce 163
 
 
 state 158
-	declar_tipo_trip : TYPEDEF TRIPLE tipo '>' . ID  (160)
+	declar_tipo_trip : TYPEDEF TRIPLE tipo '>' . ID  (161)
 
 	ID  shift 203
 	.  error
 
 
 state 159
-	declar_tipo_trip : TYPEDEF '<' tipo '>' . ID  (163)
+	declar_tipo_trip : TYPEDEF '<' tipo '>' . ID  (164)
 
 	ID  shift 204
 	.  error
@@ -2530,19 +2535,20 @@ state 170
 
 
 state 171
-	asignacion_for : ID ASIGN CTE .  (154)
+	asignacion_for : ID ASIGN CTE .  (155)
 
-	.  reduce 154
+	.  reduce 155
 
 
 state 172
 	for : FOR '(' asignacion_for ';' condicion_for . ';' foravanc CTE ')' cuerpo_iteracion  (144)
-	for : FOR '(' asignacion_for ';' condicion_for . foravanc CTE ')' cuerpo_iteracion  (145)
-	for : FOR '(' asignacion_for ';' condicion_for . ';' CTE ')' cuerpo_iteracion  (148)
-	for : FOR '(' asignacion_for ';' condicion_for . ';' foravanc ')' cuerpo_iteracion  (149)
-	for : FOR '(' asignacion_for ';' condicion_for . CTE ')' cuerpo_iteracion  (150)
-	for : FOR '(' asignacion_for ';' condicion_for . foravanc ')' cuerpo_iteracion  (151)
-	for : FOR '(' asignacion_for ';' condicion_for . ';' ')' cuerpo_iteracion  (152)
+	for : FOR '(' asignacion_for ';' condicion_for . foravanc '-' CTE ')' cuerpo_iteracion  (145)
+	for : FOR '(' asignacion_for ';' condicion_for . foravanc CTE ')' cuerpo_iteracion  (146)
+	for : FOR '(' asignacion_for ';' condicion_for . ';' CTE ')' cuerpo_iteracion  (149)
+	for : FOR '(' asignacion_for ';' condicion_for . ';' foravanc ')' cuerpo_iteracion  (150)
+	for : FOR '(' asignacion_for ';' condicion_for . CTE ')' cuerpo_iteracion  (151)
+	for : FOR '(' asignacion_for ';' condicion_for . foravanc ')' cuerpo_iteracion  (152)
+	for : FOR '(' asignacion_for ';' condicion_for . ';' ')' cuerpo_iteracion  (153)
 
 	CTE  shift 212
 	UP  shift 173
@@ -2554,19 +2560,19 @@ state 172
 
 
 state 173
-	foravanc : UP .  (155)
-
-	.  reduce 155
-
-
-state 174
-	foravanc : DOWN .  (156)
+	foravanc : UP .  (156)
 
 	.  reduce 156
 
 
+state 174
+	foravanc : DOWN .  (157)
+
+	.  reduce 157
+
+
 state 175
-	for : FOR '(' asignacion_for condicion_for ';' . foravanc CTE ')' cuerpo_iteracion  (146)
+	for : FOR '(' asignacion_for condicion_for ';' . foravanc CTE ')' cuerpo_iteracion  (147)
 
 	UP  shift 173
 	DOWN  shift 174
@@ -2576,7 +2582,7 @@ state 175
 
 
 state 176
-	for : FOR '(' asignacion_for condicion_for foravanc . CTE ')' cuerpo_iteracion  (147)
+	for : FOR '(' asignacion_for condicion_for foravanc . CTE ')' cuerpo_iteracion  (148)
 
 	CTE  shift 216
 	.  error
@@ -2826,14 +2832,14 @@ state 200
 
 
 state 201
-	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo ID .  (161)
+	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo ID .  (162)
 
-	.  reduce 161
+	.  reduce 162
 
 
 state 202
-	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' . ID  (159)
-	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' . error ';'  (164)
+	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' . ID  (160)
+	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' . error ';'  (165)
 
 	error  shift 229
 	ID  shift 230
@@ -2841,15 +2847,15 @@ state 202
 
 
 state 203
-	declar_tipo_trip : TYPEDEF TRIPLE tipo '>' ID .  (160)
+	declar_tipo_trip : TYPEDEF TRIPLE tipo '>' ID .  (161)
 
-	.  reduce 160
+	.  reduce 161
 
 
 state 204
-	declar_tipo_trip : TYPEDEF '<' tipo '>' ID .  (163)
+	declar_tipo_trip : TYPEDEF '<' tipo '>' ID .  (164)
 
-	.  reduce 163
+	.  reduce 164
 
 
 state 205
@@ -2914,7 +2920,7 @@ state 211
 
 
 state 212
-	for : FOR '(' asignacion_for ';' condicion_for CTE . ')' cuerpo_iteracion  (150)
+	for : FOR '(' asignacion_for ';' condicion_for CTE . ')' cuerpo_iteracion  (151)
 
 	')'  shift 235
 	.  error
@@ -2922,9 +2928,9 @@ state 212
 
 state 213
 	for : FOR '(' asignacion_for ';' condicion_for ';' . foravanc CTE ')' cuerpo_iteracion  (144)
-	for : FOR '(' asignacion_for ';' condicion_for ';' . CTE ')' cuerpo_iteracion  (148)
-	for : FOR '(' asignacion_for ';' condicion_for ';' . foravanc ')' cuerpo_iteracion  (149)
-	for : FOR '(' asignacion_for ';' condicion_for ';' . ')' cuerpo_iteracion  (152)
+	for : FOR '(' asignacion_for ';' condicion_for ';' . CTE ')' cuerpo_iteracion  (149)
+	for : FOR '(' asignacion_for ';' condicion_for ';' . foravanc ')' cuerpo_iteracion  (150)
+	for : FOR '(' asignacion_for ';' condicion_for ';' . ')' cuerpo_iteracion  (153)
 
 	CTE  shift 236
 	UP  shift 173
@@ -2936,25 +2942,27 @@ state 213
 
 
 state 214
-	for : FOR '(' asignacion_for ';' condicion_for foravanc . CTE ')' cuerpo_iteracion  (145)
-	for : FOR '(' asignacion_for ';' condicion_for foravanc . ')' cuerpo_iteracion  (151)
+	for : FOR '(' asignacion_for ';' condicion_for foravanc . '-' CTE ')' cuerpo_iteracion  (145)
+	for : FOR '(' asignacion_for ';' condicion_for foravanc . CTE ')' cuerpo_iteracion  (146)
+	for : FOR '(' asignacion_for ';' condicion_for foravanc . ')' cuerpo_iteracion  (152)
 
 	CTE  shift 239
 	')'  shift 240
+	'-'  shift 241
 	.  error
 
 
 state 215
-	for : FOR '(' asignacion_for condicion_for ';' foravanc . CTE ')' cuerpo_iteracion  (146)
+	for : FOR '(' asignacion_for condicion_for ';' foravanc . CTE ')' cuerpo_iteracion  (147)
 
-	CTE  shift 241
+	CTE  shift 242
 	.  error
 
 
 state 216
-	for : FOR '(' asignacion_for condicion_for foravanc CTE . ')' cuerpo_iteracion  (147)
+	for : FOR '(' asignacion_for condicion_for foravanc CTE . ')' cuerpo_iteracion  (148)
 
-	')'  shift 242
+	')'  shift 243
 	.  error
 
 
@@ -2971,7 +2979,7 @@ state 217
 
 	invoc_fun  goto 51
 	expresion_matematica  goto 180
-	patron_der  goto 243
+	patron_der  goto 244
 	lista_patron_der  goto 182
 	triple  goto 56
 	termino  goto 57
@@ -2992,7 +3000,7 @@ state 218
 
 	invoc_fun  goto 51
 	expresion_matematica  goto 180
-	patron_der  goto 244
+	patron_der  goto 245
 	lista_patron_der  goto 182
 	triple  goto 56
 	termino  goto 57
@@ -3003,14 +3011,14 @@ state 218
 state 219
 	condicion_2 : '(' patron_izq ')' comparador patron_der . ')'  (35)
 
-	')'  shift 245
+	')'  shift 246
 	.  error
 
 
 state 220
 	condicion_2 : '(' patron_izq comparador '(' patron_der . ')'  (36)
 
-	')'  shift 246
+	')'  shift 247
 	.  error
 
 
@@ -3033,7 +3041,7 @@ state 222
 	.  error
 
 	invoc_fun  goto 51
-	expresion_matematica  goto 247
+	expresion_matematica  goto 248
 	triple  goto 56
 	termino  goto 57
 	factor  goto 58
@@ -3060,11 +3068,11 @@ state 225
 	GOTO  shift 8
 	FOR  shift 9
 	IF  shift 12
-	END  shift 248
+	END  shift 249
 	OUTF  shift 13
 	.  error
 
-	sentec_eject  goto 249
+	sentec_eject  goto 250
 	asignacion  goto 23
 	invoc_fun  goto 24
 	seleccion  goto 25
@@ -3086,7 +3094,7 @@ state 227
 	END_IF  shift 195
 	.  error
 
-	endif_punto_control  goto 250
+	endif_punto_control  goto 251
 
 
 state 228
@@ -3096,16 +3104,16 @@ state 228
 
 
 state 229
-	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' error . ';'  (164)
+	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' error . ';'  (165)
 
-	';'  shift 251
+	';'  shift 252
 	.  error
 
 
 state 230
-	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' ID .  (159)
+	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' ID .  (160)
 
-	.  reduce 159
+	.  reduce 160
 
 
 state 231
@@ -3114,15 +3122,15 @@ state 231
 
 	.  reduce 124
 
-	cuerpo_funcion_p  goto 252
-	$$7  goto 253
+	cuerpo_funcion_p  goto 253
+	$$7  goto 254
 
 
 state 232
 	declaracion_fun : tipo_fun FUN ID '(' $$3 lista_parametro . ')' $$4 cuerpo_funcion_p  (111)
 	lista_parametro : lista_parametro . ',' parametro  (118)
 
-	')'  shift 254
+	')'  shift 255
 	','  shift 210
 	.  error
 
@@ -3133,8 +3141,8 @@ state 233
 
 	.  reduce 124
 
-	cuerpo_funcion_p  goto 255
-	$$7  goto 253
+	cuerpo_funcion_p  goto 256
+	$$7  goto 254
 
 
 state 234
@@ -3144,150 +3152,157 @@ state 234
 
 
 state 235
-	for : FOR '(' asignacion_for ';' condicion_for CTE ')' . cuerpo_iteracion  (150)
+	for : FOR '(' asignacion_for ';' condicion_for CTE ')' . cuerpo_iteracion  (151)
 
 	ID  shift 142
 	GOTO  shift 8
 	FOR  shift 9
 	IF  shift 12
-	BEGIN  shift 256
+	BEGIN  shift 257
 	OUTF  shift 13
 	.  error
 
-	sentec_eject  goto 257
+	sentec_eject  goto 258
 	asignacion  goto 23
 	invoc_fun  goto 24
 	seleccion  goto 25
 	sald_mensaj  goto 26
 	for  goto 27
 	goto  goto 28
-	cuerpo_iteracion  goto 258
+	cuerpo_iteracion  goto 259
 	triple  goto 30
 
 
 state 236
-	for : FOR '(' asignacion_for ';' condicion_for ';' CTE . ')' cuerpo_iteracion  (148)
+	for : FOR '(' asignacion_for ';' condicion_for ';' CTE . ')' cuerpo_iteracion  (149)
 
-	')'  shift 259
+	')'  shift 260
 	.  error
 
 
 state 237
-	for : FOR '(' asignacion_for ';' condicion_for ';' ')' . cuerpo_iteracion  (152)
+	for : FOR '(' asignacion_for ';' condicion_for ';' ')' . cuerpo_iteracion  (153)
 
 	ID  shift 142
 	GOTO  shift 8
 	FOR  shift 9
 	IF  shift 12
-	BEGIN  shift 256
+	BEGIN  shift 257
 	OUTF  shift 13
 	.  error
 
-	sentec_eject  goto 257
+	sentec_eject  goto 258
 	asignacion  goto 23
 	invoc_fun  goto 24
 	seleccion  goto 25
 	sald_mensaj  goto 26
 	for  goto 27
 	goto  goto 28
-	cuerpo_iteracion  goto 260
+	cuerpo_iteracion  goto 261
 	triple  goto 30
 
 
 state 238
 	for : FOR '(' asignacion_for ';' condicion_for ';' foravanc . CTE ')' cuerpo_iteracion  (144)
-	for : FOR '(' asignacion_for ';' condicion_for ';' foravanc . ')' cuerpo_iteracion  (149)
+	for : FOR '(' asignacion_for ';' condicion_for ';' foravanc . ')' cuerpo_iteracion  (150)
 
-	CTE  shift 261
-	')'  shift 262
-	.  error
-
-
-state 239
-	for : FOR '(' asignacion_for ';' condicion_for foravanc CTE . ')' cuerpo_iteracion  (145)
-
+	CTE  shift 262
 	')'  shift 263
 	.  error
 
 
+state 239
+	for : FOR '(' asignacion_for ';' condicion_for foravanc CTE . ')' cuerpo_iteracion  (146)
+
+	')'  shift 264
+	.  error
+
+
 state 240
-	for : FOR '(' asignacion_for ';' condicion_for foravanc ')' . cuerpo_iteracion  (151)
+	for : FOR '(' asignacion_for ';' condicion_for foravanc ')' . cuerpo_iteracion  (152)
 
 	ID  shift 142
 	GOTO  shift 8
 	FOR  shift 9
 	IF  shift 12
-	BEGIN  shift 256
+	BEGIN  shift 257
 	OUTF  shift 13
 	.  error
 
-	sentec_eject  goto 257
+	sentec_eject  goto 258
 	asignacion  goto 23
 	invoc_fun  goto 24
 	seleccion  goto 25
 	sald_mensaj  goto 26
 	for  goto 27
 	goto  goto 28
-	cuerpo_iteracion  goto 264
+	cuerpo_iteracion  goto 265
 	triple  goto 30
 
 
 state 241
-	for : FOR '(' asignacion_for condicion_for ';' foravanc CTE . ')' cuerpo_iteracion  (146)
+	for : FOR '(' asignacion_for ';' condicion_for foravanc '-' . CTE ')' cuerpo_iteracion  (145)
 
-	')'  shift 265
+	CTE  shift 266
 	.  error
 
 
 state 242
-	for : FOR '(' asignacion_for condicion_for foravanc CTE ')' . cuerpo_iteracion  (147)
-
-	ID  shift 142
-	GOTO  shift 8
-	FOR  shift 9
-	IF  shift 12
-	BEGIN  shift 256
-	OUTF  shift 13
-	.  error
-
-	sentec_eject  goto 257
-	asignacion  goto 23
-	invoc_fun  goto 24
-	seleccion  goto 25
-	sald_mensaj  goto 26
-	for  goto 27
-	goto  goto 28
-	cuerpo_iteracion  goto 266
-	triple  goto 30
-
-
-state 243
-	condicion_2 : '(' patron_izq ')' error '(' patron_der . ')'  (37)
+	for : FOR '(' asignacion_for condicion_for ';' foravanc CTE . ')' cuerpo_iteracion  (147)
 
 	')'  shift 267
 	.  error
 
 
-state 244
-	condicion_2 : '(' patron_izq ')' comparador '(' patron_der . ')'  (33)
+state 243
+	for : FOR '(' asignacion_for condicion_for foravanc CTE ')' . cuerpo_iteracion  (148)
 
-	')'  shift 268
+	ID  shift 142
+	GOTO  shift 8
+	FOR  shift 9
+	IF  shift 12
+	BEGIN  shift 257
+	OUTF  shift 13
+	.  error
+
+	sentec_eject  goto 258
+	asignacion  goto 23
+	invoc_fun  goto 24
+	seleccion  goto 25
+	sald_mensaj  goto 26
+	for  goto 27
+	goto  goto 28
+	cuerpo_iteracion  goto 268
+	triple  goto 30
+
+
+state 244
+	condicion_2 : '(' patron_izq ')' error '(' patron_der . ')'  (37)
+
+	')'  shift 269
 	.  error
 
 
 state 245
+	condicion_2 : '(' patron_izq ')' comparador '(' patron_der . ')'  (33)
+
+	')'  shift 270
+	.  error
+
+
+state 246
 	condicion_2 : '(' patron_izq ')' comparador patron_der ')' .  (35)
 
 	.  reduce 35
 
 
-state 246
+state 247
 	condicion_2 : '(' patron_izq comparador '(' patron_der ')' .  (36)
 
 	.  reduce 36
 
 
-state 247
+state 248
 	patron_der : lista_patron_der ',' expresion_matematica .  (42)
 	lista_patron_der : lista_patron_der ',' expresion_matematica .  (43)
 	expresion_matematica : expresion_matematica . '+' termino  (85)
@@ -3303,59 +3318,59 @@ state 247
 	','  reduce 43
 
 
-state 248
+state 249
 	cuerpo_control : BEGIN multip_cuerp_fun ';' END .  (62)
 
 	.  reduce 62
 
 
-state 249
+state 250
 	multip_cuerp_fun : multip_cuerp_fun ';' sentec_eject .  (72)
 
 	.  reduce 72
 
 
-state 250
+state 251
 	seleccion : IF condicion_punto_control THEN cuerpo_control else_punto_control cuerpo_control endif_punto_control .  (46)
 
 	.  reduce 46
 
 
-state 251
-	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' error ';' .  (164)
-
-	.  reduce 164
-
-
 state 252
+	declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' error ';' .  (165)
+
+	.  reduce 165
+
+
+state 253
 	declaracion_fun : tipo_fun FUN ID '(' ')' $$6 cuerpo_funcion_p .  (115)
 
 	.  reduce 115
 
 
-state 253
+state 254
 	cuerpo_funcion_p : $$7 . BEGIN bloques_funcion ';' END  (125)
 
-	BEGIN  shift 269
+	BEGIN  shift 271
 	.  error
 
 
-state 254
+state 255
 	declaracion_fun : tipo_fun FUN ID '(' $$3 lista_parametro ')' . $$4 cuerpo_funcion_p  (111)
 	$$4 : .  (110)
 
 	.  reduce 110
 
-	$$4  goto 270
+	$$4  goto 272
 
 
-state 255
+state 256
 	declaracion_fun : tipo_fun FUN '(' lista_parametro ')' $$5 cuerpo_funcion_p .  (113)
 
 	.  reduce 113
 
 
-state 256
+state 257
 	cuerpo_iteracion : BEGIN . multip_cuerp_fun ';' END  (67)
 	cuerpo_iteracion : BEGIN . ';' END  (69)
 	cuerpo_iteracion : BEGIN . END  (70)
@@ -3365,9 +3380,9 @@ state 256
 	GOTO  shift 8
 	FOR  shift 9
 	IF  shift 12
-	END  shift 271
+	END  shift 273
 	OUTF  shift 13
-	';'  shift 272
+	';'  shift 274
 	.  error
 
 	sentec_eject  goto 190
@@ -3377,70 +3392,35 @@ state 256
 	sald_mensaj  goto 26
 	for  goto 27
 	goto  goto 28
-	multip_cuerp_fun  goto 273
+	multip_cuerp_fun  goto 275
 	triple  goto 30
-
-
-state 257
-	cuerpo_iteracion : sentec_eject . ';'  (68)
-
-	';'  shift 274
-	.  error
 
 
 state 258
-	for : FOR '(' asignacion_for ';' condicion_for CTE ')' cuerpo_iteracion .  (150)
+	cuerpo_iteracion : sentec_eject . ';'  (68)
 
-	.  reduce 150
+	';'  shift 276
+	.  error
 
 
 state 259
-	for : FOR '(' asignacion_for ';' condicion_for ';' CTE ')' . cuerpo_iteracion  (148)
+	for : FOR '(' asignacion_for ';' condicion_for CTE ')' cuerpo_iteracion .  (151)
 
-	ID  shift 142
-	GOTO  shift 8
-	FOR  shift 9
-	IF  shift 12
-	BEGIN  shift 256
-	OUTF  shift 13
-	.  error
-
-	sentec_eject  goto 257
-	asignacion  goto 23
-	invoc_fun  goto 24
-	seleccion  goto 25
-	sald_mensaj  goto 26
-	for  goto 27
-	goto  goto 28
-	cuerpo_iteracion  goto 275
-	triple  goto 30
+	.  reduce 151
 
 
 state 260
-	for : FOR '(' asignacion_for ';' condicion_for ';' ')' cuerpo_iteracion .  (152)
-
-	.  reduce 152
-
-
-state 261
-	for : FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE . ')' cuerpo_iteracion  (144)
-
-	')'  shift 276
-	.  error
-
-
-state 262
-	for : FOR '(' asignacion_for ';' condicion_for ';' foravanc ')' . cuerpo_iteracion  (149)
+	for : FOR '(' asignacion_for ';' condicion_for ';' CTE ')' . cuerpo_iteracion  (149)
 
 	ID  shift 142
 	GOTO  shift 8
 	FOR  shift 9
 	IF  shift 12
-	BEGIN  shift 256
+	BEGIN  shift 257
 	OUTF  shift 13
 	.  error
 
-	sentec_eject  goto 257
+	sentec_eject  goto 258
 	asignacion  goto 23
 	invoc_fun  goto 24
 	seleccion  goto 25
@@ -3451,46 +3431,31 @@ state 262
 	triple  goto 30
 
 
+state 261
+	for : FOR '(' asignacion_for ';' condicion_for ';' ')' cuerpo_iteracion .  (153)
+
+	.  reduce 153
+
+
+state 262
+	for : FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE . ')' cuerpo_iteracion  (144)
+
+	')'  shift 278
+	.  error
+
+
 state 263
-	for : FOR '(' asignacion_for ';' condicion_for foravanc CTE ')' . cuerpo_iteracion  (145)
+	for : FOR '(' asignacion_for ';' condicion_for ';' foravanc ')' . cuerpo_iteracion  (150)
 
 	ID  shift 142
 	GOTO  shift 8
 	FOR  shift 9
 	IF  shift 12
-	BEGIN  shift 256
+	BEGIN  shift 257
 	OUTF  shift 13
 	.  error
 
-	sentec_eject  goto 257
-	asignacion  goto 23
-	invoc_fun  goto 24
-	seleccion  goto 25
-	sald_mensaj  goto 26
-	for  goto 27
-	goto  goto 28
-	cuerpo_iteracion  goto 278
-	triple  goto 30
-
-
-state 264
-	for : FOR '(' asignacion_for ';' condicion_for foravanc ')' cuerpo_iteracion .  (151)
-
-	.  reduce 151
-
-
-state 265
-	for : FOR '(' asignacion_for condicion_for ';' foravanc CTE ')' . cuerpo_iteracion  (146)
-
-	ID  shift 142
-	GOTO  shift 8
-	FOR  shift 9
-	IF  shift 12
-	BEGIN  shift 256
-	OUTF  shift 13
-	.  error
-
-	sentec_eject  goto 257
+	sentec_eject  goto 258
 	asignacion  goto 23
 	invoc_fun  goto 24
 	seleccion  goto 25
@@ -3501,25 +3466,82 @@ state 265
 	triple  goto 30
 
 
-state 266
-	for : FOR '(' asignacion_for condicion_for foravanc CTE ')' cuerpo_iteracion .  (147)
+state 264
+	for : FOR '(' asignacion_for ';' condicion_for foravanc CTE ')' . cuerpo_iteracion  (146)
 
-	.  reduce 147
+	ID  shift 142
+	GOTO  shift 8
+	FOR  shift 9
+	IF  shift 12
+	BEGIN  shift 257
+	OUTF  shift 13
+	.  error
+
+	sentec_eject  goto 258
+	asignacion  goto 23
+	invoc_fun  goto 24
+	seleccion  goto 25
+	sald_mensaj  goto 26
+	for  goto 27
+	goto  goto 28
+	cuerpo_iteracion  goto 280
+	triple  goto 30
+
+
+state 265
+	for : FOR '(' asignacion_for ';' condicion_for foravanc ')' cuerpo_iteracion .  (152)
+
+	.  reduce 152
+
+
+state 266
+	for : FOR '(' asignacion_for ';' condicion_for foravanc '-' CTE . ')' cuerpo_iteracion  (145)
+
+	')'  shift 281
+	.  error
 
 
 state 267
+	for : FOR '(' asignacion_for condicion_for ';' foravanc CTE ')' . cuerpo_iteracion  (147)
+
+	ID  shift 142
+	GOTO  shift 8
+	FOR  shift 9
+	IF  shift 12
+	BEGIN  shift 257
+	OUTF  shift 13
+	.  error
+
+	sentec_eject  goto 258
+	asignacion  goto 23
+	invoc_fun  goto 24
+	seleccion  goto 25
+	sald_mensaj  goto 26
+	for  goto 27
+	goto  goto 28
+	cuerpo_iteracion  goto 282
+	triple  goto 30
+
+
+state 268
+	for : FOR '(' asignacion_for condicion_for foravanc CTE ')' cuerpo_iteracion .  (148)
+
+	.  reduce 148
+
+
+state 269
 	condicion_2 : '(' patron_izq ')' error '(' patron_der ')' .  (37)
 
 	.  reduce 37
 
 
-state 268
+state 270
 	condicion_2 : '(' patron_izq ')' comparador '(' patron_der ')' .  (33)
 
 	.  reduce 33
 
 
-state 269
+state 271
 	cuerpo_funcion_p : $$7 BEGIN . bloques_funcion ';' END  (125)
 
 	ID  shift 7
@@ -3530,11 +3552,11 @@ state 269
 	IF  shift 12
 	OUTF  shift 13
 	TYPEDEF  shift 14
-	RET  shift 280
+	RET  shift 283
 	TAG  shift 15
 	.  error
 
-	sentencia  goto 281
+	sentencia  goto 284
 	sentec_declar  goto 18
 	sentec_eject  goto 19
 	declaracion_var  goto 20
@@ -3549,35 +3571,35 @@ state 269
 	tipo  goto 29
 	triple  goto 30
 	tipo_fun  goto 31
-	bloques_funcion  goto 282
-	bloque_funcion  goto 283
-	retorno  goto 284
+	bloques_funcion  goto 285
+	bloque_funcion  goto 286
+	retorno  goto 287
 
 
-state 270
+state 272
 	declaracion_fun : tipo_fun FUN ID '(' $$3 lista_parametro ')' $$4 . cuerpo_funcion_p  (111)
 	$$7 : .  (124)
 
 	.  reduce 124
 
-	cuerpo_funcion_p  goto 285
-	$$7  goto 253
+	cuerpo_funcion_p  goto 288
+	$$7  goto 254
 
 
-state 271
+state 273
 	cuerpo_iteracion : BEGIN END .  (70)
 
 	.  reduce 70
 
 
-state 272
+state 274
 	cuerpo_iteracion : BEGIN ';' . END  (69)
 
-	END  shift 286
+	END  shift 289
 	.  error
 
 
-state 273
+state 275
 	cuerpo_iteracion : BEGIN multip_cuerp_fun . ';' END  (67)
 	cuerpo_iteracion : BEGIN multip_cuerp_fun . END  (71)
 	multip_cuerp_fun : multip_cuerp_fun . ';' sentec_eject  (72)
@@ -3587,9 +3609,9 @@ state 273
 	GOTO  shift 8
 	FOR  shift 9
 	IF  shift 12
-	END  shift 287
+	END  shift 290
 	OUTF  shift 13
-	';'  shift 288
+	';'  shift 291
 	.  error
 
 	sentec_eject  goto 226
@@ -3602,72 +3624,94 @@ state 273
 	triple  goto 30
 
 
-state 274
+state 276
 	cuerpo_iteracion : sentec_eject ';' .  (68)
 
 	.  reduce 68
 
 
-state 275
-	for : FOR '(' asignacion_for ';' condicion_for ';' CTE ')' cuerpo_iteracion .  (148)
+state 277
+	for : FOR '(' asignacion_for ';' condicion_for ';' CTE ')' cuerpo_iteracion .  (149)
 
-	.  reduce 148
+	.  reduce 149
 
 
-state 276
+state 278
 	for : FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' . cuerpo_iteracion  (144)
 
 	ID  shift 142
 	GOTO  shift 8
 	FOR  shift 9
 	IF  shift 12
-	BEGIN  shift 256
+	BEGIN  shift 257
 	OUTF  shift 13
 	.  error
 
-	sentec_eject  goto 257
+	sentec_eject  goto 258
 	asignacion  goto 23
 	invoc_fun  goto 24
 	seleccion  goto 25
 	sald_mensaj  goto 26
 	for  goto 27
 	goto  goto 28
-	cuerpo_iteracion  goto 289
+	cuerpo_iteracion  goto 292
 	triple  goto 30
 
 
-state 277
-	for : FOR '(' asignacion_for ';' condicion_for ';' foravanc ')' cuerpo_iteracion .  (149)
-
-	.  reduce 149
-
-
-state 278
-	for : FOR '(' asignacion_for ';' condicion_for foravanc CTE ')' cuerpo_iteracion .  (145)
-
-	.  reduce 145
-
-
 state 279
-	for : FOR '(' asignacion_for condicion_for ';' foravanc CTE ')' cuerpo_iteracion .  (146)
+	for : FOR '(' asignacion_for ';' condicion_for ';' foravanc ')' cuerpo_iteracion .  (150)
+
+	.  reduce 150
+
+
+state 280
+	for : FOR '(' asignacion_for ';' condicion_for foravanc CTE ')' cuerpo_iteracion .  (146)
 
 	.  reduce 146
 
 
-state 280
+state 281
+	for : FOR '(' asignacion_for ';' condicion_for foravanc '-' CTE ')' . cuerpo_iteracion  (145)
+
+	ID  shift 142
+	GOTO  shift 8
+	FOR  shift 9
+	IF  shift 12
+	BEGIN  shift 257
+	OUTF  shift 13
+	.  error
+
+	sentec_eject  goto 258
+	asignacion  goto 23
+	invoc_fun  goto 24
+	seleccion  goto 25
+	sald_mensaj  goto 26
+	for  goto 27
+	goto  goto 28
+	cuerpo_iteracion  goto 293
+	triple  goto 30
+
+
+state 282
+	for : FOR '(' asignacion_for condicion_for ';' foravanc CTE ')' cuerpo_iteracion .  (147)
+
+	.  reduce 147
+
+
+state 283
 	retorno : RET . '(' expresion_matematica ')'  (131)
 
-	'('  shift 290
+	'('  shift 294
 	.  error
 
 
-state 281
+state 284
 	bloque_funcion : sentencia .  (130)
 
 	.  reduce 130
 
 
-state 282
+state 285
 	cuerpo_funcion_p : $$7 BEGIN bloques_funcion . ';' END  (125)
 	bloques_funcion : bloques_funcion . ';' bloque_funcion  (126)
 	bloques_funcion : bloques_funcion . bloque_funcion  (128)
@@ -3680,125 +3724,12 @@ state 282
 	IF  shift 12
 	OUTF  shift 13
 	TYPEDEF  shift 14
-	RET  shift 280
+	RET  shift 283
 	TAG  shift 15
-	';'  shift 291
+	';'  shift 295
 	.  error
 
-	sentencia  goto 281
-	sentec_declar  goto 18
-	sentec_eject  goto 19
-	declaracion_var  goto 20
-	declaracion_fun  goto 21
-	declar_tipo_trip  goto 22
-	asignacion  goto 23
-	invoc_fun  goto 24
-	seleccion  goto 25
-	sald_mensaj  goto 26
-	for  goto 27
-	goto  goto 28
-	tipo  goto 29
-	triple  goto 30
-	tipo_fun  goto 31
-	bloque_funcion  goto 292
-	retorno  goto 284
-
-
-state 283
-	bloques_funcion : bloque_funcion .  (127)
-
-	.  reduce 127
-
-
-state 284
-	bloque_funcion : retorno .  (129)
-
-	.  reduce 129
-
-
-state 285
-	declaracion_fun : tipo_fun FUN ID '(' $$3 lista_parametro ')' $$4 cuerpo_funcion_p .  (111)
-
-	.  reduce 111
-
-
-state 286
-	cuerpo_iteracion : BEGIN ';' END .  (69)
-
-	.  reduce 69
-
-
-state 287
-	cuerpo_iteracion : BEGIN multip_cuerp_fun END .  (71)
-
-	.  reduce 71
-
-
-state 288
-	cuerpo_iteracion : BEGIN multip_cuerp_fun ';' . END  (67)
-	multip_cuerp_fun : multip_cuerp_fun ';' . sentec_eject  (72)
-
-	ID  shift 142
-	GOTO  shift 8
-	FOR  shift 9
-	IF  shift 12
-	END  shift 293
-	OUTF  shift 13
-	.  error
-
-	sentec_eject  goto 249
-	asignacion  goto 23
-	invoc_fun  goto 24
-	seleccion  goto 25
-	sald_mensaj  goto 26
-	for  goto 27
-	goto  goto 28
-	triple  goto 30
-
-
-state 289
-	for : FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iteracion .  (144)
-
-	.  reduce 144
-
-
-state 290
-	retorno : RET '(' . expresion_matematica ')'  (131)
-
-	ID  shift 44
-	CTE  shift 45
-	'+'  shift 47
-	'-'  shift 48
-	'*'  shift 49
-	'/'  shift 50
-	.  error
-
-	invoc_fun  goto 51
-	expresion_matematica  goto 294
-	triple  goto 56
-	termino  goto 57
-	factor  goto 58
-	constante  goto 59
-
-
-state 291
-	cuerpo_funcion_p : $$7 BEGIN bloques_funcion ';' . END  (125)
-	bloques_funcion : bloques_funcion ';' . bloque_funcion  (126)
-
-	ID  shift 7
-	GOTO  shift 8
-	FOR  shift 9
-	ULONGINT  shift 10
-	DOUBLE  shift 11
-	IF  shift 12
-	END  shift 295
-	OUTF  shift 13
-	TYPEDEF  shift 14
-	RET  shift 280
-	TAG  shift 15
-	.  error
-
-	sentencia  goto 281
+	sentencia  goto 284
 	sentec_declar  goto 18
 	sentec_eject  goto 19
 	declaracion_var  goto 20
@@ -3814,22 +3745,141 @@ state 291
 	triple  goto 30
 	tipo_fun  goto 31
 	bloque_funcion  goto 296
-	retorno  goto 284
+	retorno  goto 287
+
+
+state 286
+	bloques_funcion : bloque_funcion .  (127)
+
+	.  reduce 127
+
+
+state 287
+	bloque_funcion : retorno .  (129)
+
+	.  reduce 129
+
+
+state 288
+	declaracion_fun : tipo_fun FUN ID '(' $$3 lista_parametro ')' $$4 cuerpo_funcion_p .  (111)
+
+	.  reduce 111
+
+
+state 289
+	cuerpo_iteracion : BEGIN ';' END .  (69)
+
+	.  reduce 69
+
+
+state 290
+	cuerpo_iteracion : BEGIN multip_cuerp_fun END .  (71)
+
+	.  reduce 71
+
+
+state 291
+	cuerpo_iteracion : BEGIN multip_cuerp_fun ';' . END  (67)
+	multip_cuerp_fun : multip_cuerp_fun ';' . sentec_eject  (72)
+
+	ID  shift 142
+	GOTO  shift 8
+	FOR  shift 9
+	IF  shift 12
+	END  shift 297
+	OUTF  shift 13
+	.  error
+
+	sentec_eject  goto 250
+	asignacion  goto 23
+	invoc_fun  goto 24
+	seleccion  goto 25
+	sald_mensaj  goto 26
+	for  goto 27
+	goto  goto 28
+	triple  goto 30
 
 
 state 292
+	for : FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iteracion .  (144)
+
+	.  reduce 144
+
+
+state 293
+	for : FOR '(' asignacion_for ';' condicion_for foravanc '-' CTE ')' cuerpo_iteracion .  (145)
+
+	.  reduce 145
+
+
+state 294
+	retorno : RET '(' . expresion_matematica ')'  (131)
+
+	ID  shift 44
+	CTE  shift 45
+	'+'  shift 47
+	'-'  shift 48
+	'*'  shift 49
+	'/'  shift 50
+	.  error
+
+	invoc_fun  goto 51
+	expresion_matematica  goto 298
+	triple  goto 56
+	termino  goto 57
+	factor  goto 58
+	constante  goto 59
+
+
+state 295
+	cuerpo_funcion_p : $$7 BEGIN bloques_funcion ';' . END  (125)
+	bloques_funcion : bloques_funcion ';' . bloque_funcion  (126)
+
+	ID  shift 7
+	GOTO  shift 8
+	FOR  shift 9
+	ULONGINT  shift 10
+	DOUBLE  shift 11
+	IF  shift 12
+	END  shift 299
+	OUTF  shift 13
+	TYPEDEF  shift 14
+	RET  shift 283
+	TAG  shift 15
+	.  error
+
+	sentencia  goto 284
+	sentec_declar  goto 18
+	sentec_eject  goto 19
+	declaracion_var  goto 20
+	declaracion_fun  goto 21
+	declar_tipo_trip  goto 22
+	asignacion  goto 23
+	invoc_fun  goto 24
+	seleccion  goto 25
+	sald_mensaj  goto 26
+	for  goto 27
+	goto  goto 28
+	tipo  goto 29
+	triple  goto 30
+	tipo_fun  goto 31
+	bloque_funcion  goto 300
+	retorno  goto 287
+
+
+state 296
 	bloques_funcion : bloques_funcion bloque_funcion .  (128)
 
 	.  reduce 128
 
 
-state 293
+state 297
 	cuerpo_iteracion : BEGIN multip_cuerp_fun ';' END .  (67)
 
 	.  reduce 67
 
 
-state 294
+state 298
 	expresion_matematica : expresion_matematica . '+' termino  (85)
 	expresion_matematica : expresion_matematica . '-' termino  (86)
 	expresion_matematica : expresion_matematica . '+' error ')'  (89)
@@ -3838,29 +3888,29 @@ state 294
 	expresion_matematica : expresion_matematica . '-' error ';'  (92)
 	retorno : RET '(' expresion_matematica . ')'  (131)
 
-	')'  shift 297
+	')'  shift 301
 	'+'  shift 98
 	'-'  shift 99
 	.  error
 
 
-state 295
+state 299
 	cuerpo_funcion_p : $$7 BEGIN bloques_funcion ';' END .  (125)
 
 	.  reduce 125
 
 
-state 296
+state 300
 	bloques_funcion : bloques_funcion ';' bloque_funcion .  (126)
 
 	.  reduce 126
 
 
-state 297
+state 301
 	retorno : RET '(' expresion_matematica ')' .  (131)
 
 	.  reduce 131
 
 
 40 terminals, 59 nonterminals
-165 grammar rules, 298 states
+166 grammar rules, 302 states

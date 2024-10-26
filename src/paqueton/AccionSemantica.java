@@ -171,7 +171,7 @@ public abstract class AccionSemantica {
 			}
 			else { 
 				super.checkString(analizador);
-				analizador.addTablaSimbolos();
+				//analizador.addTablaSimbolos();
 				int numToken = Parser.ID;
 				analizador.setNroToken(numToken);
 				analizador.getParser().yylval = new ParserVal(analizador.getConcatActual());
@@ -324,9 +324,9 @@ public abstract class AccionSemantica {
 			new AS1().ejecutar(analizador);  
 	    	super.checkString(analizador);
 	    	int numToken = Parser.TAG;
-			analizador.addTablaSimbolos();
+			//analizador.addTablaSimbolos();
 	    	analizador.setNroToken(numToken);
-	    	analizador.getTablaSimbolos().addAtributo(analizador.getConcatActual(),TIPO,TAG);
+	    	//analizador.getTablaSimbolos().addAtributo(analizador.getConcatActual(),TIPO,TAG);
 	    	analizador.getParser().yylval = new ParserVal(analizador.getConcatActual());
 		}
 	}

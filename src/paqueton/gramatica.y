@@ -70,8 +70,8 @@ condicion	: '('  condicion_2 ')' { $$.sval = $2.sval;}
 		|  condicion_2 ')' { ErrorHandler.addErrorSintactico("Falta de paréntesis izquierdo en la condición", lex.getLineaInicial());}
 		;
 		
-condicion_2 	: expresion_matematica comparador expresion_matematica { $$.sval = gc.addTerceto($2.sval, $1.sval, $3.sval); gc.checkTipo(gc.getPosActual(), lex.getLineaInicial(), this.ts);}
-		| '(' patron_izq ')' comparador '(' patron_der ')' { if(gc.getTerceto(gc.getPosActual()).getOp2().isEmpty()){ErrorHandler.addErrorSemantico("La longitud de los patrones a matchear es distinta.", lex.getLineaInicial());}else { $$.sval = gc.updateCompAndGenerate(this.inicioPatron, $4.sval);} this.inicioPatron = Integer.MAX_VALUE;}
+condicion_2 	: expresion_matematica comparador expresion_matematica { $$.sval = gc.addTerceto($2.sval, gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual)); gc.checkTipo(gc.getPosActual(), lex.getLineaInicial(), this.ts, this.ambitoActual, $2.sval);}
+		| '(' patron_izq ')' comparador '(' patron_der ')' { if(gc.getTerceto(gc.getPosActual()).getOp2().isEmpty()){ErrorHandler.addErrorSemantico("La longitud de los patrones a matchear es distinta.", lex.getLineaInicial());}else { $$.sval = gc.updateCompAndGenerate(this.inicioPatron, $4.sval);} this.inicioPatron = Integer.MAX_VALUE; $$.sval = "[" + this.gc.getPosActual() + "]";}
 
 		| '(' patron_izq  comparador  patron_der ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón y el que abre la segunda", lex.getLineaInicial());}
 		| '(' patron_izq ')' comparador  patron_der ')' { ErrorHandler.addErrorSintactico("Falta parentesis que abre la segunda lista del patrón", lex.getLineaInicial());}
@@ -80,18 +80,18 @@ condicion_2 	: expresion_matematica comparador expresion_matematica { $$.sval = 
 		| expresion_matematica error expresion_matematica { ErrorHandler.addErrorSintactico("Falta comparador entre las expresiones", lex.getLineaInicial());}
 		;
 
-patron_izq	: lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); $$.sval = gc.addTerceto("COMP", $3.sval, "");}
+patron_izq	: lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 		;
 
-lista_patron_izq    : lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); $$.sval = gc.addTerceto("COMP", $3.sval, "");}
-		| expresion_matematica {this.iniciarPatron(); $$.sval = gc.addTerceto("COMP", $1.sval, "");}
+lista_patron_izq    : lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
+		| expresion_matematica {this.iniciarPatron(); $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 		;
 
-patron_der	: lista_patron_der ',' expresion_matematica { gc.updateAndCheckSize(this.posPatron, $3.sval, lex.getLineaInicial(), this.ts); this.posPatron++;}
+patron_der	: lista_patron_der ',' expresion_matematica { posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
 		;
 
-lista_patron_der    : lista_patron_der ',' expresion_matematica { gc.updateAndCheckSize(this.posPatron, $3.sval, lex.getLineaInicial(), this.ts); this.posPatron++;}
-		| expresion_matematica { gc.updateAndCheckSize(this.posPatron, $1.sval, lex.getLineaInicial(), this.ts); this.posPatron++;}
+lista_patron_der    : lista_patron_der ',' expresion_matematica {posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
+		| expresion_matematica { posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
 		;
 		
 seleccion 	: IF condicion_punto_control THEN cuerpo_control sinelse_punto_control {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
@@ -118,16 +118,19 @@ condicion_punto_control : condicion {
 			gc.push(gc.getPosActual());
 		}
 		;
-
 else_punto_control : ELSE { 
 			gc.addTerceto("BI", "", "-"); 
-			gc.actualizarBF(gc.getCantTercetos()); 
+			int posSig = gc.getCantTercetos();
+			gc.actualizarBF(posSig); 
 			gc.pop(); 
 			gc.push(gc.getPosActual());
+			this.gc.addTerceto("Label" + posSig, "-", "-");
 		}
 		;
 endif_punto_control : END_IF {
-			gc.actualizarBI(gc.getCantTercetos()); 
+			int posSig = gc.getCantTercetos();
+			gc.actualizarBI(posSig);
+			this.gc.addTerceto("Label" + posSig, "-", "-");
 			gc.pop();
 			estructurasSintacticas("Se definió una sentencia de control con else, en la linea: " + lex.getLineaInicial());
 		}
@@ -179,18 +182,18 @@ tipo		: DOUBLE {$$.sval = "double";}
 		;
 
 asignacion 	: triple ASIGN expresion_matematica {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
-						$$.sval = gc.addTerceto(":=", $1.sval, $3.sval); gc.checkTipoAsignacion($1.sval, lex.getLineaInicial(), $3.sval, this.ts,ambitoActual);
+						$$.sval = gc.checkTipoAsignacion($1.sval, lex.getLineaInicial(), $3.sval, this.ts,ambitoActual);
 
 					}
 		| ID ASIGN expresion_matematica {  estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
-					$$.sval = gc.addTerceto(":=", gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts,ambitoActual), $3.sval); gc.checkTipoAsignacion($1.sval, lex.getLineaInicial(), $3.sval, this.ts,ambitoActual);
+					$$.sval = gc.checkTipoAsignacion($1.sval, lex.getLineaInicial(), $3.sval, this.ts,ambitoActual);
 		}
 			
 	 	;
 
 expresion_matematica 	: expresion_matematica '+' termino {$$.sval = gc.checkTipoExpresion($1.sval, $3.sval, lex.getLineaInicial(), this.ts, "+",ambitoActual);}
 		| expresion_matematica '-' termino {$$.sval = gc.checkTipoExpresion($1.sval, $3.sval, lex.getLineaInicial(), this.ts, "-",ambitoActual);}
-		| termino 
+		| termino { $$.sval = $1.sval;}
 
 
 
@@ -211,7 +214,7 @@ expresion_matematica 	: expresion_matematica '+' termino {$$.sval = gc.checkTipo
 
 termino 	: termino '*' factor {$$.sval = gc.checkTipoExpresion($1.sval, $3.sval, lex.getLineaInicial(), this.ts, "*",ambitoActual);}
 		| termino '/' factor {$$.sval = gc.checkTipoExpresion($1.sval, $3.sval, lex.getLineaInicial(), this.ts, "/",ambitoActual);}
-		| factor
+		| factor {$$.sval = $1.sval;}
 		
 		//| termino error factor { ErrorHandler.addErrorSintactico("Falta operador en el término", lex.getLineaInicial());}
 		| '*' factor { ErrorHandler.addErrorSintactico("Falta operando izquierdo", lex.getLineaInicial());}
@@ -226,7 +229,7 @@ termino 	: termino '*' factor {$$.sval = gc.checkTipoExpresion($1.sval, $3.sval,
 					lex.setErrorHandlerToken(";");}
 		;
 
-factor		: ID { gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts,ambitoActual);}
+factor		: ID {  gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts,ambitoActual);}
 		| constante
 		| invoc_fun
 		| triple
@@ -246,7 +249,10 @@ constante 	: CTE 	{ $$.sval = $1.sval;}
 triple		: ID '{' expresion_matematica '}' {
 						   String tipo = "";
 						   String idTripla=gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts,ambitoActual);
-						   if (idTripla != null) { 
+						   if (idTripla != null) {
+							this.gc.addTerceto("<=", $3.sval, "3");
+							this.gc.addTerceto(">=", $3.sval, "1");
+							this.gc.addTerceto("AND", "[" + this.gc.getPosActual() + "]", "[" + (this.gc.getPosActual()-1) + "]");				
 						    tipo = this.ts.getAtributo($1.sval, AccionSemantica.TIPO_BASICO); 
 						    }else{
 							ErrorHandler.addErrorSemantico( "La tripla " + $1.sval + " nunca fue declarada.", lex.getLineaInicial()) ; 
@@ -258,14 +264,18 @@ triple		: ID '{' expresion_matematica '}' {
 
 declaracion_fun : tipo_fun FUN ID '(' { if (esEmbebido($3.sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());}
 					else {
-					
 					this.checkRedFuncion($3.sval);
-					this.funcionActual = $3.sval;  this.ts.addAtributo(ambitoActual+":"+$3.sval,AccionSemantica.USO,"nombre funcion");}
+					this.funcionActual = $3.sval;  
+					}
 					} lista_parametro ')' { 
-								this.cantRetornos.add(0); this.gc_funciones.push(this.ts.getGCFuncion($3.sval)); this.gc = this.gc_funciones.peek(); this.ambitoActual += ":" + $3.sval;
+								this.cantRetornos.add(0); 
+								this.gc_funciones.push(this.ts.getGCFuncion($3.sval)); 
+								this.gc = this.gc_funciones.peek(); 
+								this.ambitoActual += ":" + $3.sval;
 								this.tags.add(new ControlTagAmbito());
 								} cuerpo_funcion_p {
-								tipoVar = $1.sval; this.checkRet($3.sval);
+								tipoVar = $1.sval; 
+								this.checkRet($3.sval);
 								this.gc_funciones.pop();
 								this.gc = this.gc_funciones.peek();
 								tags.get(this.tags.size()-1).tagsValidos(lex.getLineaInicial());
@@ -329,7 +339,7 @@ invoc_fun	: ID '('{funcionActual = $1.sval; } lista_parametro_real ')' {
 								ErrorHandler.addErrorSemantico("La funcion invocada " + $1.sval + " no existe.", lex.getLineaInicial());
 								tipo = "error";
 							}
-							$$.sval = gc.addTerceto("INVOC_FUN", $1.sval, $4.sval, tipo);//porque $4? :c
+							$$.sval = gc.addTerceto("INVOC_FUN", this.ambitoActual + ":" + this.funcionActual, $4.sval, tipo);//porque $4? :c
 		}
 		
 		| ID '(' ')' { ErrorHandler.addErrorSintactico("Falta de parámetros en la invocación a la función", lex.getLineaInicial());}
@@ -362,16 +372,17 @@ for		: FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iter
 				String var = this.varFors.get(this.varFors.size()-1);
 				if(!this.ts.getAtributo($8.sval, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){
 					ErrorHandler.addErrorSemantico("La constante de avance no es de tipo entero.", lex.getLineaInicial()); 
-					gc.addTerceto("+", var, String.valueOf($7.ival * Double.parseDouble($8.sval)));
+					gc.addTerceto("+", gc.checkDeclaracion(var, lex.getLineaInicial(), this.ts, this.ambitoActual), String.valueOf($7.ival * Double.parseDouble($8.sval)));
 				} else {
-					gc.addTerceto("+", var, String.valueOf($7.ival * Integer.parseInt($8.sval)));
+					gc.addTerceto("+", gc.checkDeclaracion(var, lex.getLineaInicial(), this.ts, this.ambitoActual), String.valueOf($7.ival * Integer.parseInt($8.sval)));
 				}		
 				this.varFors.remove(this.varFors.size()-1);
 				gc.addTerceto("BI", $5.sval, "");
 				gc.actualizarBF(gc.getCantTercetos());
 				gc.pop();
+				this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "-", "-");
 		}
-
+		| FOR '(' asignacion_for ';' condicion_for  foravanc '-' CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("No se puede utilizar una constante negativa, en su lugar se debe utilizar el avance descendiente DOWN.", lex.getLineaInicial());}
 		| FOR '(' asignacion_for ';' condicion_for  foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta punto y coma entre condicion y avance", lex.getLineaInicial());}
 		| FOR '(' asignacion_for  condicion_for ';' foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Falta punto y coma entre asignacion y condicion", lex.getLineaInicial());}
 		| FOR '(' asignacion_for  condicion_for foravanc CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("Faltan todos los punto y coma del for", lex.getLineaInicial());}
@@ -391,7 +402,7 @@ condicion_for   : condicion { $$.sval = $1.sval;
 
 asignacion_for  : ID ASIGN CTE {String varFor = gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts,ambitoActual);
 				if (varFor != null){
-					if(!this.ts.getAtributo($1.sval, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La constante asignada a " + $1.sval + " no es de tipo entero.", lex.getLineaInicial());}
+					if(!this.ts.getAtributo(varFor, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La constante asignada a " + $1.sval + " no es de tipo entero.", lex.getLineaInicial());}
 					gc.addTerceto(":=",varFor, $3.sval);
 				}
 				else{
@@ -399,6 +410,7 @@ asignacion_for  : ID ASIGN CTE {String varFor = gc.checkDeclaracion($1.sval,lex.
 				}
 				if(!this.ts.getAtributo($3.sval, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La constante " + $3.sval + " no es de tipo entero.", lex.getLineaInicial());}
 				this.varFors.add($1.sval);
+				this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "-", "-");
 				}
 		;
 
@@ -406,7 +418,8 @@ foravanc	: UP {$$.ival = 1;}
 		| DOWN {$$.ival = -1;}
 		;
 
-goto		: GOTO TAG { $$.sval = gc.addTerceto("GOTO", $2.sval,""); this.ts.addAtributo($2.sval,AccionSemantica.USO,"nombre etiqueta");
+goto		: GOTO TAG { $$.sval = gc.addTerceto("GOTO", ambitoActual + ":" + $2.sval,"");
+			     this.ts.addAtributo($2.sval,AccionSemantica.USO,"nombre etiqueta");
 			     this.tags.get(tags.size()-1).huboGoto(this.ambitoActual+":"+$2.sval);
 			} // luego se deberá setear a donde salta
 
@@ -540,8 +553,6 @@ void checkRet(String nombreFuncion) {
 	if (!nombreFuncion.isEmpty()) {
 		if (this.cantRetornos.get(this.cantRetornos.size()-1) > 0){
 			estructurasSintacticas("Se declaró la función: " + nombreFuncion);
-			ts.addClave(nombreFuncion);
-			ts.addAtributo(nombreFuncion,AccionSemantica.TIPO,tipoVar);
 		} else {
 			ErrorHandler.addErrorSintactico("Falta el retorno de la función: " + nombreFuncion, lex.getLineaInicial());
 		}

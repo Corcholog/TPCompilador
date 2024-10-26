@@ -32,6 +32,10 @@ public class GeneradorCodigo {
 		return this.tercetos.size()-1;
 	}
 	
+	public void eliminarTerceto(int i) {
+		this.tercetos.remove(i);
+	}
+	
 	public int getCantTercetos() {
 		return this.tercetos.size();
 	}
@@ -51,38 +55,123 @@ public class GeneradorCodigo {
 	
 	public String addTerceto(String op, String op1, String op2, String tipo) {
 		this.tercetos.add(new Terceto(op, op1, op2, tipo));
+		System.out.println("Agregamos: [" + op + ", " + op1 + ", "+ op2 + "]");
 		return "[" + (this.tercetos.size()-1) + "]";
 	}
 	
 	public Terceto getTerceto(int pos) {
+		if( pos >= this.getCantTercetos()) {
+			return null;
+		}
 		return this.tercetos.get(pos);
 	}
 	
-	public void updateAndCheckSize(int pos, String op2, int lineaActual, TablaSimbolos ts) {
+	public int updateAndCheckSize(int pos, String op2, int lineaActual, TablaSimbolos ts, String ambitoActual) {
 		if(pos >= this.getCantTercetos()) {
 			ErrorHandler.addErrorSemantico("La longitud de los patrones a matchear es distinta.", lineaActual);
 		} else {
 			Terceto t = this.getTerceto(pos);
-			t.setOp2(op2);
-			this.checkTipo(pos, lineaActual, ts);
+			int newPos = pos;
+			System.out.println("ANTES WHILE: operador " + t.getOperador() + ", operandos " + t.getOp1() + " y "+ op2);
+			while(newPos < this.getPosActual() && !t.getOperador().equals("COMP")) {
+				newPos++;
+				t = this.getTerceto(newPos);
+			}
+			System.out.println("DESPUES WHILE: operador " + t.getOperador() + ", operandos " + t.getOp1() + " y "+ op2);
+			if(t.getOperador().equals("COMP")) {
+				t.setOp2(op2);
+			}
+			
+			this.checkTipo(newPos, lineaActual, ts, ambitoActual, "");
+			return newPos;
 		}
+		return pos;
+		
 	}
 	
-	public void checkTipo(int pos, int lineaActual, TablaSimbolos ts) {
+	public String checkTipo(int pos, int lineaActual, TablaSimbolos ts, String ambitoActual, String operando) {
 		Terceto t = this.getTerceto(pos);
-		String op1 = t.getOp1();
-		String op2 = t.getOp2();
-		String tipoOp1 = ts.getAtributo(op1, AccionSemantica.TIPO);
-		String tipoOp2 = ts.getAtributo(op2, AccionSemantica.TIPO);
-		if(tipoOp1.isEmpty()) {
-			ErrorHandler.addErrorSemantico("El operando " + op1 + " no esta declarado", lineaActual);
-		}
-		if(tipoOp2.isEmpty()) {
-			ErrorHandler.addErrorSemantico("El operando " + op2 + " no esta declarado", lineaActual);
-		}
-		else if(!tipoOp1.equals(tipoOp2) && !tipoOp1.isEmpty()) {
-			ErrorHandler.addErrorSemantico("El tipo de los operandos no es igual. El operando " + op1 + " es " + tipoOp1 + " y el operando " + op2 + " es " + tipoOp2, lineaActual);
-		}
+		String op_izq = t.getOp1();
+		String op_der = t.getOp2();
+		
+		
+		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+	    Matcher matcher_izq = pattern.matcher(op_izq);
+	    Matcher matcher_der = pattern.matcher(op_der);
+	    
+	    boolean matchres_izq = matcher_izq.find();
+	    boolean matchres_der = matcher_der.find();
+	    boolean noDeclarado = false;
+	    
+	    String id_izq="";
+	    String id_der="";
+	    String tipo_der="";
+	    String tipo_izq = "";
+	    String retorno_der = "";
+	    String retorno_izq = "";
+	    
+	    if(matchres_izq) {
+	    	Terceto t1 = this.getTerceto(Integer.parseInt(matcher_izq.group(1)));
+	    	id_izq = "";
+	    	retorno_izq = op_izq;
+	    	tipo_izq = t1.getTipo();
+	    	if(tipo_izq.equals("error")) {
+    			noDeclarado = true;
+    		}
+	    } else {
+	    	id_izq = op_izq;
+	    	retorno_izq = id_izq;
+		    id_izq = checkDeclaracion(id_izq, lineaActual, ts,ambitoActual); 
+	    	tipo_izq = ts.getAtributo(id_izq, AccionSemantica.TIPO);
+	    }
+	    
+
+	    
+	    if(matchres_der) { // tengo terceto lado derecho
+	    	Terceto t2 = this.getTerceto(Integer.parseInt(matcher_der.group(1)));
+    		id_der = "";
+    		retorno_der = op_der;
+    		tipo_der = t2.getTipo();
+	    	if(tipo_der.equals("error")) {
+    			noDeclarado = true;
+    		}
+	    } else {
+	    	id_der = op_der;
+	    	retorno_der = op_der;
+		    id_der = checkDeclaracion(id_der, lineaActual, ts,ambitoActual); 
+		    tipo_der = ts.getAtributo(id_der, AccionSemantica.TIPO);
+
+
+	    }
+	    
+	    
+	    if((id_izq == null) || (id_der == null)) {
+	    	noDeclarado = true;
+	    }
+	    
+	    if(!noDeclarado) {
+	    	if(!tipo_der.equals(tipo_izq)) {
+	    		if(id_der.equals("")) {
+	    			ErrorHandler.addErrorSemantico("Tipo inesperado en comparacion. La variable izquierda " + id_izq + " es " + tipo_izq + " y se compara con " + tipo_der, lineaActual);
+	    		}
+	    		else {
+	    			ErrorHandler.addErrorSemantico("Tipo inesperado en comparacion. La variable izquierda es " + tipo_izq + " y la variable derecha " + id_der +  " es " + tipo_der, lineaActual);
+	    		}
+	    	}
+	    }else {
+	    	if(id_izq == null) {
+	    		ErrorHandler.addErrorSemantico("La variable del lado izquierdo de la comparacion no esta declarada o no esta al alcance.", lineaActual);
+	    	}
+	    	if(id_der == null){
+	    		ErrorHandler.addErrorSemantico("La variable del lado derecho de la comparacion no esta declarada o no esta al alcance.", lineaActual);
+	    	}
+	    	
+	    }
+	    if(operando == "") {
+	    	return null;
+	    }
+	    this.eliminarTerceto(pos);
+	    return this.addTerceto(operando, retorno_izq, retorno_der, tipo_der);
 	}
 	
 	public int getPosCorchetes(String input) {
@@ -114,7 +203,7 @@ public class GeneradorCodigo {
     	}
 	}
 	
-	public void checkTipoAsignacion(String id, int lineaActual, String opAsig, TablaSimbolos ts, String ambitoActual) {
+	public String checkTipoAsignacion(String id, int lineaActual, String opAsig, TablaSimbolos ts, String ambitoActual) {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 	    Matcher matcher = pattern.matcher(opAsig);
 	    
@@ -150,6 +239,7 @@ public class GeneradorCodigo {
 			    id_der = checkDeclaracion(id_der, lineaActual, ts,ambitoActual); 
 	    		tipo_der = asig.getTipo();
 	    	} else {
+	    		id_der = opAsig;
 	    		tipo_der = asig.getTipo();
 	    	}
 	    	if(tipo_der.equals("error")) {
@@ -177,27 +267,43 @@ public class GeneradorCodigo {
 	    }else {
 	    	ErrorHandler.addErrorSemantico("la variable no esta declarada en la Asignacion",lineaActual);
 	    }
+	    
+	    return this.addTerceto(":=", id_izq, id_der, tipo_der);
 	}
 
-	
+	public String obtenerVariableSinAmbito(String texto) {
+        String[] partes = texto.split(":");
+        if (partes.length > 1) {
+            return partes[partes.length - 1];
+        } else {
+            return texto;
+        }
+    }
+
+
 	
 	public String checkDeclaracion(String id, int lineaInicial, TablaSimbolos ts,String ambito) {
-		if (id.matches("^[0-9].*")) {//expr regular para ver que no sea una CTE
+		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+	    Matcher matcher = pattern.matcher(id);
+	    
+		if (id.matches("^[0-9].*") || matcher.find()) {//expr regular para ver que no sea una CTE
 			return id;
 		} 
 		else {
+			String var = obtenerVariableSinAmbito(id);
 			String[] partes = ambito.split(":");
+			System.out.println("Variable: " + var);
 			// Usamos un for inverso para eliminar desde funcion2 hacia global
 			for (int i = partes.length - 1; i >= 0; i--) {
 			    // Unimos las partes desde el índice 0 hasta i
 			    String nuevaCadena = String.join(":", Arrays.copyOfRange(partes, 0, i + 1));
-			    String claveTs= nuevaCadena + ":" + id;
-			    System.out.println(claveTs);
+			    String claveTs= nuevaCadena + ":" + var;
+			    System.out.println("clave ts "+claveTs);
 			    if (ts.estaEnTablaSimbolos(claveTs)) {
 			    	return claveTs;
 			    }
 			}
-			ErrorHandler.addErrorSemantico("La variable " + id + " no esta al alcance o no fue declarada",  lineaInicial);
+			ErrorHandler.addErrorSemantico("La variable " + id + " no esta al alcance o no fue declarada.",  lineaInicial);
 			return null;
 		}
 	}
@@ -263,45 +369,39 @@ public class GeneradorCodigo {
 	    else {
 			ErrorHandler.addErrorSemantico("alguna de las variables no esta declarada en la expresion",lineaActual);
 	    }
-    	return this.addTerceto(operando, id_izq, id_der, tipo_izq);
-
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+	    
+	    String retorno = this.addTerceto(operando, id_izq, id_der, tipo_izq);
+	    System.out.println("SE AGREGA " + retorno);
+    	return retorno;
 		
 	}
 	
 	public String updateCompAndGenerate(int pos, String comp) {
+		ArrayList<Integer> comparadores = new ArrayList<>();
 	    for (int i = pos; i < this.tercetos.size(); i++) {
+	    	
 	        Terceto t = this.getTerceto(i);
-	        t.setOperador(comp);
+	        if(t.getOperador().equals("COMP")) {
+	        	t.setOperador(comp);
+	        	comparadores.add(i);
+	        }
 	    }
 
 	    int ultimoTercetoGenerado = pos;
 	    
-	    this.addTerceto("AND", "[" + pos + "]", "[" + (pos + 1) + "]");
+	    this.addTerceto("AND", "[" + comparadores.getFirst() + "]", "[" + comparadores.get(1) + "]");
 	    ultimoTercetoGenerado = this.tercetos.size() - 1; 
 	    
 	    int size = this.tercetos.size();
 
-	    for (int i = pos + 2; i < size - 1; i++) {
-	        this.addTerceto("AND", "[" + ultimoTercetoGenerado + "]", "[" + i + "]");
+	    
+	    
+	    for (int i = 2; i < comparadores.size(); i++) {
+	    	
+	    	this.addTerceto("AND", "[" + ultimoTercetoGenerado + "]", "[" + comparadores.get(i) + "]");
 	        ultimoTercetoGenerado = this.tercetos.size() - 1; 
-	    }
+		}
+	    
 
 	    return "[" + ultimoTercetoGenerado + "]";
 	}

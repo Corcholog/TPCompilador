@@ -64,7 +64,10 @@ public class Terceto {
 	public void setTipo(String tipo) {
 		this.tipo = tipo;
 	}
-
 	
+	@Override
+	public String toString() {
+		return "[" + this.getOperador() + ", " + this.getOp1() + ", " + this.getOp2() +"]";
+	}
 }
 
