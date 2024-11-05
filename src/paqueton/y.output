@@ -188,8 +188,8 @@
  135  lista_parametro_real : lista_parametro_real ',' param_real
  136                       | param_real
 
- 137  param_real : tipo expresion_matematica
- 138             | expresion_matematica
+ 137  param_real : expresion_matematica
+ 138             | tipo ID
 
  139  sald_mensaj : OUTF '(' mensaje ')'
  140              | OUTF '(' ')'
@@ -1924,31 +1924,19 @@ state 122
 	expresion_matematica : expresion_matematica . '+' error ';'  (90)
 	expresion_matematica : expresion_matematica . '-' error ')'  (91)
 	expresion_matematica : expresion_matematica . '-' error ';'  (92)
-	param_real : expresion_matematica .  (138)
+	param_real : expresion_matematica .  (137)
 
 	'+'  shift 98
 	'-'  shift 99
-	')'  reduce 138
-	','  reduce 138
+	')'  reduce 137
+	','  reduce 137
 
 
 state 123
-	param_real : tipo . expresion_matematica  (137)
+	param_real : tipo . ID  (138)
 
-	ID  shift 44
-	CTE  shift 45
-	'+'  shift 47
-	'-'  shift 48
-	'*'  shift 49
-	'/'  shift 50
+	ID  shift 168
 	.  error
-
-	invoc_fun  goto 51
-	expresion_matematica  goto 168
-	triple  goto 56
-	termino  goto 57
-	factor  goto 58
-	constante  goto 59
 
 
 state 124
@@ -2491,18 +2479,9 @@ state 167
 
 
 state 168
-	expresion_matematica : expresion_matematica . '+' termino  (85)
-	expresion_matematica : expresion_matematica . '-' termino  (86)
-	expresion_matematica : expresion_matematica . '+' error ')'  (89)
-	expresion_matematica : expresion_matematica . '+' error ';'  (90)
-	expresion_matematica : expresion_matematica . '-' error ')'  (91)
-	expresion_matematica : expresion_matematica . '-' error ';'  (92)
-	param_real : tipo expresion_matematica .  (137)
+	param_real : tipo ID .  (138)
 
-	'+'  shift 98
-	'-'  shift 99
-	')'  reduce 137
-	','  reduce 137
+	.  reduce 138
 
 
 state 169

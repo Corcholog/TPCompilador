@@ -1,7 +1,7 @@
 nombre
 BEGIN
 	ulongint a, b, c, j, e, f;
-	IF ((a - 2, b, c + 1 * 12) < (j - 2, e + 3)) THEN
+	IF ((a - 2, b, c + 1 * 12) < (j - 2, e + 3, 3)) THEN
 	BEGIN
 		a := b;
 	END
@@ -10,11 +10,16 @@ BEGIN
 		b := a + 2;
 	END	
 	END_IF;
+	ULONGINT FUN t1(double parametro)
+	BEGIN
+		ulongint pepe;
+		RET (parametro);
+	END;
+	a := 3;
+	c := t1(double a);
 	
-	TYPEDEF TRIPLE <ulongint> tripleta;
-	tripleta t1, t2, t3;
-	t1{c + 1 * 12} := 8;
-	
-	b := 0777;
+	TYPEDEF TRIPLE <double> tripleta;
+	tripleta t2, t3, t4;
+	t2 := t3 + t4;
 
 END

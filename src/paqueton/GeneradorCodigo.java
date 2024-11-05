@@ -41,7 +41,7 @@ public class GeneradorCodigo {
 	}
 
 	public ArrayList<Terceto> getTercetos() {
-		return this.tercetos;
+		return new ArrayList<Terceto>(this.tercetos);
 	}
 	
 	public void huboError() {
@@ -72,21 +72,17 @@ public class GeneradorCodigo {
 		} else {
 			Terceto t = this.getTerceto(pos);
 			int newPos = pos;
-			//System.out.println("ANTES WHILE: operador " + t.getOperador() + ", operandos " + t.getOp1() + " y "+ op2);
 			while(newPos < this.getPosActual() && !t.getOperador().equals("COMP")) {
 				newPos++;
 				t = this.getTerceto(newPos);
 			}
-			//System.out.println("DESPUES WHILE: operador " + t.getOperador() + ", operandos " + t.getOp1() + " y "+ op2);
 			if(t.getOperador().equals("COMP")) {
 				t.setOp2(op2);
 			}
-			
 			this.checkTipo(newPos, lineaActual, ts, ambitoActual, "");
-			return newPos;
+			pos = newPos;
 		}
 		return pos;
-		
 	}
 	
 	public String checkTipo(int pos, int lineaActual, TablaSimbolos ts, String ambitoActual, String operando) {
@@ -284,19 +280,17 @@ public class GeneradorCodigo {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 	    Matcher matcher = pattern.matcher(id);
 	    
-		if (id.matches("^[0-9].*") || matcher.find()) {//expr regular para ver que no sea una CTE
+		if (id.matches("^[0-9].*") || matcher.find()) {
 			return id;
 		} 
 		else {
 			String var = obtenerVariableSinAmbito(id);
 			String[] partes = ambito.split(":");
-			//System.out.println("Variable: " + var);
-			// Usamos un for inverso para eliminar desde funcion2 hacia global
+			// Usamos un for inverso para eliminar desde el ambito actual hacia el global
 			for (int i = partes.length - 1; i >= 0; i--) {
 			    // Unimos las partes desde el índice 0 hasta i
 			    String nuevaCadena = String.join(":", Arrays.copyOfRange(partes, 0, i + 1));
 			    String claveTs= nuevaCadena + ":" + var;
-			    //System.out.println("clave ts "+claveTs);
 			    if (ts.estaEnTablaSimbolos(claveTs)) {
 			    	return claveTs;
 			    }
@@ -313,7 +307,7 @@ public class GeneradorCodigo {
 	    Matcher matcher_id = pattern.matcher(op_izq);
 	    boolean matchres_id = matcher_id.find();
 	    boolean matchres = matcher.find();
-	    boolean noDeclarado = false;
+	    boolean declarado = true;
 	    
 	    String id_izq="";
 	    String id_der="";
@@ -326,7 +320,7 @@ public class GeneradorCodigo {
 	    	Terceto tripla = this.getTerceto(Integer.parseInt(matcher_id.group(1)));
 	    	tipo_izq = tripla.getTipo();
 	    	if(tipo_der.equals("error")) {
-    			noDeclarado = true;	    
+    			declarado = false;	    
 	    	}	
 	    } else {
 	    	id_izq = op_izq;
@@ -338,7 +332,7 @@ public class GeneradorCodigo {
 	    }
 	    
 	    if(id_izq == null) {
-	    	noDeclarado = true;
+	    	declarado = false;
 	    }
 	    
 	    if(matchres) { // tengo terceto lado derecho
@@ -346,7 +340,7 @@ public class GeneradorCodigo {
 	    	Terceto asig = this.getTerceto(Integer.parseInt(matcher.group(1)));
 	    	tipo_der = asig.getTipo();
 	    	if(tipo_der.equals("error")) {
-    			noDeclarado = true;
+    			declarado = false;
 	    	}
     		
 	    } else {
@@ -355,11 +349,11 @@ public class GeneradorCodigo {
 		    tipo_der = ts.getAtributo(id_der, AccionSemantica.TIPO);
 
 	    	if(id_der == null) {
-	    		noDeclarado = true;
+	    		declarado = false;
 	    	}
 	    }
 	    
-	    if(!noDeclarado) {
+	    if(declarado) {
 	    	if(!tipo_der.equals(tipo_izq)) {
 	    			ErrorHandler.addErrorSemantico("Tipo inesperado en la expresion. La variable izquierda " + id_izq + " es " + tipo_izq + " y la variable derecha " + id_der +  " es " + tipo_der, lineaActual);
 	    	}
@@ -369,8 +363,8 @@ public class GeneradorCodigo {
 	    }
 	    
 	    String retorno = this.addTerceto(operando, id_izq, id_der, tipo_izq);
-	    //System.out.println("SE AGREGA " + retorno);
     	return retorno;
+		
 		
 	}
 	
@@ -382,30 +376,20 @@ public class GeneradorCodigo {
 		} else {
 			ArrayList<Integer> comparadores = new ArrayList<>();
 		    for (int i = pos; i < this.tercetos.size(); i++) {
-		    	
 		        Terceto t = this.getTerceto(i);
 		        if(t.getOperador().equals("COMP")) {
 		        	t.setOperador(comp);
 		        	comparadores.add(i);
 		        }
 		    }
-
 		    int ultimoTercetoGenerado = pos;
-		    
 		    this.addTerceto("AND", "[" + comparadores.getFirst() + "]", "[" + comparadores.get(1) + "]");
 		    ultimoTercetoGenerado = this.tercetos.size() - 1; 
-		    
 		    int size = this.tercetos.size();
-
-		    
-		    
 		    for (int i = 2; i < comparadores.size(); i++) {
-		    	
 		    	this.addTerceto("AND", "[" + ultimoTercetoGenerado + "]", "[" + comparadores.get(i) + "]");
 		        ultimoTercetoGenerado = this.tercetos.size() - 1; 
 			}
-		    
-
 		    return "[" + ultimoTercetoGenerado + "]";
 		}
 		return "error";

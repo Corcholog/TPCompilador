@@ -3,6 +3,7 @@ package paqueton;
 public class ErrorHandler {
 	public static int cantErroresLexicos = 0;
 	public static int cantErroresSintacticos = 0;
+	public static int cantErroresSemanticos = 0;
 	public static String errores = "";
 	private static GeneradorCodigo gc;
 	
@@ -14,15 +15,26 @@ public class ErrorHandler {
 		ErrorHandler.gc = gc;
 	}
 	
+	public static int huboError() {
+		return ErrorHandler.cantErroresLexicos + ErrorHandler.cantErroresSintacticos + ErrorHandler.cantErroresSemanticos;
+	}
+	
 	public static void addErrorLexico(String e, int linea) {
 		ErrorHandler.errores += "Error Lexico en linea " + linea + ": " + e + "\n";
-		ErrorHandler.cantErroresLexicos+=1;
+		ErrorHandler.cantErroresLexicos++;
 		ErrorHandler.huboErrorGC();
 		
 	}
 	
 	public static void addErrorSemantico(String e, int linea) {
 		ErrorHandler.errores += "Error Semantico en linea " + linea + ": " + e + "\n";
+		ErrorHandler.cantErroresSemanticos++;
+		ErrorHandler.huboErrorGC();
+	}
+	
+	public static void addErrorSintactico(String e, int linea) {
+		ErrorHandler.errores += "Error Sintactico, en linea " + linea + " : " + e + "\n";
+		ErrorHandler.cantErroresSintacticos++;
 		ErrorHandler.huboErrorGC();
 	}
 	
@@ -34,9 +46,6 @@ public class ErrorHandler {
 		ErrorHandler.gc.huboError();
 	}
 	
-	public static void addErrorSintactico(String e, int linea) {
-		ErrorHandler.errores += "Error Sintactico, en linea " + linea + " : " + e + "\n";
-		ErrorHandler.gc.huboError();
-	}
+
 
 }
