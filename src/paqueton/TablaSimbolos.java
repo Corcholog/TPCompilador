@@ -12,6 +12,10 @@ public class TablaSimbolos {
 		this.funciones = new HashMap<String, GeneradorCodigo>();
 	}
 	
+	public Map<String, GeneradorCodigo> getFunciones(){
+		return new HashMap<String, GeneradorCodigo>(funciones);
+	}
+	
 	public Map<String, String> getAtributos(String key) {
 		return this.tablaSimbolos.get(key);
 	}

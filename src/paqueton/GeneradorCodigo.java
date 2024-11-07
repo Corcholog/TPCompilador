@@ -184,21 +184,24 @@ public class GeneradorCodigo {
 	    Matcher matcher = pattern.matcher(expresion);
 	    String tipo = "";
 	    boolean estaDeclarado = false;
+	    System.out.println("El parametro real es: " + expresion);
 	    if(!matcher.find()) {	
-	    	estaDeclarado = !checkDeclaracion(expresion, lineaActual, ts, ambitoActual).isEmpty();
-	    	tipo = ts.getAtributo(expresion, AccionSemantica.TIPO);
+	    	String parametro = checkDeclaracion(expresion, lineaActual, ts, ambitoActual);
+	    	estaDeclarado = parametro != null;
+	    	tipo = ts.getAtributo(parametro, AccionSemantica.TIPO);
 	    } else {
 	    	Terceto tripla = this.getTerceto(Integer.parseInt(matcher.group(1)));
 	    	estaDeclarado = true;
-	    	tipo = ts.getAtributo(tripla.getOp1(), AccionSemantica.TIPO_BASICO);
+	    	tipo = tripla.getTipo();
 	    }
 	    
 	    if (!estaDeclarado) {
 	    	ErrorHandler.addErrorSemantico("el parametro real " +expresion+ "  no esta al alcance", lineaActual);
 	    }
 	    
-	    if(!ts.getAtributo(ts.getAtributo(funcionActual, AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals(tipo)){ 
-    		ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lineaActual);
+	    if(!ts.getAtributo(ts.getAtributo(ambitoActual + ":"+funcionActual, AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals(tipo)){ 
+    		System.out.println("Tipo parametro: " + ts.getAtributo(ts.getAtributo(funcionActual, AccionSemantica.PARAMETRO), AccionSemantica.TIPO) + " y el tipo del real es: "+ tipo);
+	    	ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lineaActual);
     	}
 	}
 	

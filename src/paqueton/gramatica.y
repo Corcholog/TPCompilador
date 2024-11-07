@@ -265,12 +265,12 @@ declaracion_fun : tipo_fun FUN ID '(' { if (esEmbebido($3.sval)){ErrorHandler.ad
 					else {
 					this.checkRedFuncion($3.sval, $1.sval);
 					this.funcionActual = $3.sval; 
+					this.ambitoActual += ":" + $3.sval;
 					}
 					} lista_parametro ')' { 
 								this.cantRetornos.add(0); 
 								this.gc_funciones.push(this.ts.getGCFuncion($3.sval)); 
 								this.gc = this.gc_funciones.peek(); 
-								this.ambitoActual += ":" + $3.sval;
 								this.tags.add(new ControlTagAmbito());
 								} cuerpo_funcion_p {
 								tipoVar = $1.sval; 
@@ -301,18 +301,18 @@ lista_parametro : lista_parametro ',' parametro { ErrorHandler.addErrorSintactic
 		;
 
 parametro	: tipo ID { 
-this.ts.addClave(this.ambitoActual + ":" + $2.sval);
-String id_param = gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
-this.ts.addAtributo(id_param,AccionSemantica.TIPO, $1.sval); this.ts.addAtributo(id_param,AccionSemantica.USO,"nombre parametro"); this.ts.addAtributo(gc.checkDeclaracion(funcionActual, lex.getLineaInicial(), this.ts, this.ambitoActual), AccionSemantica.PARAMETRO, id_param); this.ts.addAtributo(id_param, AccionSemantica.TIPO, $1.sval); estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
+			this.ts.addClave(this.ambitoActual + ":" + $2.sval);
+			String id_param = gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
+			this.ts.addAtributo(id_param,AccionSemantica.TIPO, $1.sval); this.ts.addAtributo(id_param,AccionSemantica.USO,"nombre parametro"); this.ts.addAtributo(gc.checkDeclaracion(funcionActual, lex.getLineaInicial(), 				this.ts, this.ambitoActual), AccionSemantica.PARAMETRO, id_param); 
+			this.ts.addAtributo(id_param, AccionSemantica.TIPO, $1.sval); estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " +			lex.getLineaInicial());}
 		| ID ID { this.ts.addAtributo(ambitoActual+":"+$2.sval,AccionSemantica.TIPO, $1.sval); this.ts.addAtributo(ambitoActual+":"+$2.sval,AccionSemantica.USO,"nombre parametro"); this.ts.addAtributo(ambitoActual+":"+funcionActual, AccionSemantica.PARAMETRO, $2.sval); estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
 
 		| tipo { ErrorHandler.addErrorSintactico("Falta el nombre del parametro", lex.getLineaInicial());}
 		| ID { ErrorHandler.addErrorSintactico("Falta el nombre del parametro o el tipo", lex.getLineaInicial());} //buscando en tabla de simbolos se puede saber lo que falta
 		;
 
-cuerpo_funcion_p : {ts.addClave(yylval.sval);} BEGIN bloques_funcion ';' END
+cuerpo_funcion_p : BEGIN bloques_funcion ';' END
 
-		 // No pudimos hacer que ese punto y coma falte, lo cual obliga a funciones anidadas llevar un ; luego del END
     		 ;
 
 bloques_funcion : bloques_funcion';' bloque_funcion
@@ -326,7 +326,7 @@ bloque_funcion : retorno
 		;
 
 retorno 	: RET '('expresion_matematica')' { this.cantRetornos.set(this.cantRetornos.size()-1, this.cantRetornos.get(this.cantRetornos.size()-1) + 1); 
-					$$.sval = gc.addTerceto("RET", $3.sval, "");		
+					$$.sval = gc.addTerceto("RET", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");		
 		}
 		;
 

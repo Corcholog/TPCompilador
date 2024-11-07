@@ -13,13 +13,16 @@ BEGIN
 	ULONGINT FUN t1(double parametro)
 	BEGIN
 		ulongint pepe;
+		double gerardo;
+		parametro := 2.0;
+		gerardo := parametro;
 		RET (parametro);
 	END;
 	a := 3;
-	c := t1(double a);
+	double gepeto;
+	c := t1(2.0 * gepeto + 2.0);
 	
 	TYPEDEF TRIPLE <double> tripleta;
 	tripleta t2, t3, t4; 
 	t2 := t3 + t4;
-
 END
