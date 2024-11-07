@@ -113,7 +113,7 @@ public class GeneradorCodigo {
 	    	tipo_izq = t1.getTipo();
 	    	if(tipo_izq.equals("error")) {
     			noDeclarado = true;
-    		}
+	    	}
 	    } else {
 	    	id_izq = op_izq;
 	    	retorno_izq = id_izq;
@@ -163,9 +163,12 @@ public class GeneradorCodigo {
 	    	}
 	    	
 	    }
+	    System.out.println("Se setea el tipo de: " + t + " como: " + tipo_izq);
+	    t.setTipo(tipo_izq);
 	    if(operando == "") {
 	    	return null;
 	    }
+	    
 	    this.eliminarTerceto(pos);
 	    return this.addTerceto(operando, retorno_izq, retorno_der, tipo_der);
 	}

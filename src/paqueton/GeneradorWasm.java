@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class GeneradorWasm {
 	private TablaSimbolos ts;
-	private GeneradorCodigo gc_main;	
+	private GeneradorCodigo gc_main;
 	private String filePath;
 
 	public GeneradorWasm(TablaSimbolos ts, GeneradorCodigo gc, String path) {
@@ -27,29 +27,31 @@ public class GeneradorWasm {
     }
 	
 	public void traducir() {
-		ArrayList<Terceto> tercetos_main = gc_main.getTercetos();
-		for (Terceto t : tercetos_main) {
-			this.ejecutarTraduccion(t);
+		for (int i = 0; i < gc_main.getCantTercetos(); i++) {
+			Terceto t = gc_main.getTerceto(i);
+			if(!t.isHecho()) {
+				this.ejecutarTraduccion(t, i);				
+			}
 		}
 	}
 	
-	public void ejecutarTraduccion(Terceto t) {
+	public void ejecutarTraduccion(Terceto t, int pos) {
 		String operador = t.getOperador().toLowerCase();
 		switch(operador) {
-			case "*": this.producto(t); break;
-			case "/": this.division(t); break;
-			case "+": this.suma(t); break;
-			case "-": this.resta(t); break;
-			case "<": System.out.println("HOOOOLA");this.menor(t); break;
-			case "<=": this.menorIgual(t); break;
-			case ">": this.mayor(t); break;
-			case ">=": this.mayorIgual(t); break;
-			case "=": this.igual(t); break;
-			case "!=": this.comparacion(t); break;
-			case "and": this.and(t); break;
+			case "*": this.producto(t, pos); break;
+			case "/": this.division(t, pos); break;
+			case "+": this.suma(t, pos); break;
+			case "-": this.resta(t, pos); break;
+			case "<": this.menor(t, pos); break;
+			case "<=": this.menorIgual(t, pos); break;
+			case ">": this.mayor(t, pos); break;
+			case ">=": this.mayorIgual(t, pos); break;
+			case "=": this.igual(t, pos); break;
+			case "!=": this.distinto(t, pos); break;
+			case "and": this.and(t, pos); break;
 			case "bi": this.bifurcacionIncondicional(t); break;
 			case "bf": this.bifurcacionPorFalso(t); break;
-			case ":=": this.asignacion(t); break;
+			case ":=": this.asignacion(t, pos); break;
 			case "todouble": this.toDouble(t); break;
 			case "toulongint": this.toUlongint(t); break;
 			case "invoc_fun": this.invocacionFuncion(t); break;
@@ -63,11 +65,17 @@ public class GeneradorWasm {
 				if (operador.matches("^label\\d*")) {
 					this.generarTag(t);
 			    }
+				System.out.println(operador);
 			    break;
 		}
+		t.setHecho(true);
 	}
 	
-	private String obtenerGets(Terceto t) {
+	private String obtenerGets(Terceto t, int pos) {
+		return this.obtenerGets(t, pos, true);
+	}
+	
+	private String obtenerGets(Terceto t, int pos, boolean quieroIzquierdo) {
 		String devolver = "";
 		String op1 = t.getOp1();
 		String op2 = t.getOp2();
@@ -75,104 +83,145 @@ public class GeneradorWasm {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 		
 	    Matcher matcher1 = pattern.matcher(op1);
+	    boolean find1 = matcher1.find();
 	    Matcher matcher2 = pattern.matcher(op2);
 	    
-	    if(!matcher1.find()) {
-	    	System.out.println("Se encontro un terceto a la izquierda");
-	    	devolver+="local.get $"+op1+"\n";
+	    if(quieroIzquierdo && !find1) {
+	    	System.out.println("No se encontro un terceto a la izquierda en terceto " + pos);
+	    	if(!op1.equals("")) {
+	    		devolver+="local.get $"+op1+"\n";	    		
+	    	}
+	    }else if(find1){
+	    	int indiceTerceto = Integer.parseInt(matcher1.group(1));
+	    	Terceto t_op1 = this.gc_main.getTerceto(indiceTerceto);
+	    	if(pos < indiceTerceto) {
+	    		this.ejecutarTraduccion(t_op1, indiceTerceto);
+	    		
+	    	}else if(pos > indiceTerceto && !t_op1.isHecho()) {
+	    		this.ejecutarTraduccion(t_op1, indiceTerceto);
+	    	}
 	    }
+	    
 	    if(!matcher2.find()) {
-	    	System.out.println("Se encontro un terceto a la derecha");
-	    	devolver+="local.get $"+op2+"\n";
+	    	System.out.println("No se encontro un terceto a la derecha");
+	    	if(!op2.equals("")) {
+	    		devolver+="local.get $"+op2+"\n";	    		
+	    	}
+	    } else {
+	    	int indiceTerceto = Integer.parseInt(matcher2.group(1));
+	    	Terceto t_op2 = this.gc_main.getTerceto(indiceTerceto);
+	    	if(pos < indiceTerceto) {
+	    		this.ejecutarTraduccion(t_op2, indiceTerceto);
+	    		
+	    	}else if(pos > indiceTerceto && !t_op2.isHecho()) {
+	    		this.ejecutarTraduccion(t_op2, indiceTerceto);
+	    	}
 	    }
 	    
 		return devolver;
 	}
+
+	private String obtenerComparaciones(Terceto t, int pos) {
+	    int comp1 = Integer.parseInt(t.getOp1().split("\\[|\\]")[1]);
+	    int comp2 = Integer.parseInt(t.getOp2().split("\\[|\\]")[1]);
+	    
+	    if(gc_main.getTerceto(pos-1).getOperador().equals("AND")) {
+	    	return "local.get $comp"+comp2+"\n";
+	    }
+	    return "local.get $comp"+comp1+"\nlocal.get $comp"+comp2+"\n";
+	}
 	
-	private void menor(Terceto t) {
+ 	private void menor(Terceto t, int i) {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
-			this.escribir(this.obtenerGets(t) + "f64.lt");
+			this.escribir(this.obtenerGets(t, i) + "f64.lt\n" + "local.set $comp"+i);
 		} else if(tipo.equals("ulongint")) {
-			this.escribir(this.obtenerGets(t) + "i32.lt");
+			this.escribir(this.obtenerGets(t, i) + "i32.lt\n" + "local.set $comp"+i);
 		}
 	}
 
-	private void menorIgual(Terceto t) {
+	private void menorIgual(Terceto t, int i) {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
-			this.escribir(this.obtenerGets(t) + "f64.le");
+			this.escribir(this.obtenerGets(t, i) + "f64.le\n" + "local.set $comp"+i);
 		} else if(tipo.equals("ulongint")) {
-			this.escribir(this.obtenerGets(t) + "i32.le");
+			this.escribir(this.obtenerGets(t, i) + "i32.le\n" + "local.set $comp"+i);
 		}
 		
 	}
 
-	private void mayor(Terceto t) {
+	private void mayor(Terceto t, int i) {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
-			this.escribir(this.obtenerGets(t) + "f64.gt");
+			this.escribir(this.obtenerGets(t, i) + "f64.gt\n" + "local.set $comp"+i);
 		} else if(tipo.equals("ulongint")) {
-			this.escribir(this.obtenerGets(t) + "i32.gt");
+			this.escribir(this.obtenerGets(t, i) + "i32.gt\n" + "local.set $comp"+i);
 		}
 		
 	}
 
-	private void mayorIgual(Terceto t) {
+	private void mayorIgual(Terceto t, int i) {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
-			this.escribir(this.obtenerGets(t) + "f64.ge");
+			this.escribir(this.obtenerGets(t, i) + "f64.ge\n" + "local.set $comp"+i);
 		} else if(tipo.equals("ulongint")) {
-			this.escribir(this.obtenerGets(t) + "i32.ge");
+			this.escribir(this.obtenerGets(t, i) + "i32.ge\n" + "local.set $comp"+i);
 		}
 	}
 
-	private void igual(Terceto t) {
+	private void igual(Terceto t, int i) {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
-			this.escribir(this.obtenerGets(t) + "f64.eq");
+			this.escribir(this.obtenerGets(t, i) + "f64.eq\n" + "local.set $comp"+i);
 		} else if(tipo.equals("ulongint")) {
-			this.escribir(this.obtenerGets(t) + "i32.eq");
+			this.escribir(this.obtenerGets(t, i) + "i32.eq\n" + "local.set $comp"+i);
 		}
 	}
 	
-	private void suma(Terceto t) {
+	private void distinto(Terceto t, int i) {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
-			this.escribir(this.obtenerGets(t) + "f64.add");
+			this.escribir(this.obtenerGets(t, i) + "f64.ne\n" + "local.set $comp"+i);
 		} else if(tipo.equals("ulongint")) {
-			this.escribir(this.obtenerGets(t) + "i32.add");
+			this.escribir(this.obtenerGets(t, i) + "i32.ne\n" + "local.set $comp"+i);
+		}
+	}
+	
+	private void suma(Terceto t, int i) {
+		String tipo = t.getTipo();
+		if(tipo.equals("double")) {
+			this.escribir(this.obtenerGets(t, i) + "f64.add");
+		} else if(tipo.equals("ulongint")) {
+			this.escribir(this.obtenerGets(t, i) + "i32.add");
+		} //t1 := t2 + t3 debe ser suma de arreglos
+	}
+
+	private void resta(Terceto t, int i) { //TODO chequeo de que quede negativo
+		String tipo = t.getTipo();
+		if(tipo.equals("double")) {
+			this.escribir(this.obtenerGets(t, i) + "f64.sub");
+		} else if(tipo.equals("ulongint")) {
+			this.escribir(this.obtenerGets(t, i) + "i32.sub");
 		}
 	}
 
-	private void resta(Terceto t) { //TODO chequeo de que quede negativo
+	private void producto(Terceto t, int i) {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
-			this.escribir(this.obtenerGets(t) + "f64.sub");
+			this.escribir(this.obtenerGets(t, i) + "f64.mul");
 		} else if(tipo.equals("ulongint")) {
-			this.escribir(this.obtenerGets(t) + "i32.sub");
+			this.escribir(this.obtenerGets(t, i) + "i32.mul");
 		}
 	}
 
-	private void producto(Terceto t) {
+	private void division(Terceto t, int i) {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
-			this.escribir(this.obtenerGets(t) + "f64.mul");
+			this.escribir(this.obtenerGets(t, i) + "f64.div");
 		} else if(tipo.equals("ulongint")) {
-			this.escribir(this.obtenerGets(t) + "i32.mul");
+			this.escribir(this.obtenerGets(t, i) + "i32.div");
 		}
 	}
-
-	private void division(Terceto t) {
-		// TODO Auto-generated method stub
-		String tipo = t.getTipo();
-		if(tipo.equals("double")) {
-			this.escribir(this.obtenerGets(t) + "f64.div");
-		} else if(tipo.equals("ulongint")) {
-			this.escribir(this.obtenerGets(t) + "i32.div");
-		}
-	}
-
 
 	private void generarTag(Terceto t) {
 		// TODO Auto-generated method stub
@@ -185,6 +234,7 @@ public class GeneradorWasm {
 	}
 
 	private void accesoTriple(Terceto t) {
+		// TODO Auto-generated method stub
 		
 	}
 
@@ -199,23 +249,19 @@ public class GeneradorWasm {
     }
 	
 	private void toDouble(Terceto t) {
-		
+		this.escribir(this.obtenerGets(t, -1) + "f64_convert_i32_s");
 	}
 	
 	private void toUlongint(Terceto t) {
-		
+		this.escribir(this.obtenerGets(t, -1) + "i32.trunc_f64_s");
 	}
 
-	private void comparacion(Terceto t) {
-		
+	private void asignacion(Terceto t, int i) {
+		this.escribir(this.obtenerGets(t, i, false) + "local.set $"+ t.getOp1());
 	}
 	
-	private void and(Terceto t) {
-		
-	}
-	
-	private void asignacion(Terceto t) {
-		
+	private void and(Terceto t, int i) {
+		this.escribir(this.obtenerComparaciones(t, i)+"i32.and");
 	}
 	
 	private void invocacionFuncion(Terceto t) {

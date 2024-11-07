@@ -139,9 +139,9 @@ endif_punto_control : END_IF {
 		;
 
 
-comparador	: MASI
-		| MENOSI
-		| DIST
+comparador	: MASI {$$.sval = ">=";}
+		| MENOSI {$$.sval = "<=";}
+		| DIST {$$.sval = "!=";}
 		| '=' {$$.sval = "=";}
 		| '<' {$$.sval = "<";}
 		| '>' {$$.sval = ">";}
@@ -356,7 +356,7 @@ lista_parametro_real : lista_parametro_real ',' param_real { $$.sval = $3.sval;E
 
 param_real	: expresion_matematica {$$.sval = $1.sval; gc.checkParamReal($1.sval, lex.getLineaInicial(), this.ts, funcionActual,ambitoActual);}
 		| tipo ID {
-if(!this.ts.getAtributo(gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), AccionSemantica.TIPO).equals($1.sval)){$$.sval = gc.addTerceto("TO".concat($1.sval), gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), $1.sval);}
+if(!this.ts.getAtributo(gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), AccionSemantica.TIPO).equals($1.sval)){$$.sval = gc.addTerceto("TO".concat($1.sval), gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 if(!this.ts.getAtributo(this.ts.getAtributo(gc.checkDeclaracion(funcionActual, lex.getLineaInicial(), this.ts, ambitoActual), AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals($1.sval)){ ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lex.getLineaInicial());}}
 		;
 
