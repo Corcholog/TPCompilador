@@ -1,28 +1,7 @@
 nombre
 BEGIN
-	ulongint a, b, c, j, e, f;
-	IF ((a, b, c + 1 * 12, 2 + 3) <= (j - 2 * 3, e + 3, 3, b*2)) THEN
-	BEGIN
-		a := b;
-	END
-	ELSE
-	BEGIN
-		b := a + 2;
-	END	
-	END_IF;
-	ULONGINT FUN t1(double parametro)
-	BEGIN
-		ulongint pepe;
-		double gerardo;
-		parametro := 2.0;
-		gerardo := parametro;
-		RET (parametro);
+	FOR ( x := 1 ; (x < 10) ; UP 1 ) 
+	BEGIN	
+		OUTF(2 * 3);
 	END;
-	a := 3;
-	double gepeto;
-	c := t1(2.0 * gepeto + 2.0);
-	
-	TYPEDEF TRIPLE <double> tripleta;
-	tripleta t2, t3, t4; 
-	t2 := t3 + t4;
 END

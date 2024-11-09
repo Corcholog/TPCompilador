@@ -72,7 +72,12 @@ condicion	: '('  condicion_2 ')' { $$.sval = $2.sval;}
 		;
 		
 condicion_2 	: expresion_matematica comparador expresion_matematica { 
-				$$.sval = gc.addTerceto($2.sval, gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual)); 					gc.checkTipo(gc.getPosActual(), lex.getLineaInicial(), this.ts, this.ambitoActual, $2.sval);}
+				String op1 = gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
+				String op2 = gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
+				if(op1 != null && op2 != null){
+					$$.sval = gc.addTerceto($2.sval, op1, op2);
+					gc.checkTipo(gc.getPosActual(), lex.getLineaInicial(), this.ts, this.ambitoActual, $2.sval);
+				}}
 		| '(' patron_izq ')' comparador '(' patron_der ')' { if(gc.getTerceto(gc.getPosActual()).getOp2().isEmpty()){ErrorHandler.addErrorSemantico("La longitud de los patrones a matchear es distinta.", lex.getLineaInicial());} else { $$.sval = gc.updateCompAndGenerate(this.inicioPatron, $4.sval, this.cantPatronIzq, this.cantPatronDer, lex.getLineaInicial());} this.inicioPatron = Integer.MAX_VALUE; $$.sval = "[" + this.gc.getPosActual() + "]";}
 
 		| '(' patron_izq  comparador  patron_der ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón y el que abre la segunda", lex.getLineaInicial());}
@@ -112,6 +117,7 @@ seleccion 	: IF condicion_punto_control THEN cuerpo_control sinelse_punto_contro
 sinelse_punto_control : END_IF {
 			gc.actualizarBF(gc.getCantTercetos()); 
 			gc.pop();
+			gc.addTerceto("Label"+gc.getCantTercetos(), "FIN_IF_SOLO", "-");
 			}
 			;
 
@@ -126,13 +132,13 @@ else_punto_control : ELSE {
 			gc.actualizarBF(posSig); 
 			gc.pop(); 
 			gc.push(gc.getPosActual());
-			this.gc.addTerceto("Label" + posSig, "-", "-");
+			this.gc.addTerceto("Label" + posSig, "else", "-");
 		}
 		;
 endif_punto_control : END_IF {
 			int posSig = gc.getCantTercetos();
 			gc.actualizarBI(posSig);
-			this.gc.addTerceto("Label" + posSig, "-", "-");
+			this.gc.addTerceto("Label" + posSig, "endif", "-");
 			gc.pop();
 			estructurasSintacticas("Se definió una sentencia de control con else, en la linea: " + lex.getLineaInicial());
 		}
@@ -269,7 +275,7 @@ declaracion_fun : tipo_fun FUN ID '(' { if (esEmbebido($3.sval)){ErrorHandler.ad
 					}
 					} lista_parametro ')' { 
 								this.cantRetornos.add(0); 
-								this.gc_funciones.push(this.ts.getGCFuncion($3.sval)); 
+								this.gc_funciones.push(this.ts.getGCFuncion(this.ambitoActual)); 
 								this.gc = this.gc_funciones.peek(); 
 								this.tags.add(new ControlTagAmbito());
 								} cuerpo_funcion_p {
@@ -367,8 +373,8 @@ sald_mensaj	: OUTF '(' mensaje ')' {$$.sval = gc.addTerceto("OUTF", $3.sval, "")
 					lex.setErrorHandlerToken(")");}
 		;
 
-mensaje		: expresion_matematica
-		| CADMUL
+mensaje		: expresion_matematica { $$.sval = $1.sval;}
+		| CADMUL { System.out.println("CAMUL: " + $1.sval); $$.sval = $1.sval;}
 		;
 
 for		: FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iteracion {	estructurasSintacticas("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial()); 
@@ -377,13 +383,13 @@ for		: FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iter
 					ErrorHandler.addErrorSemantico("La constante de avance no es de tipo entero.", lex.getLineaInicial()); 
 					gc.addTerceto("+", gc.checkDeclaracion(var, lex.getLineaInicial(), this.ts, this.ambitoActual), String.valueOf($7.ival * Double.parseDouble($8.sval)));
 				} else {
-					gc.addTerceto("+", gc.checkDeclaracion(var, lex.getLineaInicial(), this.ts, this.ambitoActual), String.valueOf($7.ival * Integer.parseInt($8.sval)));
+					gc.addTerceto("+", gc.checkDeclaracion(var, lex.getLineaInicial(), this.ts, this.ambitoActual), String.valueOf($7.ival * Integer.parseInt($8.sval)), "ulongint");
 				}		
 				this.varFors.remove(this.varFors.size()-1);
-				gc.addTerceto("BI", $5.sval, "");
+				gc.addTerceto("BI", "["+String.valueOf(Integer.parseInt($5.sval.substring(1, $5.sval.length()-1))-1)+"]", "");
 				gc.actualizarBF(gc.getCantTercetos());
 				gc.pop();
-				this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "-", "-");
+				this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "endfor", "FOR"+this.cantFors); 
 		}
 
 		| FOR '(' asignacion_for ';' condicion_for  foravanc '-' CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("No se puede utilizar una constante negativa, en su lugar se debe utilizar el avance descendiente DOWN.", lex.getLineaInicial());}
@@ -414,7 +420,8 @@ asignacion_for  : ID ASIGN CTE {String varFor = gc.checkDeclaracion($1.sval,lex.
 				}
 				if(!this.ts.getAtributo($3.sval, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La constante " + $3.sval + " no es de tipo entero.", lex.getLineaInicial());}
 				this.varFors.add($1.sval);
-				this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "-", "-");
+				this.cantFors++;
+				this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "FOR"+this.cantFors, "-");
 				}
 		;
 
@@ -457,8 +464,9 @@ String ambitoActual;
 String funcionActual;
 Integer inicioPatron;
 Integer posPatron;
-int cantPatronIzq;
-int cantPatronDer;
+Integer cantPatronIzq;
+Integer cantPatronDer;
+Integer cantFors;
 public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 {
 	this.nombreArchivo=nombreArchivo;
@@ -468,6 +476,7 @@ public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 	this.posPatron = -1;
 	this.cantPatronIzq = 0;
 	this.cantPatronDer = 0;
+	this.cantFors = 0;
 	this.ts=t;
 	this.gc = gc;
 	this.gc_funciones = new Stack<GeneradorCodigo>();

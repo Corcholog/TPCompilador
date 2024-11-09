@@ -745,7 +745,7 @@ final static String yyrule[] = {
 "declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' error ';'",
 };
 
-//#line 445 "gramatica.y"
+//#line 452 "gramatica.y"
 String nombreArchivo;
 AnalizadorLexico lex;
 TablaSimbolos ts;
@@ -761,8 +761,9 @@ String ambitoActual;
 String funcionActual;
 Integer inicioPatron;
 Integer posPatron;
-int cantPatronIzq;
-int cantPatronDer;
+Integer cantPatronIzq;
+Integer cantPatronDer;
+Integer cantFors;
 public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 {
 	this.nombreArchivo=nombreArchivo;
@@ -772,6 +773,7 @@ public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 	this.posPatron = -1;
 	this.cantPatronIzq = 0;
 	this.cantPatronDer = 0;
+	this.cantFors = 0;
 	this.ts=t;
 	this.gc = gc;
 	this.gc_funciones = new Stack<GeneradorCodigo>();
@@ -954,7 +956,7 @@ public static void main(String[] args) {
         System.out.println("No se analizo completamente el codigo fuente, debido a uno o mas errores inesperados");
     }
 }
-//#line 886 "Parser.java"
+//#line 888 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -1197,296 +1199,302 @@ break;
 case 32:
 //#line 74 "gramatica.y"
 { 
-				yyval.sval = gc.addTerceto(val_peek(1).sval, gc.checkDeclaracion(val_peek(2).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual)); 					gc.checkTipo(gc.getPosActual(), lex.getLineaInicial(), this.ts, this.ambitoActual, val_peek(1).sval);}
+				String op1 = gc.checkDeclaracion(val_peek(2).sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
+				String op2 = gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
+				if(op1 != null && op2 != null){
+					yyval.sval = gc.addTerceto(val_peek(1).sval, op1, op2);
+					gc.checkTipo(gc.getPosActual(), lex.getLineaInicial(), this.ts, this.ambitoActual, val_peek(1).sval);
+				}}
 break;
 case 33:
-//#line 76 "gramatica.y"
+//#line 81 "gramatica.y"
 { if(gc.getTerceto(gc.getPosActual()).getOp2().isEmpty()){ErrorHandler.addErrorSemantico("La longitud de los patrones a matchear es distinta.", lex.getLineaInicial());} else { yyval.sval = gc.updateCompAndGenerate(this.inicioPatron, val_peek(3).sval, this.cantPatronIzq, this.cantPatronDer, lex.getLineaInicial());} this.inicioPatron = Integer.MAX_VALUE; yyval.sval = "[" + this.gc.getPosActual() + "]";}
 break;
 case 34:
-//#line 78 "gramatica.y"
+//#line 83 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón y el que abre la segunda", lex.getLineaInicial());}
 break;
 case 35:
-//#line 79 "gramatica.y"
+//#line 84 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta parentesis que abre la segunda lista del patrón", lex.getLineaInicial());}
 break;
 case 36:
-//#line 80 "gramatica.y"
+//#line 85 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón", lex.getLineaInicial());}
 break;
 case 37:
-//#line 81 "gramatica.y"
+//#line 86 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta comparador entre los patrones", lex.getLineaInicial());}
 break;
 case 38:
-//#line 82 "gramatica.y"
+//#line 87 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta comparador entre las expresiones", lex.getLineaInicial());}
 break;
 case 39:
-//#line 85 "gramatica.y"
+//#line 90 "gramatica.y"
 { this.iniciarPatron(); this.cantPatronIzq++; yyval.sval = gc.addTerceto("COMP", gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 break;
 case 40:
-//#line 88 "gramatica.y"
+//#line 93 "gramatica.y"
 { this.iniciarPatron(); this.cantPatronIzq++;yyval.sval = gc.addTerceto("COMP", gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 break;
 case 41:
-//#line 89 "gramatica.y"
+//#line 94 "gramatica.y"
 {this.iniciarPatron(); this.cantPatronIzq=1; yyval.sval = gc.addTerceto("COMP", gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 break;
 case 42:
-//#line 91 "gramatica.y"
+//#line 96 "gramatica.y"
 { this.cantPatronDer++; posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
 break;
 case 43:
-//#line 94 "gramatica.y"
+//#line 99 "gramatica.y"
 { this.cantPatronDer++;posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
 break;
 case 44:
-//#line 95 "gramatica.y"
+//#line 100 "gramatica.y"
 { this.cantPatronDer = 1; posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
 break;
 case 45:
-//#line 98 "gramatica.y"
+//#line 103 "gramatica.y"
 {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
 break;
 case 47:
-//#line 103 "gramatica.y"
+//#line 108 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta END_IF con ELSE", lex.getLineaInicial());}
 break;
 case 48:
-//#line 104 "gramatica.y"
+//#line 109 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta END_IF", lex.getLineaInicial());}
 break;
 case 49:
-//#line 105 "gramatica.y"
+//#line 110 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el cuerpo de control del then", lex.getLineaInicial());}
 break;
 case 50:
-//#line 106 "gramatica.y"
+//#line 111 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el cuerpo de control del ELSE", lex.getLineaInicial());}
 break;
 case 51:
-//#line 107 "gramatica.y"
+//#line 112 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el cuerpo de control tanto en THEN como ELSE", lex.getLineaInicial());}
 break;
 case 52:
-//#line 112 "gramatica.y"
+//#line 117 "gramatica.y"
 {
 			gc.actualizarBF(gc.getCantTercetos()); 
 			gc.pop();
+			gc.addTerceto("Label"+gc.getCantTercetos(), "FIN_IF_SOLO", "-");
 			}
 break;
 case 53:
-//#line 118 "gramatica.y"
+//#line 124 "gramatica.y"
 {
 			gc.addTerceto("BF", val_peek(0).sval, ""); 
 			gc.push(gc.getPosActual());
 		}
 break;
 case 54:
-//#line 123 "gramatica.y"
+//#line 129 "gramatica.y"
 { 
 			gc.addTerceto("BI", "", "-"); 
 			int posSig = gc.getCantTercetos();
 			gc.actualizarBF(posSig); 
 			gc.pop(); 
 			gc.push(gc.getPosActual());
-			this.gc.addTerceto("Label" + posSig, "-", "-");
+			this.gc.addTerceto("Label" + posSig, "else", "-");
 		}
 break;
 case 55:
-//#line 132 "gramatica.y"
+//#line 138 "gramatica.y"
 {
 			int posSig = gc.getCantTercetos();
 			gc.actualizarBI(posSig);
-			this.gc.addTerceto("Label" + posSig, "-", "-");
+			this.gc.addTerceto("Label" + posSig, "endif", "-");
 			gc.pop();
 			estructurasSintacticas("Se definió una sentencia de control con else, en la linea: " + lex.getLineaInicial());
 		}
 break;
 case 56:
-//#line 142 "gramatica.y"
+//#line 148 "gramatica.y"
 {yyval.sval = ">=";}
 break;
 case 57:
-//#line 143 "gramatica.y"
+//#line 149 "gramatica.y"
 {yyval.sval = "<=";}
 break;
 case 58:
-//#line 144 "gramatica.y"
+//#line 150 "gramatica.y"
 {yyval.sval = "!=";}
 break;
 case 59:
-//#line 145 "gramatica.y"
+//#line 151 "gramatica.y"
 {yyval.sval = "=";}
 break;
 case 60:
-//#line 146 "gramatica.y"
+//#line 152 "gramatica.y"
 {yyval.sval = "<";}
 break;
 case 61:
-//#line 147 "gramatica.y"
+//#line 153 "gramatica.y"
 {yyval.sval = ">";}
 break;
 case 64:
-//#line 153 "gramatica.y"
+//#line 159 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el cuerpo del control", lex.getLineaInicial());}
 break;
 case 65:
-//#line 154 "gramatica.y"
+//#line 160 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el cuerpo del control", lex.getLineaInicial());}
 break;
 case 66:
-//#line 155 "gramatica.y"
+//#line 161 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
 break;
 case 69:
-//#line 161 "gramatica.y"
+//#line 167 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el cuerpo de la iteracion", lex.getLineaInicial());}
 break;
 case 70:
-//#line 162 "gramatica.y"
+//#line 168 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el cuerpo de la iteracion", lex.getLineaInicial());}
 break;
 case 71:
-//#line 163 "gramatica.y"
-{ ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
-break;
-case 74:
 //#line 169 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
 break;
+case 74:
+//#line 175 "gramatica.y"
+{ ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
+break;
 case 75:
-//#line 173 "gramatica.y"
+//#line 179 "gramatica.y"
 {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
 break;
 case 76:
-//#line 175 "gramatica.y"
+//#line 181 "gramatica.y"
 {tipoVar = val_peek(0).sval;}
 break;
 case 77:
-//#line 175 "gramatica.y"
+//#line 181 "gramatica.y"
 {estructurasSintacticas("Se declararon variables en la linea: " + lex.getLineaInicial());}
 break;
 case 78:
-//#line 178 "gramatica.y"
+//#line 184 "gramatica.y"
 {checkRedeclaracion(val_peek(0).sval);}
 break;
 case 79:
-//#line 179 "gramatica.y"
+//#line 185 "gramatica.y"
 {checkRedeclaracion(val_peek(0).sval);}
 break;
 case 80:
-//#line 180 "gramatica.y"
+//#line 186 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta coma en la lista de variables, puede haber parado la compilacion en este punto", lex.getLineaInicial());}
 break;
 case 81:
-//#line 184 "gramatica.y"
+//#line 190 "gramatica.y"
 {yyval.sval = "double";}
 break;
 case 82:
-//#line 185 "gramatica.y"
+//#line 191 "gramatica.y"
 {yyval.sval = "ulongint";}
 break;
 case 83:
-//#line 188 "gramatica.y"
+//#line 194 "gramatica.y"
 {estructurasSintacticas("Se realizó una asignación a la variable: " + val_peek(2).sval + " en la linea: " + lex.getLineaInicial());
 						yyval.sval = gc.checkTipoAsignacion(val_peek(2).sval, lex.getLineaInicial(), val_peek(0).sval, this.ts,ambitoActual);}
 break;
 case 84:
-//#line 191 "gramatica.y"
+//#line 197 "gramatica.y"
 {  estructurasSintacticas("Se realizó una asignación a la variable: " + val_peek(2).sval + " en la linea: " + lex.getLineaInicial());
 					yyval.sval = gc.checkTipoAsignacion(val_peek(2).sval, lex.getLineaInicial(), val_peek(0).sval, this.ts,ambitoActual);
 		}
 break;
 case 85:
-//#line 196 "gramatica.y"
+//#line 202 "gramatica.y"
 {yyval.sval = gc.checkTipoExpresion(val_peek(2).sval, val_peek(0).sval, lex.getLineaInicial(), this.ts, "+",ambitoActual);}
 break;
 case 86:
-//#line 198 "gramatica.y"
+//#line 204 "gramatica.y"
 {yyval.sval = gc.checkTipoExpresion(val_peek(2).sval, val_peek(0).sval, lex.getLineaInicial(), this.ts, "-",ambitoActual);}
 break;
 case 87:
-//#line 200 "gramatica.y"
+//#line 206 "gramatica.y"
 { yyval.sval = val_peek(0).sval;}
 break;
 case 88:
-//#line 203 "gramatica.y"
+//#line 209 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta operando izquierdo", lex.getLineaInicial());}
 break;
 case 89:
-//#line 204 "gramatica.y"
+//#line 210 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 							lex.setErrorHandlerToken(")");}
 break;
 case 90:
-//#line 206 "gramatica.y"
+//#line 212 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 							lex.setErrorHandlerToken(";");}
 break;
 case 91:
-//#line 208 "gramatica.y"
+//#line 214 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 							lex.setErrorHandlerToken(")");}
 break;
 case 92:
-//#line 210 "gramatica.y"
+//#line 216 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 							lex.setErrorHandlerToken(";");}
 break;
 case 93:
-//#line 215 "gramatica.y"
+//#line 221 "gramatica.y"
 {yyval.sval = gc.checkTipoExpresion(val_peek(2).sval, val_peek(0).sval, lex.getLineaInicial(), this.ts, "*",ambitoActual);}
 break;
 case 94:
-//#line 216 "gramatica.y"
+//#line 222 "gramatica.y"
 {yyval.sval = gc.checkTipoExpresion(val_peek(2).sval, val_peek(0).sval, lex.getLineaInicial(), this.ts, "/",ambitoActual);}
 break;
 case 95:
-//#line 217 "gramatica.y"
+//#line 223 "gramatica.y"
 {yyval.sval = val_peek(0).sval;}
 break;
 case 96:
-//#line 219 "gramatica.y"
+//#line 225 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta operando izquierdo", lex.getLineaInicial());}
 break;
 case 97:
-//#line 220 "gramatica.y"
+//#line 226 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta operando izquierdo", lex.getLineaInicial());}
 break;
 case 98:
-//#line 221 "gramatica.y"
+//#line 227 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 					lex.setErrorHandlerToken(")");}
 break;
 case 99:
-//#line 223 "gramatica.y"
+//#line 229 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 					lex.setErrorHandlerToken(")");}
 break;
 case 100:
-//#line 225 "gramatica.y"
+//#line 231 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 					lex.setErrorHandlerToken(";");}
 break;
 case 101:
-//#line 227 "gramatica.y"
+//#line 233 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta operando derecho", lex.getLineaInicial());
 					lex.setErrorHandlerToken(";");}
 break;
 case 102:
-//#line 231 "gramatica.y"
+//#line 237 "gramatica.y"
 {  gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts,ambitoActual);}
 break;
 case 106:
-//#line 237 "gramatica.y"
+//#line 243 "gramatica.y"
 { yyval.sval = val_peek(0).sval;}
 break;
 case 107:
-//#line 238 "gramatica.y"
+//#line 244 "gramatica.y"
 {	if (ts.esUlongInt(val_peek(0).sval)){
 					ErrorHandler.addErrorSintactico("se utilizo un Ulongint negativo, son solo positivos", lex.getLineaInicial());
 				}
@@ -1497,7 +1505,7 @@ case 107:
 			}
 break;
 case 108:
-//#line 248 "gramatica.y"
+//#line 254 "gramatica.y"
 {
 						   String tipo = "";
 						   String idTripla=gc.checkDeclaracion(val_peek(3).sval,lex.getLineaInicial(),this.ts,ambitoActual);
@@ -1514,7 +1522,7 @@ case 108:
 							yyval.sval = gc.addTerceto("ACCESOTRIPLE", val_peek(3).sval, val_peek(1).sval, tipo);}
 break;
 case 109:
-//#line 264 "gramatica.y"
+//#line 270 "gramatica.y"
 { if (esEmbebido(val_peek(1).sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());}
 					else {
 					this.checkRedFuncion(val_peek(1).sval, val_peek(3).sval);
@@ -1524,16 +1532,16 @@ case 109:
 					}
 break;
 case 110:
-//#line 270 "gramatica.y"
+//#line 276 "gramatica.y"
 { 
 								this.cantRetornos.add(0); 
-								this.gc_funciones.push(this.ts.getGCFuncion(val_peek(4).sval)); 
+								this.gc_funciones.push(this.ts.getGCFuncion(this.ambitoActual)); 
 								this.gc = this.gc_funciones.peek(); 
 								this.tags.add(new ControlTagAmbito());
 								}
 break;
 case 111:
-//#line 275 "gramatica.y"
+//#line 281 "gramatica.y"
 {
 								tipoVar = val_peek(8).sval; 
 								this.checkRet(val_peek(6).sval);
@@ -1545,32 +1553,32 @@ case 111:
 							}
 break;
 case 112:
-//#line 285 "gramatica.y"
+//#line 291 "gramatica.y"
 { this.cantRetornos.add(0);}
 break;
 case 113:
-//#line 285 "gramatica.y"
+//#line 291 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta nombre de la funcion declarada", lex.getLineaInicial());
 													this.checkRet("");
 													}
 break;
 case 114:
-//#line 288 "gramatica.y"
+//#line 294 "gramatica.y"
 { this.cantRetornos.add(0);}
 break;
 case 115:
-//#line 288 "gramatica.y"
+//#line 294 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el parametro en la declaracion de la funcion", lex.getLineaInicial());
 							    this.checkRet(val_peek(4).sval);
 							    if (esEmbebido(val_peek(4).sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());}
 							   }
 break;
 case 118:
-//#line 298 "gramatica.y"
+//#line 304 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Se declaró más de un parametro", lex.getLineaInicial());}
 break;
 case 120:
-//#line 303 "gramatica.y"
+//#line 309 "gramatica.y"
 { 
 			this.ts.addClave(this.ambitoActual + ":" + val_peek(0).sval);
 			String id_param = gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
@@ -1578,33 +1586,33 @@ case 120:
 			this.ts.addAtributo(id_param, AccionSemantica.TIPO, val_peek(1).sval); estructurasSintacticas("Se declaró el parámetro: " + val_peek(0).sval + " en la linea: " +			lex.getLineaInicial());}
 break;
 case 121:
-//#line 308 "gramatica.y"
+//#line 314 "gramatica.y"
 { this.ts.addAtributo(ambitoActual+":"+val_peek(0).sval,AccionSemantica.TIPO, val_peek(1).sval); this.ts.addAtributo(ambitoActual+":"+val_peek(0).sval,AccionSemantica.USO,"nombre parametro"); this.ts.addAtributo(ambitoActual+":"+funcionActual, AccionSemantica.PARAMETRO, val_peek(0).sval); estructurasSintacticas("Se declaró el parámetro: " + val_peek(0).sval + " en la linea: " + lex.getLineaInicial());}
 break;
 case 122:
-//#line 310 "gramatica.y"
+//#line 316 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el nombre del parametro", lex.getLineaInicial());}
 break;
 case 123:
-//#line 311 "gramatica.y"
+//#line 317 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el nombre del parametro o el tipo", lex.getLineaInicial());}
 break;
 case 127:
-//#line 321 "gramatica.y"
+//#line 327 "gramatica.y"
 {ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
 break;
 case 130:
-//#line 328 "gramatica.y"
+//#line 334 "gramatica.y"
 { this.cantRetornos.set(this.cantRetornos.size()-1, this.cantRetornos.get(this.cantRetornos.size()-1) + 1); 
 					yyval.sval = gc.addTerceto("RET", gc.checkDeclaracion(val_peek(1).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");		
 		}
 break;
 case 131:
-//#line 333 "gramatica.y"
+//#line 339 "gramatica.y"
 {funcionActual = val_peek(1).sval; }
 break;
 case 132:
-//#line 333 "gramatica.y"
+//#line 339 "gramatica.y"
 { 
 							estructurasSintacticas("Se invocó a la función: " + val_peek(4).sval + " en la linea: " + lex.getLineaInicial());
 							String tipo = "";	
@@ -1622,102 +1630,110 @@ case 132:
 		}
 break;
 case 133:
-//#line 349 "gramatica.y"
+//#line 355 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta de parámetros en la invocación a la función", lex.getLineaInicial());}
 break;
 case 134:
-//#line 353 "gramatica.y"
+//#line 359 "gramatica.y"
 { yyval.sval = val_peek(0).sval;ErrorHandler.addErrorSintactico("Se utilizó más de un parámetro para invocar a la función", lex.getLineaInicial());}
 break;
 case 135:
-//#line 354 "gramatica.y"
+//#line 360 "gramatica.y"
 { yyval.sval = val_peek(0).sval;}
 break;
 case 136:
-//#line 357 "gramatica.y"
+//#line 363 "gramatica.y"
 {yyval.sval = val_peek(0).sval; gc.checkParamReal(val_peek(0).sval, lex.getLineaInicial(), this.ts, funcionActual,ambitoActual);}
 break;
 case 137:
-//#line 358 "gramatica.y"
+//#line 364 "gramatica.y"
 {
 if(!this.ts.getAtributo(gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), AccionSemantica.TIPO).equals(val_peek(1).sval)){yyval.sval = gc.addTerceto("TO".concat(val_peek(1).sval), gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 if(!this.ts.getAtributo(this.ts.getAtributo(gc.checkDeclaracion(funcionActual, lex.getLineaInicial(), this.ts, ambitoActual), AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals(val_peek(1).sval)){ ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lex.getLineaInicial());}}
 break;
 case 138:
-//#line 363 "gramatica.y"
+//#line 369 "gramatica.y"
 {yyval.sval = gc.addTerceto("OUTF", val_peek(1).sval, "");}
 break;
 case 139:
-//#line 365 "gramatica.y"
+//#line 371 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el mensaje del OUTF", lex.getLineaInicial());}
 break;
 case 140:
-//#line 366 "gramatica.y"
+//#line 372 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Parámetro invalido del OUTF", lex.getLineaInicial());
 					lex.setErrorHandlerToken(")");}
 break;
+case 141:
+//#line 376 "gramatica.y"
+{ yyval.sval = val_peek(0).sval;}
+break;
+case 142:
+//#line 377 "gramatica.y"
+{ System.out.println("CAMUL: " + val_peek(0).sval); yyval.sval = val_peek(0).sval;}
+break;
 case 143:
-//#line 374 "gramatica.y"
+//#line 380 "gramatica.y"
 {	estructurasSintacticas("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial()); 
 				String var = this.varFors.get(this.varFors.size()-1);
 				if(!this.ts.getAtributo(val_peek(2).sval, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){
 					ErrorHandler.addErrorSemantico("La constante de avance no es de tipo entero.", lex.getLineaInicial()); 
 					gc.addTerceto("+", gc.checkDeclaracion(var, lex.getLineaInicial(), this.ts, this.ambitoActual), String.valueOf(val_peek(3).ival * Double.parseDouble(val_peek(2).sval)));
 				} else {
-					gc.addTerceto("+", gc.checkDeclaracion(var, lex.getLineaInicial(), this.ts, this.ambitoActual), String.valueOf(val_peek(3).ival * Integer.parseInt(val_peek(2).sval)));
+					gc.addTerceto("+", gc.checkDeclaracion(var, lex.getLineaInicial(), this.ts, this.ambitoActual), String.valueOf(val_peek(3).ival * Integer.parseInt(val_peek(2).sval)), "ulongint");
 				}		
 				this.varFors.remove(this.varFors.size()-1);
-				gc.addTerceto("BI", val_peek(5).sval, "");
+				gc.addTerceto("BI", "["+String.valueOf(Integer.parseInt(val_peek(5).sval.substring(1, val_peek(5).sval.length()-1))-1)+"]", "");
 				gc.actualizarBF(gc.getCantTercetos());
 				gc.pop();
-				this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "-", "-");
+				this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "endfor", "FOR"+this.cantFors); 
 		}
 break;
 case 144:
-//#line 389 "gramatica.y"
+//#line 395 "gramatica.y"
 { ErrorHandler.addErrorSintactico("No se puede utilizar una constante negativa, en su lugar se debe utilizar el avance descendiente DOWN.", lex.getLineaInicial());}
 break;
 case 145:
-//#line 390 "gramatica.y"
+//#line 396 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta punto y coma entre condicion y avance", lex.getLineaInicial());}
 break;
 case 146:
-//#line 391 "gramatica.y"
+//#line 397 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta punto y coma entre asignacion y condicion", lex.getLineaInicial());}
 break;
 case 147:
-//#line 392 "gramatica.y"
+//#line 398 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Faltan todos los punto y coma del for", lex.getLineaInicial());}
 break;
 case 148:
-//#line 393 "gramatica.y"
+//#line 399 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta UP/DOWN", lex.getLineaInicial());}
 break;
 case 149:
-//#line 394 "gramatica.y"
+//#line 400 "gramatica.y"
 {ErrorHandler.addErrorSintactico("Falta valor del UP/DOWN", lex.getLineaInicial());}
 break;
 case 150:
-//#line 395 "gramatica.y"
+//#line 401 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta UP/DOWN y punto y coma entre condicion y avance", lex.getLineaInicial());}
 break;
 case 151:
-//#line 396 "gramatica.y"
+//#line 402 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta valor del UP/DOWN y punto y coma entre condicion y avance", lex.getLineaInicial());}
 break;
 case 152:
-//#line 397 "gramatica.y"
+//#line 403 "gramatica.y"
 { { ErrorHandler.addErrorSintactico("Falta UP/DOWN, su valor, y punto y coma entre condicion y avance", lex.getLineaInicial());}}
 break;
 case 153:
-//#line 401 "gramatica.y"
+//#line 407 "gramatica.y"
 { yyval.sval = val_peek(0).sval;
 				gc.addTerceto("BF", val_peek(0).sval, "");
 				gc.push(gc.getPosActual());
 			}
 break;
 case 154:
-//#line 407 "gramatica.y"
+//#line 413 "gramatica.y"
 {String varFor = gc.checkDeclaracion(val_peek(2).sval,lex.getLineaInicial(),this.ts,ambitoActual);
 				if (varFor != null){
 					if(!this.ts.getAtributo(varFor, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La variable " + val_peek(2).sval + " no es de tipo entero.", lex.getLineaInicial());}
@@ -1728,54 +1744,55 @@ case 154:
 				}
 				if(!this.ts.getAtributo(val_peek(0).sval, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La constante " + val_peek(0).sval + " no es de tipo entero.", lex.getLineaInicial());}
 				this.varFors.add(val_peek(2).sval);
-				this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "-", "-");
+				this.cantFors++;
+				this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "FOR"+this.cantFors, "-");
 				}
 break;
 case 155:
-//#line 421 "gramatica.y"
+//#line 428 "gramatica.y"
 {yyval.ival = 1;}
 break;
 case 156:
-//#line 422 "gramatica.y"
+//#line 429 "gramatica.y"
 {yyval.ival = -1;}
 break;
 case 157:
-//#line 425 "gramatica.y"
+//#line 432 "gramatica.y"
 { yyval.sval = gc.addTerceto("GOTO", ambitoActual + ":" + val_peek(0).sval,"");
 			     this.ts.addAtributo(val_peek(0).sval,AccionSemantica.USO,"nombre etiqueta");
 			     this.tags.get(tags.size()-1).huboGoto(this.ambitoActual+":"+val_peek(0).sval);
 			}
 break;
 case 158:
-//#line 430 "gramatica.y"
+//#line 437 "gramatica.y"
 {ErrorHandler.addErrorSintactico("falta la etiqueta en el GOTO, en caso de faltar también el punto y coma es posible que no compile el resto del programa o lo haga mal.", lex.getLineaInicial());
 				lex.setErrorHandlerToken(";");}
 break;
 case 159:
-//#line 436 "gramatica.y"
+//#line 443 "gramatica.y"
 {this.ts.addClave(val_peek(0).sval); this.ts.addAtributo(val_peek(0).sval,AccionSemantica.USO,"nombre de tipo tripla"); estructurasSintacticas("Se declaró un tipo TRIPLE con el ID: " + val_peek(0).sval + " en la linea:" + lex.getLineaInicial()); this.ts.addAtributo(val_peek(0).sval, "tipotripla", val_peek(2).sval); this.ts.addAtributo(val_peek(0).sval, "tipo", val_peek(2).sval);}
 break;
 case 160:
-//#line 438 "gramatica.y"
+//#line 445 "gramatica.y"
 {ErrorHandler.addErrorSintactico("falta < en la declaración del TRIPLE", lex.getLineaInicial()); }
 break;
 case 161:
-//#line 439 "gramatica.y"
+//#line 446 "gramatica.y"
 {ErrorHandler.addErrorSintactico("falta > en la declaración del TRIPLE", lex.getLineaInicial()); }
 break;
 case 162:
-//#line 440 "gramatica.y"
+//#line 447 "gramatica.y"
 {ErrorHandler.addErrorSintactico("falta > y < en la declaración del TRIPLE", lex.getLineaInicial()); }
 break;
 case 163:
-//#line 441 "gramatica.y"
+//#line 448 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta la palabra clave TRIPLE", lex.getLineaInicial());}
 break;
 case 164:
-//#line 442 "gramatica.y"
+//#line 449 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el ID de la tripla definida.", lex.getLineaInicial());}
 break;
-//#line 1702 "Parser.java"
+//#line 1719 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####

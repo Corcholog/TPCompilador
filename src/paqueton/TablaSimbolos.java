@@ -6,11 +6,30 @@ import java.util.Map;
 public class TablaSimbolos {
 	private Map<String, Map<String, String>> tablaSimbolos;
 	private Map<String, GeneradorCodigo> funciones;
+	private Map<String, Integer> cadenasMultilineas;
 	
 	public TablaSimbolos() {
 		this.tablaSimbolos = new HashMap<String, Map<String, String>>();
 		this.funciones = new HashMap<String, GeneradorCodigo>();
+		this.cadenasMultilineas = new HashMap<String, Integer>();
 	}
+	
+	public void addCadmul(String cadena) {
+		this.cadenasMultilineas.put(cadena, null);
+	}
+	
+	public Map<String, Integer> getCadenas(){
+		return new HashMap<String, Integer>(this.cadenasMultilineas);
+	}
+	
+	public Integer getPosicionMemoria(String key) {
+		return this.cadenasMultilineas.get(key);
+	}
+	
+	public void setPosicionMemoria(String key, Integer value) {
+		this.cadenasMultilineas.replace(key, value);
+	}
+	
 	
 	public Map<String, GeneradorCodigo> getFunciones(){
 		return new HashMap<String, GeneradorCodigo>(funciones);

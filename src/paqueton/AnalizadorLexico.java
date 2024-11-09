@@ -5,10 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 
 
@@ -92,11 +89,9 @@ public class AnalizadorLexico {
 		AccionSemantica.ASE1 ase1 = new AccionSemantica.ASE1();
 		AccionSemantica.ASF1 asf1 = new AccionSemantica.ASF1();
 		AccionSemantica.ASF1Comp asf1c = new AccionSemantica.ASF1Comp();
-		AccionSemantica.ASF1OCTAL asfoctal = new AccionSemantica.ASF1OCTAL();
 		AccionSemantica.ASF2OCTAL asf2octal = new AccionSemantica.ASF2OCTAL();
 		AccionSemantica.ASBR asbr = new AccionSemantica.ASBR();
 		AccionSemantica.ASBR2 asbr2 = new AccionSemantica.ASBR2();
-		AccionSemantica.ASFBR asfbr = new AccionSemantica.ASFBR();
 		AccionSemantica.ASFBR3 asfbr3 = new AccionSemantica.ASFBR3();
 		AccionSemantica.ASFBR4 asfbr4 = new AccionSemantica.ASFBR4();
 		AccionSemantica.ASFBR5 asfbr5 = new AccionSemantica.ASFBR5();
@@ -199,7 +194,7 @@ public class AnalizadorLexico {
 					if(col == 14) {
 						saltoLinea = false;
 					}
-				//	System.out.println("Voy leyendo: " + concatActual + "\n");
+				    //System.out.println("Voy leyendo: " + concatActual + "\n");
 					//System.out.println("Estado: " + estado_anterior + " pasa a: " + estado + "\n");
 					//System.out.println("Se ejecuta: " + matAcciones[estado_anterior][col].getClass().getName().split("\\$")[1]);
 					//System.out.println("__________________________________________________________ \n");
@@ -423,7 +418,6 @@ public class AnalizadorLexico {
 		return concatActual;
 	}
 	
-	// setters
 	public void setConcatActual(String concatActual) {
 		this.concatActual = concatActual.toLowerCase();
 	}

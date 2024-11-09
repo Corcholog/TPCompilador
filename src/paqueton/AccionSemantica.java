@@ -111,6 +111,10 @@ public abstract class AccionSemantica {
 	static class ASF1Comp extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
 	        new ASF1().ejecutar(analizador);
+	        String concatActual = analizador.getConcatActual();
+	        String cadMul = "CADMUL:"+concatActual.substring(1, concatActual.length()-1);
+	        analizador.getTablaSimbolos().addCadmul(cadMul);
+	        analizador.getParser().yylval = new ParserVal(cadMul);
 	    }
 	}
 	

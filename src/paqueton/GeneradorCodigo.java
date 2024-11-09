@@ -60,7 +60,7 @@ public class GeneradorCodigo {
 	}
 	
 	public Terceto getTerceto(int pos) {
-		if( pos >= this.getCantTercetos()) {
+		if(pos >= this.getCantTercetos()) {
 			return null;
 		}
 		return this.tercetos.get(pos);
@@ -92,6 +92,7 @@ public class GeneradorCodigo {
 		
 		
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+		
 	    Matcher matcher_izq = pattern.matcher(op_izq);
 	    Matcher matcher_der = pattern.matcher(op_der);
 	    
@@ -121,9 +122,7 @@ public class GeneradorCodigo {
 	    	tipo_izq = ts.getAtributo(id_izq, AccionSemantica.TIPO);
 	    }
 	    
-
-	    
-	    if(matchres_der) { // tengo terceto lado derecho
+	    if(matchres_der) {
 	    	Terceto t2 = this.getTerceto(Integer.parseInt(matcher_der.group(1)));
     		id_der = "";
     		retorno_der = op_der;
@@ -136,10 +135,7 @@ public class GeneradorCodigo {
 	    	retorno_der = op_der;
 		    id_der = checkDeclaracion(id_der, lineaActual, ts,ambitoActual); 
 		    tipo_der = ts.getAtributo(id_der, AccionSemantica.TIPO);
-
-
 	    }
-	    
 	    
 	    if((id_izq == null) || (id_der == null)) {
 	    	noDeclarado = true;
@@ -163,6 +159,7 @@ public class GeneradorCodigo {
 	    	}
 	    	
 	    }
+	    
 	    System.out.println("Se setea el tipo de: " + t + " como: " + tipo_izq);
 	    t.setTipo(tipo_izq);
 	    if(operando == "") {
@@ -371,7 +368,6 @@ public class GeneradorCodigo {
 	    String retorno = this.addTerceto(operando, id_izq, id_der, tipo_izq);
     	return retorno;
 		
-		
 	}
 	
 	public String updateCompAndGenerate(int pos, String comp, int sizePatronIzq, int sizePatronDer, int lineaActual) {
@@ -391,7 +387,6 @@ public class GeneradorCodigo {
 		    int ultimoTercetoGenerado = pos;
 		    this.addTerceto("AND", "[" + comparadores.getFirst() + "]", "[" + comparadores.get(1) + "]");
 		    ultimoTercetoGenerado = this.tercetos.size() - 1; 
-		    int size = this.tercetos.size();
 		    for (int i = 2; i < comparadores.size(); i++) {
 		    	this.addTerceto("AND", "[" + ultimoTercetoGenerado + "]", "[" + comparadores.get(i) + "]");
 		        ultimoTercetoGenerado = this.tercetos.size() - 1; 
