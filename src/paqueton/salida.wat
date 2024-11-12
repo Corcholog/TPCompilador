@@ -30,6 +30,7 @@
 	local.get $comp5
 	local.get $comp4
 	i32.and
+	local.get $t1V0
 	f64.const 8.0
 	local.set $globalAt1
 )
