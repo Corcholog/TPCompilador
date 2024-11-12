@@ -55,8 +55,8 @@ public class GeneradorWasm {
 	public void traducir() {
 		this.escribir("(module\n");
 		this.escribir("(import \"console\" \"log\" (func $log (param i32 i32)))");
-		this.aumentarIdentacion();
 		this.escribir("(import \"js\" \"mem\" (memory 1))");
+		this.cargarVariables();
 		this.aumentarIdentacion();
 		this.cargarCadmuls();
 		this.escribir("");
@@ -95,6 +95,7 @@ public class GeneradorWasm {
 		this.reducirIdentacion();
 		this.escribir(")");
 		this.reducirIdentacion();
+		this.escribir("	(export \"main\" (func $main))");
 		this.escribir(")");
 	}
 
@@ -105,6 +106,29 @@ public class GeneradorWasm {
 			this.escribir("(data (i32.const " + dirMem + ") \"" + key.substring("CADMUL:".length()) + "\")");
 			this.ts.setPosicionMemoria(key, dirMem);
 			dirMem+= key.length();
+		}
+	}
+	
+	public void cargarVariables() {
+		Map<String, Map<String, String>> tabla = this.ts.getTabla();
+		for (Map.Entry<String, Map<String, String>> entry : tabla.entrySet()) {
+			String key = entry.getKey();
+			Map<String, String> val = entry.getValue();
+			if("nombre variable".equals(val.get(AccionSemantica.USO))) {
+				String tipoVar = val.get(AccionSemantica.TIPO);
+				switch(tipoVar) {
+				case "ulongint": tipoVar = "i32";break;
+				case "double": tipoVar = "f64";break;
+				default: tipoVar = val.get(AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64"; 
+					String key1 = key + "V1";
+					this.escribir("(global $"+key1.replace(':', 'A')+" (mut " +tipoVar+")" + "(" + tipoVar + ".const 0))");
+					String key2 = key + "V2";
+					this.escribir("(global $"+key2.replace(':', 'A')+" (mut " +tipoVar+")" + "(" + tipoVar + ".const 0))");
+					key = key + "V3";
+				break;
+				}
+				this.escribir("(global $"+key.replace(':', 'A')+" (mut " +tipoVar+")" + "(" + tipoVar + ".const 0))");
+			}
 		}
 	}
 	
@@ -162,9 +186,9 @@ public class GeneradorWasm {
 	    if(quieroIzquierdo && !find1) {
 	    	if(!op1.equals("")) {
 	    		if(op1.matches("^[0-9].*")) {
-	    		 this.escribir(t.getTipo().equals("double") ? "f64.const "+t.getOp1() : "i32.const "+t.getOp1());	
+	    		 this.escribir(t.getTipo().equals("double") ? "f64.const "+op1 : "i32.const "+op1);	
 	    		} else {
-	    			this.escribir("local.get $"+op1); 		
+	    			this.escribir("local.get $"+op1.replace(':', 'A')); 		
 	    		}
 	    	}
 	    }else if(find1){
@@ -185,7 +209,7 @@ public class GeneradorWasm {
 	    		if(op2.matches("^[0-9].*")) {
 	    			this.escribir(t.getTipo().equals("double") ? "f64.const "+t.getOp2() : "i32.const "+t.getOp2()); 
 	    		} else {
-	    			this.escribir("local.get $"+op2);	
+	    			this.escribir("local.get $"+op2.replace(':', 'A'));	
 	    		}
 	    	}
 	    } else {
@@ -219,14 +243,17 @@ public class GeneradorWasm {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
-			this.escribir("f64.ge");
+			this.escribir("f64.gt_s");
+			this.escribir("(local $comp"+this.posicionActual + " i32)");
 			this.escribir("local.set $comp"+this.posicionActual);
+			this.escribir("local.get $comp"+this.posicionActual);
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
-			this.escribir("i32.ge");
+			this.escribir("i32.gt_u");
+			this.escribir("(local $comp"+this.posicionActual + " i32)");
 			this.escribir("local.set $comp"+this.posicionActual);
+			this.escribir("local.get $comp"+this.posicionActual);
 		}
-		
  		
 	}
 
@@ -234,12 +261,16 @@ public class GeneradorWasm {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
-			this.escribir("f64.gt");
+			this.escribir("f64.ge_s");
+			this.escribir("(local $comp"+this.posicionActual + " i32)");
 			this.escribir("local.set $comp"+this.posicionActual);
+			this.escribir("local.get $comp"+this.posicionActual);
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
-			this.escribir("i32.gt");
+			this.escribir("i32.ge_u");
+			this.escribir("(local $comp"+this.posicionActual + " i32)");
 			this.escribir("local.set $comp"+this.posicionActual);
+			this.escribir("local.get $comp"+this.posicionActual);
 		}
 	}
 
@@ -247,25 +278,34 @@ public class GeneradorWasm {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
-			this.escribir("f64.le");
+			this.escribir("f64.lt_s");
+			this.escribir("(local $comp"+this.posicionActual + " i32)");
 			this.escribir("local.set $comp"+this.posicionActual);
+			this.escribir("local.get $comp"+this.posicionActual);
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
-			this.escribir("i32.le");
+			this.escribir("i32.lt_u" );
+			this.escribir("(local $comp"+this.posicionActual + " i32)");
 			this.escribir("local.set $comp"+this.posicionActual);
+			this.escribir("local.get $comp"+this.posicionActual);
 		}
+
 	}
 
 	private void mayorIgual(Terceto t) {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
-			this.escribir("f64.lt");
+			this.escribir("f64.le_s");
+			this.escribir("(local $comp"+this.posicionActual + " i32)");
 			this.escribir("local.set $comp"+this.posicionActual);
+			this.escribir("local.get $comp"+this.posicionActual);
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
-			this.escribir("i32.lt" );
+			this.escribir("i32.le_u");
+			this.escribir("(local $comp"+this.posicionActual + " i32)");
 			this.escribir("local.set $comp"+this.posicionActual);
+			this.escribir("local.get $comp"+this.posicionActual);
 		}
 	}
 
@@ -273,25 +313,34 @@ public class GeneradorWasm {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
-			this.escribir("f64.ne");
+			this.escribir("f64.eq_s");
+			this.escribir("(local $comp"+this.posicionActual + " i32)");
 			this.escribir("local.set $comp"+this.posicionActual);
+			this.escribir("local.get $comp"+this.posicionActual);
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
-			this.escribir("i32.ne");
+			this.escribir("i32.eq_u");
+			this.escribir("(local $comp"+this.posicionActual + " i32)");
 			this.escribir("local.set $comp"+this.posicionActual);
+			this.escribir("local.get $comp"+this.posicionActual);
 		}
+
 	}
 	
 	private void distinto(Terceto t) {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
-			this.escribir("f64.eq");
+			this.escribir("f64.ne_s");
+			this.escribir("(local $comp"+this.posicionActual + " i32)");
 			this.escribir("local.set $comp"+this.posicionActual);
+			this.escribir("local.get $comp"+this.posicionActual);
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
-			this.escribir("i32.eq");
+			this.escribir("i32.ne_u");
+			this.escribir("(local $comp"+this.posicionActual + " i32)");
 			this.escribir("local.set $comp"+this.posicionActual);
+			this.escribir("local.get $comp"+this.posicionActual);
 		}
 	}
 	
@@ -341,17 +390,17 @@ public class GeneradorWasm {
 	}
 
 	private void generarTag(Terceto t) {
-		this.escribir("(label $"+t.getOp1()+")");
+		this.escribir("(label $"+t.getOp1().replace(':', 'A')+")");
 	}
 
 	private void saltoIncondicional(Terceto t) {
-		this.escribir("br $"+t.getOp1());
+		this.escribir("br $"+t.getOp1().replace(':', 'A'));
 		
 	}
 
 	private void accesoTriple(Terceto t) {
 		// TODO Auto-generated method stub
-		
+		this.escribir("local.get $"+t.getOp1()+"V"+t.getOp2());
 	}
 
 	private void escribir(String code) {
@@ -371,12 +420,12 @@ public class GeneradorWasm {
 	
 	private void toUlongint(Terceto t) {
 		this.obtenerGets(t);
-		this.escribir("i32.trunc_f64_s");
+		this.escribir("i32.trunc_f64_u");
 	}
 
 	private void asignacion(Terceto t) {
 		this.obtenerGets(t, false);
-		this.escribir("local.set $" + t.getOp1());
+		this.escribir("local.set $" + t.getOp1().replace(':', 'A'));
 	}
 	
 	private void and(Terceto t) {
@@ -386,7 +435,7 @@ public class GeneradorWasm {
 	
 	private void invocacionFuncion(Terceto t) {
 		this.obtenerGets(t, false);
-		this.escribir("call $" + t.getOp1());
+		this.escribir("call $" + t.getOp1().replace(':', 'A'));
 	}
 	
 	private void retornoFuncion(Terceto t) {
@@ -394,17 +443,19 @@ public class GeneradorWasm {
 		this.escribir("local.set $"+this.funcionActual+"retorno");
 	}
 	
-	
 	private void generarLabel(Terceto t) {
 		// TODO Auto-generated method stub
-		String op1 = t.getOp1();
+		String op1 = t.getOp1().replace(':', 'A');
 		switch(op1) {
-		case "else": this.escribir("($else:"+this.ifs.peek()+")"); break;
-		case "endif": case "FIN_IF_SOLO" : this.escribir("($"+ "endif:"+ this.ifs.peek()+")"); this.ifs.add("IF"+this.ifs.size()); break;
-		case "endfor": this.escribir("($"+ "endfor:"+ t.getOp2() +")"); this.tipoFlujoActual="IF"; this.fors.pop(); break;
+		case "else": /*this.escribir("($elseA"+this.ifs.peek()+")");*/ break;
+		case "endif": this.reducirIdentacion();this.escribir(")");this.reducirIdentacion();this.escribir(")");break;
+		case "FIN_IF_SOLO" : this.reducirIdentacion();this.escribir(")");this.reducirIdentacion();this.escribir(")"); this.ifs.add("IF"+this.ifs.size()); break;
+		case "endfor": this.tipoFlujoActual="IF"; this.fors.pop(); break;
 		default: 
 			this.tipoFlujoActual = "FOR";
-			this.escribir("(loop $"+op1+")");
+			this.escribir("block $endforA"+ t.getOp1());
+			this.escribir("loop $"+op1);
+			this.aumentarIdentacion();
 			this.fors.push(op1);
 			break;
 		}
@@ -412,14 +463,29 @@ public class GeneradorWasm {
 	
 	private void bifurcacionIncondicional(Terceto t) {
 		if(this.tipoFlujoActual.equals("IF")) {
-			this.escribir("br $"+ "endif:"+ this.ifs.peek());
+			this.reducirIdentacion();
+			this.escribir(")");
+			this.escribir("(else");
+			this.aumentarIdentacion();
 		}else if(this.tipoFlujoActual.equals("FOR")) {
 			this.escribir("br $"+ this.fors.peek());
+			this.reducirIdentacion();
+			this.escribir("end");
+			this.escribir("end");
 		}
 	}
 	
 	private void bifurcacionPorFalso(Terceto t) {
-		this.escribir("br_if $"+ (tipoFlujoActual.equals("IF")? "else:"+this.ifs.peek() : "endfor:"+this.fors.peek()));
+		boolean esIf = tipoFlujoActual.equals("IF");
+		if(esIf) {
+			this.escribir("(if");
+			this.aumentarIdentacion();
+			this.escribir("(then");
+			this.aumentarIdentacion();
+		}else {
+			this.escribir("br_if $"+ "endforA"+this.fors.peek());
+		}
+		
 	}
 	
 	private void outf(Terceto t) {

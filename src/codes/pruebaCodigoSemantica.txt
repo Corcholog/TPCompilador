@@ -1,7 +1,13 @@
 nombre
 BEGIN
-	FOR ( x := 1 ; (x < 10) ; UP 1 ) 
-	BEGIN	
-		OUTF(2 * 3);
-	END;
+	ulongint a, b;
+	IF (a < b) THEN
+	BEGIN
+		a := 5;
+	END
+	END_IF;
+	
+	TYPEDEF TRIPLE <double> tripleta;
+	tripleta t1, t2, t3;
+	t1{0} := 8.0;
 END

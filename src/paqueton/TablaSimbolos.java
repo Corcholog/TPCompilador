@@ -18,6 +18,10 @@ public class TablaSimbolos {
 		this.cadenasMultilineas.put(cadena, null);
 	}
 	
+	public Map<String, Map<String, String>> getTabla(){
+		return new HashMap<String, Map<String, String>>(this.tablaSimbolos);
+	}
+	
 	public Map<String, Integer> getCadenas(){
 		return new HashMap<String, Integer>(this.cadenasMultilineas);
 	}

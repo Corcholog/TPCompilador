@@ -31,7 +31,7 @@ public class Terceto {
 	public String getOp1() {
 		return op1;
 	}
-
+	
 	public void setOp1(String op1) {
 		this.op1 = op1;
 	}
