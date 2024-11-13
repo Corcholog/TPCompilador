@@ -77,7 +77,10 @@ condicion_2 	: expresion_matematica comparador expresion_matematica {
 				if(op1 != null && op2 != null){
 					$$.sval = gc.addTerceto($2.sval, op1, op2);
 					gc.checkTipo(gc.getPosActual(), lex.getLineaInicial(), this.ts, this.ambitoActual, $2.sval);
-				}}
+				}else {
+					$$.sval = null;
+				}
+			 }
 		| '(' patron_izq ')' comparador '(' patron_der ')' { if(gc.getTerceto(gc.getPosActual()).getOp2().isEmpty()){ErrorHandler.addErrorSemantico("La longitud de los patrones a matchear es distinta.", lex.getLineaInicial());} else { $$.sval = gc.updateCompAndGenerate(this.inicioPatron, $4.sval, this.cantPatronIzq, this.cantPatronDer, lex.getLineaInicial());} this.inicioPatron = Integer.MAX_VALUE; $$.sval = "[" + this.gc.getPosActual() + "]";}
 
 		| '(' patron_izq  comparador  patron_der ')' { ErrorHandler.addErrorSintactico("Falta parentesis que cierra la primer lista del patrón y el que abre la segunda", lex.getLineaInicial());}
@@ -386,10 +389,13 @@ for		: FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iter
 					gc.addTerceto("+", gc.checkDeclaracion(var, lex.getLineaInicial(), this.ts, this.ambitoActual), String.valueOf($7.ival * Integer.parseInt($8.sval)), "ulongint");
 				}		
 				this.varFors.remove(this.varFors.size()-1);
-				gc.addTerceto("BI", "["+String.valueOf(Integer.parseInt($5.sval.substring(1, $5.sval.length()-1))-1)+"]", "");
-				gc.actualizarBF(gc.getCantTercetos());
-				gc.pop();
-				this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "endfor", "FOR"+this.cantFors); 
+				if($5.sval != null){
+					gc.addTerceto("BI", "["+String.valueOf(Integer.parseInt($5.sval.substring(1, $5.sval.length()-1))-1)+"]", "");
+					gc.actualizarBF(gc.getCantTercetos());
+					gc.pop();
+					this.gc.addTerceto("Label" + this.gc.getCantTercetos(), "endfor", "FOR"+this.cantFors); 
+				}
+				
 		}
 
 		| FOR '(' asignacion_for ';' condicion_for  foravanc '-' CTE ')' cuerpo_iteracion { ErrorHandler.addErrorSintactico("No se puede utilizar una constante negativa, en su lugar se debe utilizar el avance descendiente DOWN.", lex.getLineaInicial());}

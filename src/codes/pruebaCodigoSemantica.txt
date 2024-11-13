@@ -1,13 +1,15 @@
 nombre
 BEGIN
 	ulongint a, b;
+	a := 2;
+	b := 4;
 	IF (a < b) THEN
 	BEGIN
-		a := 5;
+		OUTF(a);
 	END
+	ELSE
+	BEGIN
+		OUTF(b);
+	END	
 	END_IF;
-	
-	TYPEDEF TRIPLE <double> tripleta;
-	tripleta t1, t2, t3;
-	t1{0} := 8.0;
 END

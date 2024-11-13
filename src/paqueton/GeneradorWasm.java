@@ -71,7 +71,7 @@ public class GeneradorWasm {
 			this.escribir("( func $"+funcion + " (param $"+ parametro + " " + tipoParam+") (result "+ tipoFuncion + ")");
 			this.aumentarIdentacion();
 			this.escribir(tipoFuncion+".const 0");
-			this.escribir("local.set $"+funcion+"retorno");
+			this.escribir("global.set $"+funcion+"retorno");
 			for (int i = 0; i < gcFuncion.getCantTercetos(); i++) {
 				this.posicionActual = i;
 				Terceto t = gcFuncion.getTerceto(i);
@@ -79,7 +79,7 @@ public class GeneradorWasm {
 					this.ejecutarTraduccion(t);				
 				}
 			}
-			this.escribir("local.get $"+funcion+"retorno");
+			this.escribir("global.get $"+funcion+"retorno");
 			this.reducirIdentacion();
 			this.escribir(")\n");
 		}
@@ -188,7 +188,7 @@ public class GeneradorWasm {
 	    		if(op1.matches("^[0-9].*")) {
 	    		 this.escribir(t.getTipo().equals("double") ? "f64.const "+op1 : "i32.const "+op1);	
 	    		} else {
-	    			this.escribir("local.get $"+op1.replace(':', 'A')); 		
+	    			this.escribir("global.get $"+op1.replace(':', 'A')); 		
 	    		}
 	    	}
 	    }else if(find1){
@@ -209,7 +209,7 @@ public class GeneradorWasm {
 	    		if(op2.matches("^[0-9].*")) {
 	    			this.escribir(t.getTipo().equals("double") ? "f64.const "+t.getOp2() : "i32.const "+t.getOp2()); 
 	    		} else {
-	    			this.escribir("local.get $"+op2.replace(':', 'A'));	
+	    			this.escribir("global.get $"+op2.replace(':', 'A'));	
 	    		}
 	    	}
 	    } else {
@@ -400,7 +400,7 @@ public class GeneradorWasm {
 
 	private void accesoTriple(Terceto t) {
 		// TODO Auto-generated method stub
-		this.escribir("local.get $"+t.getOp1()+"V"+t.getOp2());
+		this.escribir("global.get $"+t.getOp1()+"V"+t.getOp2());
 	}
 
 	private void escribir(String code) {
@@ -425,7 +425,7 @@ public class GeneradorWasm {
 
 	private void asignacion(Terceto t) {
 		this.obtenerGets(t, false);
-		this.escribir("local.set $" + t.getOp1().replace(':', 'A'));
+		this.escribir("global.set $" + t.getOp1().replace(':', 'A'));
 	}
 	
 	private void and(Terceto t) {
@@ -440,7 +440,7 @@ public class GeneradorWasm {
 	
 	private void retornoFuncion(Terceto t) {
 		this.obtenerGets(t);
-		this.escribir("local.set $"+this.funcionActual+"retorno");
+		this.escribir("global.set $"+this.funcionActual+"retorno");
 	}
 	
 	private void generarLabel(Terceto t) {
