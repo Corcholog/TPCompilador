@@ -11,6 +11,9 @@ public class GeneradorCodigo {
 	private Stack<Integer> flujoControl;
 	private boolean huboError = false;
 	
+
+
+	
 	public GeneradorCodigo() {
 		this.tercetos = new ArrayList<Terceto>();
 		this.flujoControl = new Stack<Integer>();

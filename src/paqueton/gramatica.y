@@ -258,10 +258,15 @@ triple		: ID '{' expresion_matematica '}' {
 						   String tipo = "";
 						   String idTripla=gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts,ambitoActual);
 						   if (idTripla != null) {
-							this.gc.addTerceto("<=", $3.sval, "3");
-							this.gc.addTerceto(">=", $3.sval, "1");
+							this.ts.addClave("3");
+							this.ts.addAtributo("3", AccionSemantica.TIPO, "ulongint");
+							this.ts.addClave("1");
+							this.ts.addAtributo("1", AccionSemantica.TIPO, "ulongint");
+							this.gc.addTerceto("<=", $3.sval, "3", "ulongint");
+							
+							this.gc.addTerceto(">=", $3.sval, "1", "ulongint");
 							this.gc.addTerceto("AND", "[" + this.gc.getPosActual() + "]", "[" + (this.gc.getPosActual()-1) + "]");				
-						    tipo = this.ts.getAtributo($1.sval, AccionSemantica.TIPO_BASICO); 
+						    	tipo = this.ts.getAtributo($1.sval, AccionSemantica.TIPO_BASICO); 
 						    }else{
 							ErrorHandler.addErrorSemantico( "La tripla " + $1.sval + " nunca fue declarada.", lex.getLineaInicial()) ; 
 							tipo = "error";
