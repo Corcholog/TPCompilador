@@ -73,6 +73,7 @@ public class GeneradorCodigo {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 		
 	    Matcher matcher = pattern.matcher(retorno);
+	    System.out.println("funcion checkretorno: " + funcion);
 	    if(matcher.find()) {
 	    	String tipo = this.getTerceto(Integer.parseInt(retorno.substring(1, retorno.length()-1))).getTipo();
 	    	if(!tipo.equals(ts.getAtributo(funcion, AccionSemantica.TIPO))) {
@@ -194,7 +195,7 @@ public class GeneradorCodigo {
 	    return Integer.parseInt(matcher.group(1));
 	}
 
-	public void checkParamReal(String expresion, int lineaActual, TablaSimbolos ts, String ambitoActual) {
+	public void checkParamReal(String expresion, int lineaActual, TablaSimbolos ts, String ambitoActual,String funcion) {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 	    Matcher matcher = pattern.matcher(expresion);
 	    String tipo = "";
@@ -213,7 +214,12 @@ public class GeneradorCodigo {
 	    	ErrorHandler.addErrorSemantico("el parametro real " +expresion+ "  no esta al alcance", lineaActual);
 	    }
 	    
-	    if(!ts.getAtributo(ts.getAtributo(ambitoActual , AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals(tipo)){ 
+	    System.out.println("tipo parametro real " + tipo);
+	    System.out.println("FUNCION ACTUAL:" + ambitoActual);
+	    System.out.println("tipo parametro formal " +ts.getAtributo(ts.getAtributo(ambitoActual , AccionSemantica.PARAMETRO), AccionSemantica.TIPO));
+	    
+	    
+	    if(!ts.getAtributo(ts.getAtributo(funcion , AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals(tipo)){ 
 	    	ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lineaActual);
     	}
 	}

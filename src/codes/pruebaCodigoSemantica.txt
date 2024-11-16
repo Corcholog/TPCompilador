@@ -9,13 +9,16 @@ BEGIN
 
 	ULONGINT FUN funcion1(double parametro)
 	BEGIN
-		ulongint pepe;
-		DOUBLE FUN funcion2(ulongint parametro2)
-		BEGIN
-			RET (parametro);
-		END;
-		RET (parametro);
+		double pija;
+		a := funcion1(pija);
+		RET(3);
 	END;
+	
+	ULONGINT FUN funcion2(ulongint pepe)
+	BEGIN
+		RET(3);
+	END;
+
 	
 	 IF(t2{1} > 0) THEN
 	 BEGIN

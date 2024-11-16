@@ -10,6 +10,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
 
 public class GeneradorWasm {
 	private TablaSimbolos ts;
@@ -26,7 +27,7 @@ public class GeneradorWasm {
 	private boolean seAccedioAtripla;
 	private Set<String> accesoTriplas = new HashSet<String>();
 	private Set<String> gotos = new HashSet<String>();
-
+	private Map<String,Integer> funcionesId= new HashMap<String,Integer>();
 	
 	private StringBuilder variablesGlobales = new StringBuilder();
 	private StringBuilder funciones = new StringBuilder();
@@ -77,8 +78,12 @@ public class GeneradorWasm {
 		this.cargarCadmuls();
 		this.escribir(this.variablesGlobales, "");
 		this.reducirIdentacion();
+		this.funcionesId.put("global", 0);
+		int contador = 1;
+		
 		Map<String, GeneradorCodigo> funciones = this.ts.getFunciones();
 		for (String funcion : funciones.keySet()) {
+			this.funcionesId.put(funcion, contador);
 			cuerpoActual = new StringBuilder();
 			bloquesGOTO = new Stack<String>();
 			this.funcionActual = funcion;
@@ -90,6 +95,20 @@ public class GeneradorWasm {
 			this.aumentarIdentacion();
 			variablesActual = this.funciones;
 			this.escribir(variablesActual,"(local $" + funcion.replace(':', 'A') +"retorno " + tipoFuncion + ")");
+			this.escribir(cuerpoActual, "i32.const " + contador);
+			this.escribir(cuerpoActual, "global.get $funcionLlamadora");
+			this.escribir(cuerpoActual, "i32.eq");
+			this.escribir(cuerpoActual, "(if");
+			this.aumentarIdentacion();
+			this.escribir(cuerpoActual,"(then");
+			this.aumentarIdentacion();
+			this.escribir(cuerpoActual, "i32.const 279");
+			this.escribir(cuerpoActual, "i32.const 42");
+			this.escribir(cuerpoActual,"call $log");
+			this.reducirIdentacion();
+			this.escribir(cuerpoActual,")");
+			this.reducirIdentacion();
+			this.escribir(cuerpoActual,")");
 			this.escribir(cuerpoActual,tipoFuncion+".const 0");
 			this.escribir(cuerpoActual,"local.set $"+funcion.replace(':', 'A') +"retorno");
 			for (int i = 0; i < gcFuncion.getCantTercetos(); i++) {
@@ -99,6 +118,7 @@ public class GeneradorWasm {
 					this.ejecutarTraduccion(t);				
 				}
 			}
+			contador++;
 			this.escribir(cuerpoActual,"local.get $"+funcion.replace(':', 'A') +"retorno");
 			this.reducirIdentacion();
 			this.escribir(cuerpoActual,")\n");
@@ -138,7 +158,8 @@ public class GeneradorWasm {
 		this.escribir(this.variablesGlobales, "(data (i32.const 101)" + "\"Error en ejecucion: El resultado de una operacion sin signo dio negativo.\")");
 		this.escribir(this.variablesGlobales, "(data (i32.const 174)" + "\"Error en ejecucion: se realizo una recursion sobre una funcion.\")");
 		this.escribir(this.variablesGlobales, "(data (i32.const 237)" + "\"Error en ejecucion: indice fuera de rango.\")");
-		Integer dirMem = 279;
+		this.escribir(this.variablesActual, "(data (i32.const 279)" + "\"Error no se puede recursionar una funcion.\")");
+		Integer dirMem = 321;
 		for(String key : cadmuls.keySet()) {
 			this.escribir(this.variablesGlobales,"(data (i32.const " + dirMem + ") \"" + key.substring("CADMUL:".length()) + "\")");
 			this.ts.setPosicionMemoria(key, dirMem);
@@ -167,6 +188,8 @@ public class GeneradorWasm {
 				this.escribir(this.variablesGlobales,"(global $"+key.replace(':', 'A')+" (mut " +tipoVar+")" + "(" + tipoVar + ".const 0))");
 			}
 		}
+		this.escribir(this.variablesGlobales, "(global $funcionLlamadora (mut i32) (i32.const 0))");
+
 		this.escribir(this.variablesGlobales, "(global $AUXNEG (mut i32) (i32.const 0))");
 		this.escribir(this.variablesGlobales, "(global $f64auxTripla (mut f64) (f64.const 0))");
 		this.escribir(this.variablesGlobales, "(global $i32auxTripla (mut i32) (i32.const 0))");
@@ -908,7 +931,10 @@ public class GeneradorWasm {
 	
 	private void invocacionFuncion(Terceto t) {
 		this.obtenerGets(t, false);
-		this.escribir(cuerpoActual,"call $" + t.getOp1().replace(':', 'A'));
+		String funcion = t.getOp1();
+		this.escribir(cuerpoActual ,"i32.const " + this.funcionesId.get(funcion));
+		this.escribir(cuerpoActual, "global.set $funcionLlamadora");
+		this.escribir(cuerpoActual,"call $" + funcion.replace(':', 'A'));
 	}
 	
 	private void retornoFuncion(Terceto t) {

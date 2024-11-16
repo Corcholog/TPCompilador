@@ -11,8 +11,9 @@
 (global $globalAt1V2 (mut i32)(i32.const 0))
 (global $globalAt1V3 (mut i32)(i32.const 0))
 (global $globalApepe (mut i32)(i32.const 0))
-(global $globalAfuncion1Apepe (mut i32)(i32.const 0))
+(global $globalAfuncion1Apija (mut f64)(f64.const 0))
 (global $globalAa (mut i32)(i32.const 0))
+(global $funcionLlamadora (mut i32) (i32.const 0))
 (global $AUXNEG (mut i32) (i32.const 0))
 (global $f64auxTripla (mut f64) (f64.const 0))
 (global $i32auxTripla (mut i32) (i32.const 0))
@@ -31,38 +32,75 @@
 (data (i32.const 101)"Error en ejecucion: El resultado de una operacion sin signo dio negativo.")
 (data (i32.const 174)"Error en ejecucion: se realizo una recursion sobre una funcion.")
 (data (i32.const 237)"Error en ejecucion: indice fuera de rango.")
-(data (i32.const 279) " goooooood amimir ")
+(data (i32.const 321) " goooooood amimir ")
 
 
-( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aparametro2 i32) (result f64)
-	(local $globalAfuncion1Afuncion2retorno f64)
-( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aparametro2 i32) (result f64)
-	(local $globalAfuncion1Afuncion2retorno f64)
-	f64.const 0
-	local.set $globalAfuncion1Afuncion2retorno
-	global.get $globalAfuncion1Aparametro
-	local.set $globalAfuncion1Afuncion2retorno
-	local.get $globalAfuncion1Afuncion2retorno
+( func $globalAfuncion2 (param $globalAfuncion2Apepe i32) (result i32)
+	(local $globalAfuncion2retorno i32)
+( func $globalAfuncion2 (param $globalAfuncion2Apepe i32) (result i32)
+	(local $globalAfuncion2retorno i32)
+	i32.const 1
+	global.get $funcionLlamadora
+	i32.eq
+	(if
+		(then
+			i32.const 279
+			i32.const 42
+			call $log
+		)
+	)
+	i32.const 0
+	local.set $globalAfuncion2retorno
+	i32.const 3
+	local.set $globalAfuncion2retorno
+	local.get $globalAfuncion2retorno
 )
 
 ( func $globalAfuncion1 (param $globalAfuncion1Aparametro f64) (result i32)
 	(local $globalAfuncion1retorno i32)
-( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aparametro2 i32) (result f64)
-	(local $globalAfuncion1Afuncion2retorno f64)
-( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aparametro2 i32) (result f64)
-	(local $globalAfuncion1Afuncion2retorno f64)
-	f64.const 0
-	local.set $globalAfuncion1Afuncion2retorno
-	global.get $globalAfuncion1Aparametro
-	local.set $globalAfuncion1Afuncion2retorno
-	local.get $globalAfuncion1Afuncion2retorno
+( func $globalAfuncion2 (param $globalAfuncion2Apepe i32) (result i32)
+	(local $globalAfuncion2retorno i32)
+( func $globalAfuncion2 (param $globalAfuncion2Apepe i32) (result i32)
+	(local $globalAfuncion2retorno i32)
+	i32.const 1
+	global.get $funcionLlamadora
+	i32.eq
+	(if
+		(then
+			i32.const 279
+			i32.const 42
+			call $log
+		)
+	)
+	i32.const 0
+	local.set $globalAfuncion2retorno
+	i32.const 3
+	local.set $globalAfuncion2retorno
+	local.get $globalAfuncion2retorno
 )
 
 ( func $globalAfuncion1 (param $globalAfuncion1Aparametro f64) (result i32)
 	(local $globalAfuncion1retorno i32)
+	i32.const 2
+	global.get $funcionLlamadora
+	i32.eq
+	(if
+		(then
+			i32.const 279
+			i32.const 42
+			call $log
+		)
+	)
 	i32.const 0
 	local.set $globalAfuncion1retorno
-	global.get $globalAfuncion1Aparametro
+	global.get $pija
+	i32.const 2
+	global.set $funcionLlamadora
+	call $globalAfuncion1
+	i32.const 1
+	global.set $globalAa
+	global.set $globalAa
+	i32.const 3
 	local.set $globalAfuncion1retorno
 	local.get $globalAfuncion1retorno
 )
@@ -73,8 +111,6 @@
 	(local $accesoglobalAt2 i32)
 (local $comp8 i32)
 
-	i32.const 1
-	global.set $globalAa
 	i32.const 1
 	local.set $accesoAsigglobalAt2
 	i32.const 2
@@ -222,7 +258,7 @@ local.set $comp8
 local.get $comp8
 (if
 	(then
-		i32.const 279
+		i32.const 321
 		i32.const 18
 		call $log
 	)

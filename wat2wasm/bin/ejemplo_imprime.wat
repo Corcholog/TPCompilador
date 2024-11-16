@@ -10,6 +10,9 @@
 (global $globalAt1V1 (mut i32)(i32.const 0))
 (global $globalAt1V2 (mut i32)(i32.const 0))
 (global $globalAt1V3 (mut i32)(i32.const 0))
+(global $globalApepe (mut i32)(i32.const 0))
+(global $globalAfuncion1Apepe (mut i32)(i32.const 0))
+(global $globalAfuncion1Afuncion2Apija (mut f64)(f64.const 0))
 (global $globalAa (mut i32)(i32.const 0))
 (global $AUXNEG (mut i32) (i32.const 0))
 (global $f64auxTripla (mut f64) (f64.const 0))
@@ -32,14 +35,112 @@
 (data (i32.const 279) " goooooood amimir ")
 
 
+( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aagus f64) (result i32)
+	(local $globalAfuncion1Afuncion2retorno i32)
+( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aagus f64) (result i32)
+	(local $globalAfuncion1Afuncion2retorno i32)
+	i32.const 0
+	local.set $globalAfuncion1Afuncion2retorno
+	global.get $pija
+	call $globalAfuncion1
+	i32.const 1
+	global.set $globalAa
+	global.set $globalAa
+	i32.const 3
+	local.set $globalAfuncion1Afuncion2retorno
+	local.get $globalAfuncion1Afuncion2retorno
+)
+
+( func $globalAfuncion1 (param $globalAfuncion1Aparametro f64) (result i32)
+	(local $globalAfuncion1retorno i32)
+( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aagus f64) (result i32)
+	(local $globalAfuncion1Afuncion2retorno i32)
+( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aagus f64) (result i32)
+	(local $globalAfuncion1Afuncion2retorno i32)
+	i32.const 0
+	local.set $globalAfuncion1Afuncion2retorno
+	global.get $pija
+	call $globalAfuncion1
+	i32.const 1
+	global.set $globalAa
+	global.set $globalAa
+	i32.const 3
+	local.set $globalAfuncion1Afuncion2retorno
+	local.get $globalAfuncion1Afuncion2retorno
+)
+
+( func $globalAfuncion1 (param $globalAfuncion1Aparametro f64) (result i32)
+	(local $globalAfuncion1retorno i32)
+	i32.const 0
+	local.set $globalAfuncion1retorno
+	global.get $globalAfuncion1Apepe
+	local.set $globalAfuncion1retorno
+	local.get $globalAfuncion1retorno
+)
+
+( func $globalAfuncion3 (param $globalAfuncion3Aparametrofun3 i32) (result i32)
+	(local $globalAfuncion3retorno i32)
+( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aagus f64) (result i32)
+	(local $globalAfuncion1Afuncion2retorno i32)
+( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aagus f64) (result i32)
+	(local $globalAfuncion1Afuncion2retorno i32)
+	i32.const 0
+	local.set $globalAfuncion1Afuncion2retorno
+	global.get $pija
+	call $globalAfuncion1
+	i32.const 1
+	global.set $globalAa
+	global.set $globalAa
+	i32.const 3
+	local.set $globalAfuncion1Afuncion2retorno
+	local.get $globalAfuncion1Afuncion2retorno
+)
+
+( func $globalAfuncion1 (param $globalAfuncion1Aparametro f64) (result i32)
+	(local $globalAfuncion1retorno i32)
+( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aagus f64) (result i32)
+	(local $globalAfuncion1Afuncion2retorno i32)
+( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aagus f64) (result i32)
+	(local $globalAfuncion1Afuncion2retorno i32)
+	i32.const 0
+	local.set $globalAfuncion1Afuncion2retorno
+	global.get $pija
+	call $globalAfuncion1
+	i32.const 1
+	global.set $globalAa
+	global.set $globalAa
+	i32.const 3
+	local.set $globalAfuncion1Afuncion2retorno
+	local.get $globalAfuncion1Afuncion2retorno
+)
+
+( func $globalAfuncion1 (param $globalAfuncion1Aparametro f64) (result i32)
+	(local $globalAfuncion1retorno i32)
+	i32.const 0
+	local.set $globalAfuncion1retorno
+	global.get $globalAfuncion1Apepe
+	local.set $globalAfuncion1retorno
+	local.get $globalAfuncion1retorno
+)
+
+( func $globalAfuncion3 (param $globalAfuncion3Aparametrofun3 i32) (result i32)
+	(local $globalAfuncion3retorno i32)
+	i32.const 0
+	local.set $globalAfuncion3retorno
+	f64.const 3.2
+	call $globalAfuncion1
+	global.set $globalAa
+	i32.const 3
+	local.set $globalAfuncion3retorno
+	local.get $globalAfuncion3retorno
+)
+
 
 (func $main
 	(local $accesoAsigglobalAt2 i32)
 	(local $accesoglobalAt2 i32)
 (local $comp8 i32)
 
-	i32.const 1
-	global.set $globalAa
 	i32.const 1
 	local.set $accesoAsigglobalAt2
 	i32.const 2
@@ -195,5 +296,6 @@ local.get $comp8
 )
 	(export "main" (func $main))
 )
+
 
 

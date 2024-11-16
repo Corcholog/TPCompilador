@@ -733,7 +733,7 @@ final static String yyrule[] = {
 "declar_tipo_trip : TYPEDEF TRIPLE '<' tipo '>' error ';'",
 };
 
-//#line 468 "gramatica.y"
+//#line 469 "gramatica.y"
 String nombreArchivo;
 AnalizadorLexico lex;
 TablaSimbolos ts;
@@ -746,7 +746,7 @@ ArrayList<ControlTagAmbito> tags;
 String estructuras;
 ArrayList<String> varFors;
 String ambitoActual;
-String funcionActual;
+String idFuncion;
 Integer inicioPatron;
 Integer posPatron;
 Integer cantPatronIzq;
@@ -755,7 +755,6 @@ Integer cantFors;
 public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 {
 	this.nombreArchivo=nombreArchivo;
-	this.funcionActual = "";
 	this.ambitoActual = "global";
 	this.inicioPatron = Integer.MAX_VALUE;
 	this.posPatron = -1;
@@ -944,7 +943,7 @@ public static void main(String[] args) {
         System.out.println("No se analizo completamente el codigo fuente, debido a uno o mas errores inesperados");
     }
 }
-//#line 876 "Parser.java"
+//#line 875 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -1528,13 +1527,12 @@ case 110:
 { if (esEmbebido(val_peek(1).sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());}
 					else {
 					this.checkRedFuncion(val_peek(1).sval, val_peek(3).sval);
-					this.funcionActual = val_peek(1).sval; 
 					this.ambitoActual += ":" + val_peek(1).sval;
 					}
 					}
 break;
 case 111:
-//#line 289 "gramatica.y"
+//#line 288 "gramatica.y"
 { 
 								this.cantRetornos.add(0); 
 								this.gc_funciones.push(this.ts.getGCFuncion(this.ambitoActual)); 
@@ -1543,7 +1541,7 @@ case 111:
 								}
 break;
 case 112:
-//#line 294 "gramatica.y"
+//#line 293 "gramatica.y"
 {
 								tipoVar = val_peek(8).sval; 
 								this.checkRet(val_peek(6).sval);
@@ -1555,70 +1553,72 @@ case 112:
 							}
 break;
 case 113:
-//#line 304 "gramatica.y"
+//#line 303 "gramatica.y"
 { this.cantRetornos.add(0);}
 break;
 case 114:
-//#line 304 "gramatica.y"
+//#line 303 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta nombre de la funcion declarada", lex.getLineaInicial());
 													this.checkRet("");
 													}
 break;
 case 115:
-//#line 307 "gramatica.y"
+//#line 306 "gramatica.y"
 { this.cantRetornos.add(0);}
 break;
 case 116:
-//#line 307 "gramatica.y"
+//#line 306 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el parametro en la declaracion de la funcion", lex.getLineaInicial());
 							    this.checkRet(val_peek(4).sval);
 							    if (esEmbebido(val_peek(4).sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());}
 							   }
 break;
 case 118:
-//#line 314 "gramatica.y"
+//#line 313 "gramatica.y"
 {ErrorHandler.addErrorSintactico("No se permite utilizar un tipo definido por el usuario como retorno", lex.getLineaInicial());}
 break;
 case 119:
-//#line 317 "gramatica.y"
+//#line 316 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Se declaró más de un parametro", lex.getLineaInicial());}
 break;
 case 121:
-//#line 322 "gramatica.y"
+//#line 321 "gramatica.y"
 { 
 			this.ts.addClave(this.ambitoActual + ":" + val_peek(0).sval);
 			String id_param = gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
-			this.ts.addAtributo(id_param,AccionSemantica.TIPO, val_peek(1).sval); this.ts.addAtributo(id_param,AccionSemantica.USO,"nombre parametro"); this.ts.addAtributo(gc.checkDeclaracion(funcionActual, lex.getLineaInicial(), 				this.ts, this.ambitoActual), AccionSemantica.PARAMETRO, id_param); 
+			this.ts.addAtributo(id_param,AccionSemantica.TIPO, val_peek(1).sval); this.ts.addAtributo(id_param,AccionSemantica.USO,"nombre parametro"); this.ts.addAtributo(gc.checkDeclaracion(this.ambitoActual, lex.getLineaInicial(),this.ts, this.ambitoActual), AccionSemantica.PARAMETRO, id_param); 
 			this.ts.addAtributo(id_param, AccionSemantica.TIPO, val_peek(1).sval); estructurasSintacticas("Se declaró el parámetro: " + val_peek(0).sval + " en la linea: " +			lex.getLineaInicial());}
 break;
 case 122:
-//#line 327 "gramatica.y"
+//#line 326 "gramatica.y"
 { ErrorHandler.addErrorSintactico("No se permite una tripla como parametro", lex.getLineaInicial());}
 break;
 case 123:
-//#line 329 "gramatica.y"
+//#line 328 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el nombre del parametro", lex.getLineaInicial());}
 break;
 case 124:
-//#line 330 "gramatica.y"
+//#line 329 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el tipo o se intento utilizar una tripla sin nombre.", lex.getLineaInicial());}
 break;
 case 128:
-//#line 340 "gramatica.y"
+//#line 339 "gramatica.y"
 {ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
 break;
 case 131:
-//#line 347 "gramatica.y"
+//#line 346 "gramatica.y"
 { this.cantRetornos.set(this.cantRetornos.size()-1, this.cantRetornos.get(this.cantRetornos.size()-1) + 1); 
-					yyval.sval = gc.addTerceto("RET", gc.checkDeclaracion(val_peek(1).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");		
+					String expresion = gc.checkDeclaracion(val_peek(1).sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
+					gc.checkTipoRetorno(expresion, ambitoActual,this.ts,lex.getLineaInicial());
+					yyval.sval = gc.addTerceto("RET", expresion, "");		
 		}
 break;
 case 132:
-//#line 352 "gramatica.y"
-{funcionActual = val_peek(1).sval; }
+//#line 353 "gramatica.y"
+{idFuncion = gc.checkDeclaracion(val_peek(1).sval,lex.getLineaInicial(),this.ts,ambitoActual);}
 break;
 case 133:
-//#line 352 "gramatica.y"
+//#line 353 "gramatica.y"
 { 
 							estructurasSintacticas("Se invocó a la función: " + val_peek(4).sval + " en la linea: " + lex.getLineaInicial());
 							String tipo = "";	
@@ -1632,54 +1632,54 @@ case 133:
 								tipo = "error";
 							}
 							System.out.println("El tipo de la funcion invocada es: " + tipo);
-							yyval.sval = gc.addTerceto("INVOC_FUN", this.ambitoActual + ":" + this.funcionActual, val_peek(1).sval, tipo);/*porque $4? :c*/
+							yyval.sval = gc.addTerceto("INVOC_FUN",idFunc, val_peek(1).sval, tipo);/*porque $4? :c*/
 		}
 break;
 case 134:
-//#line 368 "gramatica.y"
+//#line 369 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta de parámetros en la invocación a la función", lex.getLineaInicial());}
 break;
 case 135:
-//#line 372 "gramatica.y"
+//#line 373 "gramatica.y"
 { yyval.sval = val_peek(0).sval;ErrorHandler.addErrorSintactico("Se utilizó más de un parámetro para invocar a la función", lex.getLineaInicial());}
 break;
 case 136:
-//#line 373 "gramatica.y"
+//#line 374 "gramatica.y"
 { yyval.sval = val_peek(0).sval;}
 break;
 case 137:
-//#line 376 "gramatica.y"
-{yyval.sval = val_peek(0).sval; gc.checkParamReal(val_peek(0).sval, lex.getLineaInicial(), this.ts,ambitoActual);}
+//#line 377 "gramatica.y"
+{yyval.sval = val_peek(0).sval; gc.checkParamReal(val_peek(0).sval, lex.getLineaInicial(), this.ts, ambitoActual,idFuncion);}
 break;
 case 138:
-//#line 377 "gramatica.y"
+//#line 378 "gramatica.y"
 {
 if(!this.ts.getAtributo(gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), AccionSemantica.TIPO).equals(val_peek(1).sval)){yyval.sval = gc.addTerceto("TO".concat(val_peek(1).sval), gc.checkDeclaracion(val_peek(0).sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
-if(!this.ts.getAtributo(this.ts.getAtributo(gc.checkDeclaracion(funcionActual, lex.getLineaInicial(), this.ts, ambitoActual), AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals(val_peek(1).sval)){ ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lex.getLineaInicial());}}
+if(!this.ts.getAtributo(this.ts.getAtributo(gc.checkDeclaracion(this.ambitoActual, lex.getLineaInicial(), this.ts, ambitoActual), AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals(val_peek(1).sval)){ ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lex.getLineaInicial());}}
 break;
 case 139:
-//#line 382 "gramatica.y"
+//#line 383 "gramatica.y"
 {yyval.sval = gc.addTerceto("OUTF", val_peek(1).sval, "");}
 break;
 case 140:
-//#line 384 "gramatica.y"
+//#line 385 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el mensaje del OUTF", lex.getLineaInicial());}
 break;
 case 141:
-//#line 385 "gramatica.y"
+//#line 386 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Parámetro invalido del OUTF", lex.getLineaInicial());
 					lex.setErrorHandlerToken(")");}
 break;
 case 142:
-//#line 389 "gramatica.y"
+//#line 390 "gramatica.y"
 { yyval.sval = val_peek(0).sval;}
 break;
 case 143:
-//#line 390 "gramatica.y"
+//#line 391 "gramatica.y"
 { System.out.println("CAMUL: " + val_peek(0).sval); yyval.sval = val_peek(0).sval;}
 break;
 case 144:
-//#line 393 "gramatica.y"
+//#line 394 "gramatica.y"
 {	estructurasSintacticas("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial()); 
 				String var = this.varFors.get(this.varFors.size()-1);
 				if(!this.ts.getAtributo(val_peek(2).sval, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){
@@ -1699,50 +1699,50 @@ case 144:
 		}
 break;
 case 145:
-//#line 411 "gramatica.y"
+//#line 412 "gramatica.y"
 { ErrorHandler.addErrorSintactico("No se puede utilizar una constante negativa, en su lugar se debe utilizar el avance descendiente DOWN.", lex.getLineaInicial());}
 break;
 case 146:
-//#line 412 "gramatica.y"
+//#line 413 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta punto y coma entre condicion y avance", lex.getLineaInicial());}
 break;
 case 147:
-//#line 413 "gramatica.y"
+//#line 414 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta punto y coma entre asignacion y condicion", lex.getLineaInicial());}
 break;
 case 148:
-//#line 414 "gramatica.y"
+//#line 415 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Faltan todos los punto y coma del for", lex.getLineaInicial());}
 break;
 case 149:
-//#line 415 "gramatica.y"
+//#line 416 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta UP/DOWN", lex.getLineaInicial());}
 break;
 case 150:
-//#line 416 "gramatica.y"
+//#line 417 "gramatica.y"
 {ErrorHandler.addErrorSintactico("Falta valor del UP/DOWN", lex.getLineaInicial());}
 break;
 case 151:
-//#line 417 "gramatica.y"
+//#line 418 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta UP/DOWN y punto y coma entre condicion y avance", lex.getLineaInicial());}
 break;
 case 152:
-//#line 418 "gramatica.y"
+//#line 419 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta valor del UP/DOWN y punto y coma entre condicion y avance", lex.getLineaInicial());}
 break;
 case 153:
-//#line 419 "gramatica.y"
+//#line 420 "gramatica.y"
 { { ErrorHandler.addErrorSintactico("Falta UP/DOWN, su valor, y punto y coma entre condicion y avance", lex.getLineaInicial());}}
 break;
 case 154:
-//#line 423 "gramatica.y"
+//#line 424 "gramatica.y"
 { yyval.sval = val_peek(0).sval;
 				gc.addTerceto("BF", val_peek(0).sval, "");
 				gc.push(gc.getPosActual());
 			}
 break;
 case 155:
-//#line 429 "gramatica.y"
+//#line 430 "gramatica.y"
 {String varFor = gc.checkDeclaracion(val_peek(2).sval,lex.getLineaInicial(),this.ts,ambitoActual);
 				if (varFor != null){
 					if(!this.ts.getAtributo(varFor, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La variable " + val_peek(2).sval + " no es de tipo entero.", lex.getLineaInicial());}
@@ -1758,47 +1758,47 @@ case 155:
 				}
 break;
 case 156:
-//#line 444 "gramatica.y"
+//#line 445 "gramatica.y"
 {yyval.ival = 1;}
 break;
 case 157:
-//#line 445 "gramatica.y"
+//#line 446 "gramatica.y"
 {yyval.ival = -1;}
 break;
 case 158:
-//#line 448 "gramatica.y"
+//#line 449 "gramatica.y"
 { yyval.sval = gc.addTerceto("GOTO", ambitoActual + ":" + val_peek(0).sval,"");
 			     this.ts.addAtributo(val_peek(0).sval,AccionSemantica.USO,"nombre etiqueta");
 			     this.tags.get(tags.size()-1).huboGoto(this.ambitoActual+":"+val_peek(0).sval);
 			}
 break;
 case 159:
-//#line 453 "gramatica.y"
+//#line 454 "gramatica.y"
 {ErrorHandler.addErrorSintactico("falta la etiqueta en el GOTO, en caso de faltar también el punto y coma es posible que no compile el resto del programa o lo haga mal.", lex.getLineaInicial());
 				lex.setErrorHandlerToken(";");}
 break;
 case 160:
-//#line 459 "gramatica.y"
+//#line 460 "gramatica.y"
 {this.ts.addClave(val_peek(0).sval); this.ts.addAtributo(val_peek(0).sval,AccionSemantica.USO,"nombre de tipo tripla"); estructurasSintacticas("Se declaró un tipo TRIPLE con el ID: " + val_peek(0).sval + " en la linea:" + lex.getLineaInicial()); this.ts.addAtributo(val_peek(0).sval, "tipotripla", val_peek(2).sval); this.ts.addAtributo(val_peek(0).sval, "tipo", val_peek(2).sval);}
 break;
 case 161:
-//#line 461 "gramatica.y"
+//#line 462 "gramatica.y"
 {ErrorHandler.addErrorSintactico("falta < en la declaración del TRIPLE", lex.getLineaInicial()); }
 break;
 case 162:
-//#line 462 "gramatica.y"
+//#line 463 "gramatica.y"
 {ErrorHandler.addErrorSintactico("falta > en la declaración del TRIPLE", lex.getLineaInicial()); }
 break;
 case 163:
-//#line 463 "gramatica.y"
+//#line 464 "gramatica.y"
 {ErrorHandler.addErrorSintactico("falta > y < en la declaración del TRIPLE", lex.getLineaInicial()); }
 break;
 case 164:
-//#line 464 "gramatica.y"
+//#line 465 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta la palabra clave TRIPLE", lex.getLineaInicial());}
 break;
 case 165:
-//#line 465 "gramatica.y"
+//#line 466 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el ID de la tripla definida.", lex.getLineaInicial());}
 break;
 //#line 1728 "Parser.java"
