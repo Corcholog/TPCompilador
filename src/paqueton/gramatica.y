@@ -48,7 +48,7 @@ sentec_declar	: declaracion_var
 				String etiquetaAmbito=ambitoActual+":"+$1.sval;
 				this.ts.addClave(etiquetaAmbito);
 				this.ts.addAtributo(etiquetaAmbito,AccionSemantica.USO,"nombre de tag");
-				this.tags.get(tags.size()-1).declaracionTag(etiquetaAmbito);
+				this.tags.get(tags.size()-1).declaracionTag(etiquetaAmbito, lex.getLineaInicial());
 				gc.addTerceto("TAG", etiquetaAmbito, "-");
 			}
 		}
@@ -194,7 +194,7 @@ tipo		: DOUBLE {$$.sval = "double";}
 		| ULONGINT {$$.sval = "ulongint";}
 		;
 
-asignacion 	: triple ASIGN expresion_matematica {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
+asignacion 	: triple_asig ASIGN expresion_matematica {estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
 						$$.sval = gc.checkTipoAsignacion($1.sval, lex.getLineaInicial(), $3.sval, this.ts,ambitoActual);}
 
 		| ID ASIGN expresion_matematica {  estructurasSintacticas("Se realizó una asignación a la variable: " + $1.sval + " en la linea: " + lex.getLineaInicial());
@@ -254,25 +254,30 @@ constante 	: CTE 	{ $$.sval = $1.sval;}
 			}
 		;
 
-triple		: ID '{' expresion_matematica '}' {
-						   String tipo = "";
-						   String idTripla=gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts,ambitoActual);
-						   if (idTripla != null) {
-							this.ts.addClave("3");
-							this.ts.addAtributo("3", AccionSemantica.TIPO, "ulongint");
-							this.ts.addClave("1");
-							this.ts.addAtributo("1", AccionSemantica.TIPO, "ulongint");
-							this.gc.addTerceto("<=", $3.sval, "3", "ulongint");
-							
-							this.gc.addTerceto(">=", $3.sval, "1", "ulongint");
-							this.gc.addTerceto("AND", "[" + this.gc.getPosActual() + "]", "[" + (this.gc.getPosActual()-1) + "]");				
-						    	tipo = this.ts.getAtributo($1.sval, AccionSemantica.TIPO_BASICO); 
-						    }else{
-							ErrorHandler.addErrorSemantico( "La tripla " + $1.sval + " nunca fue declarada.", lex.getLineaInicial()) ; 
-							tipo = "error";
-						    }
+triple_asig     : ID '{' expresion_matematica '}' {String tipo = gc.getTipoAccesoTripla($3.sval, this.ts);
+						   if(tipo != "ulongint"){ErrorHandler.addErrorSintactico("Se intento acceder con un tipo distinto a entero a la tripla.", lex.getLineaInicial());}
 
-							$$.sval = gc.addTerceto("ACCESOTRIPLE", $1.sval, $3.sval, tipo);}
+							String idTripla=gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts,ambitoActual);
+						   	if (idTripla != null) {		
+						   	 	tipo = this.ts.getAtributo(idTripla, AccionSemantica.TIPO_BASICO); 
+						   	 }else{
+								ErrorHandler.addErrorSemantico( "La tripla " + idTripla + " nunca fue declarada.", lex.getLineaInicial()) ; 
+								tipo = "error";
+						  	  }
+								$$.sval = $$.sval = gc.addTerceto("ASIGTRIPLA", idTripla, $3.sval, tipo);
+							}
+		;
+
+triple		: ID '{' expresion_matematica '}' {String tipo = gc.getTipoAccesoTripla($3.sval, this.ts);
+						   if(tipo != "ulongint"){ErrorHandler.addErrorSintactico("Se intento acceder con un tipo distinto a entero a la tripla.", lex.getLineaInicial());}											String idTripla=gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts,ambitoActual);
+						   	if (idTripla != null) {		
+						   	 	tipo = this.ts.getAtributo(idTripla, AccionSemantica.TIPO_BASICO); 
+						   	 }else{
+								ErrorHandler.addErrorSemantico( "La tripla " + idTripla + " nunca fue declarada.", lex.getLineaInicial()) ; 
+								tipo = "error";
+						  	  }
+								$$.sval = $$.sval = gc.addTerceto("ACCESOTRIPLE", idTripla, $3.sval, tipo);
+							}
 		;
 
 declaracion_fun : tipo_fun FUN ID '(' { if (esEmbebido($3.sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());}
@@ -306,7 +311,7 @@ declaracion_fun : tipo_fun FUN ID '(' { if (esEmbebido($3.sval)){ErrorHandler.ad
 		;
 
 tipo_fun 	: tipo
-		| ID
+		| ID {ErrorHandler.addErrorSintactico("No se permite utilizar un tipo definido por el usuario como retorno", lex.getLineaInicial());}
 		;
 
 lista_parametro : lista_parametro ',' parametro { ErrorHandler.addErrorSintactico("Se declaró más de un parametro", lex.getLineaInicial());}
@@ -319,10 +324,10 @@ parametro	: tipo ID {
 			String id_param = gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
 			this.ts.addAtributo(id_param,AccionSemantica.TIPO, $1.sval); this.ts.addAtributo(id_param,AccionSemantica.USO,"nombre parametro"); this.ts.addAtributo(gc.checkDeclaracion(funcionActual, lex.getLineaInicial(), 				this.ts, this.ambitoActual), AccionSemantica.PARAMETRO, id_param); 
 			this.ts.addAtributo(id_param, AccionSemantica.TIPO, $1.sval); estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " +			lex.getLineaInicial());}
-		| ID ID { this.ts.addAtributo(ambitoActual+":"+$2.sval,AccionSemantica.TIPO, $1.sval); this.ts.addAtributo(ambitoActual+":"+$2.sval,AccionSemantica.USO,"nombre parametro"); this.ts.addAtributo(ambitoActual+":"+funcionActual, AccionSemantica.PARAMETRO, $2.sval); estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " + lex.getLineaInicial());}
+		| ID ID { ErrorHandler.addErrorSintactico("No se permite una tripla como parametro", lex.getLineaInicial());}
 
 		| tipo { ErrorHandler.addErrorSintactico("Falta el nombre del parametro", lex.getLineaInicial());}
-		| ID { ErrorHandler.addErrorSintactico("Falta el nombre del parametro o el tipo", lex.getLineaInicial());} //buscando en tabla de simbolos se puede saber lo que falta
+		| ID { ErrorHandler.addErrorSintactico("Falta el tipo o se intento utilizar una tripla sin nombre.", lex.getLineaInicial());} //buscando en tabla de simbolos se puede saber lo que falta
 		;
 
 cuerpo_funcion_p : BEGIN bloques_funcion ';' END

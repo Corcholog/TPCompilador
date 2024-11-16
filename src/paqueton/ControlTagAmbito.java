@@ -10,9 +10,9 @@ public class ControlTagAmbito {
 			tags.put(tag, false);
 	}
 	
-	public void declaracionTag(String tag) {
+	public void declaracionTag(String tag, int linea) {
 		if(!tags.containsKey(tag))
-			tags.put(tag, true);
+			ErrorHandler.addErrorSemantico("No se pueden declarar etiquetas antes de un GOTO (no se permite saltar hacia arriba).", linea);
 		else
 			tags.replace(tag, true);
 	}

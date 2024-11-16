@@ -1,164 +1,197 @@
 (module
 (import "console" "log" (func $log (param i32 i32)))
 (import "js" "mem" (memory 1))
-(global $globalAfuncion1Apepe (mut i32)(i32.const 0))
-(global $globalAi (mut i32)(i32.const 0))
-(global $globalAt3V1 (mut f64)(f64.const 0))
-(global $globalAt3V2 (mut f64)(f64.const 0))
-(global $globalAt3V3 (mut f64)(f64.const 0))
-(global $globalAt2V1 (mut f64)(f64.const 0))
-(global $globalAt2V2 (mut f64)(f64.const 0))
-(global $globalAt2V3 (mut f64)(f64.const 0))
-(global $globalAt1V1 (mut f64)(f64.const 0))
-(global $globalAt1V2 (mut f64)(f64.const 0))
-(global $globalAt1V3 (mut f64)(f64.const 0))
-(global $globalAe (mut f64)(f64.const 0))
-(global $globalAf (mut f64)(f64.const 0))
-(global $globalAc (mut i32)(i32.const 0))
+(global $globalAt3V1 (mut i32)(i32.const 0))
+(global $globalAt3V2 (mut i32)(i32.const 0))
+(global $globalAt3V3 (mut i32)(i32.const 0))
+(global $globalAt2V1 (mut i32)(i32.const 0))
+(global $globalAt2V2 (mut i32)(i32.const 0))
+(global $globalAt2V3 (mut i32)(i32.const 0))
+(global $globalAt1V1 (mut i32)(i32.const 0))
+(global $globalAt1V2 (mut i32)(i32.const 0))
+(global $globalAt1V3 (mut i32)(i32.const 0))
 (global $globalAa (mut i32)(i32.const 0))
-(global $globalAb (mut i32)(i32.const 0))
-(data (i32.const 101) " en el for")
-(data (i32.const 118) "b era  		menor que  		a")
+(global $AUXNEG (mut i32) (i32.const 0))
+(global $f64auxTripla (mut f64) (f64.const 0))
+(global $i32auxTripla (mut i32) (i32.const 0))
+(global $AUX1V1i32 (mut i32) (i32.const 0))
+(global $AUX1V2i32 (mut i32) (i32.const 0))
+(global $AUX1V3i32 (mut i32) (i32.const 0))
+(global $AUX2V1i32 (mut i32) (i32.const 0))
+(global $AUX2V2i32 (mut i32) (i32.const 0))
+(global $AUX2V3i32 (mut i32) (i32.const 0))
+(global $AUX1V1f64 (mut f64) (f64.const 0))
+(global $AUX1V2f64 (mut f64) (f64.const 0))
+(global $AUX1V3f64 (mut f64) (f64.const 0))
+(global $AUX2V1f64 (mut f64) (f64.const 0))
+(global $AUX2V2f64 (mut f64) (f64.const 0))
+(global $AUX2V3f64 (mut f64) (f64.const 0))
+(data (i32.const 101)"Error en ejecucion: El resultado de una operacion sin signo dio negativo.")
+(data (i32.const 174)"Error en ejecucion: se realizo una recursion sobre una funcion.")
+(data (i32.const 237)"Error en ejecucion: indice fuera de rango.")
+(data (i32.const 279) " goooooood amimir ")
 
-
-( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aparametro2 i32) (result f64)
-	(local $globalAfuncion1Afuncion2retorno f64)
-	f64.const 0
-	local.set $globalAfuncion1Afuncion2retorno
-	i32.const 3
-	local.set $globalAfuncion1Afuncion2retorno
-	local.get $globalAfuncion1Afuncion2retorno
-)
-
-( func $globalAfuncion1 (param $globalAfuncion1Aparametro f64) (result i32)
-	(local $globalAfuncion1retorno i32)
-	i32.const 0
-	local.set $globalAfuncion1retorno
-	i32.const 3
-	local.set $globalAfuncion1retorno
-	local.get $globalAfuncion1retorno
-)
 
 
 (func $main
-	(local $comp5 i32)
-	(local $comp12 i32)
-		(local $comp21 i32)
-	(local $comp29 i32)
-	(local $comp30 i32)
-	(local $comp31 i32)
-	(local $comp38 i32)
-	(local $comp39 i32)
+	(local $accesoAsigglobalAt2 i32)
+	(local $accesoglobalAt2 i32)
+(local $comp8 i32)
 
-	global.get $globalAb
-	f64_convert_i32_s
-	call $globalAfuncion1
+	i32.const 1
 	global.set $globalAa
-	f64.const 3.0
-	call $globalAfuncion1
-	global.set $globalAb
-	global.get $globalAa
-	global.get $globalAb
-	i32.gt_u
-	local.set $comp5
-	local.get $comp5
+	i32.const 1
+	local.set $accesoAsigglobalAt2
+	i32.const 2
+	i32.const 3
+	i32.mul
+	global.set $i32auxTripla
+	global.get $i32auxTripla
+	i32.const 3
+	i32.sub
+	global.set $i32auxTripla
+	global.get $i32auxTripla
+	global.set $AUXNEG
+	global.get $AUXNEG
+	i32.const 0
+	i32.lt_s
 	(if
 		(then
-			global.get $globalAb
-			global.set $globalAa
+			i32.const 101
+			i32.const 73
+			call $log
+		)
+	)
+	global.get $AUXNEG
+	local.set $accesoglobalAt2
+	local.get $accesoglobalAt2
+	i32.const 1
+	i32.eq
+	(if
+		(then
+			global.get $globalAt2V1
+			global.set $i32auxTripla
 		)
 		(else
-			global.get $globalAa
-			global.set $globalAb
+			local.get $accesoglobalAt2
+			i32.const 2
+			i32.eq
+			(if
+				(then
+					global.get $globalAt2V2
+					global.set $i32auxTripla
+				)
+				(else
+					local.get $accesoglobalAt2
+					i32.const 3
+					i32.eq
+					(if
+						(then
+							global.get $globalAt2V3
+							global.set $i32auxTripla
+						)
+						(else
+							i32.const 237
+							i32.const 42
+							call $log
+						)
+					)
+				)
+			)
 		)
 	)
-	global.get $globalAb
-	global.get $globalAa
-	i32.gt_u
-	local.set $comp12
-	local.get $comp12
-	(if
-		(then
-			global.get $globalAa
-			global.set $globalAb
-			i32.const 118
-			i32.const 23
-			call $log
-			global.get $globalAa
-			global.get $globalAb
-			i32.add
-			i32.const 0
-			call $log
+global.get $i32auxTripla
+i32.const 1
+i32.add
+global.set $i32auxTripla
+global.get $i32auxTripla
+local.get $accesoAsigglobalAt2
+i32.const 1
+i32.eq
+(if
+	(then
+		global.get $i32auxTripla
+		global.set $globalAt2V1
+	)
+	(else
+		local.get $accesoAsigglobalAt2
+		i32.const 2
+		i32.eq
+		(if
+			(then
+				global.get $i32auxTripla
+				global.set $globalAt2V2
+			)
+			(else
+				local.get $accesoAsigglobalAt2
+				i32.const 3
+				i32.eq
+				(if
+					(then
+						global.get $i32auxTripla
+						global.set $globalAt2V3
+					)
+					(else
+						i32.const 237
+						i32.const 42
+						call $log
+					)
+				)
+			)
 		)
 	)
-	i32.const 1
-	global.set $globalAi
-	block $endforAFOR1
-	loop $FOR1
-		global.get $globalAi
-		i32.const 10
-		i32.gt_u
-		local.set $comp21
-		local.get $comp21
-		br_if $endforAFOR1
-		i32.const 101
-		i32.const 10
+)
+global.set $i32auxTripla
+i32.const 1
+local.set $accesoglobalAt2
+local.get $accesoglobalAt2
+i32.const 1
+i32.eq
+(if
+	(then
+		global.get $globalAt2V1
+		global.set $i32auxTripla
+	)
+	(else
+		local.get $accesoglobalAt2
+		i32.const 2
+		i32.eq
+		(if
+			(then
+				global.get $globalAt2V2
+				global.set $i32auxTripla
+			)
+			(else
+				local.get $accesoglobalAt2
+				i32.const 3
+				i32.eq
+				(if
+					(then
+						global.get $globalAt2V3
+						global.set $i32auxTripla
+					)
+					(else
+						i32.const 237
+						i32.const 42
+						call $log
+					)
+				)
+			)
+		)
+	)
+)
+global.get $i32auxTripla
+i32.const 0
+i32.gt_u
+local.set $comp8
+local.get $comp8
+(if
+	(then
+		i32.const 279
+		i32.const 18
 		call $log
-		br $globalApepe@
-		global.get $globalAi
-		i32.const 1
-		i32.add
-		br $FOR1
-	end
-	end
-	(label $globalApepe@)
-	global.get $globalAa
-	i32.const 1
-	i32.ge_u
-	local.set $comp29
-	local.get $comp29
-	global.get $globalAb
-	i32.const 2
-	i32.ge_u
-	local.set $comp30
-	local.get $comp30
-	global.get $globalAc
-	i32.const 3
-	i32.const 4
-	i32.add
-	i32.ge_u
-	local.set $comp31
-	local.get $comp31
-	local.get $comp29
-	local.get $comp30
-	i32.and
-	local.get $comp31
-	i32.and
-	(if
-		(then
-			i32.const 18
-			i32.const 0
-			call $log
-		)
 	)
-	i32.const 0
-	i32.const 3
-	i32.ge_u
-	local.set $comp38
-	local.get $comp38
-	i32.const 0
-	i32.const 1
-	i32.le_u
-	local.set $comp39
-	local.get $comp39
-	local.get $comp39
-	local.get $comp38
-	i32.and
-	global.get $t1V0
-	f64.const 8.0
-	global.set $globalAt1
-	global.get $globalAt1
-	global.set $globalAt2
+)
 )
 	(export "main" (func $main))
 )

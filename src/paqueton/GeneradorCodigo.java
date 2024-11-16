@@ -227,7 +227,7 @@ public class GeneradorCodigo {
 	    } else {
 	    	id_izq = id;
 		    id_izq = checkDeclaracion(id_izq, lineaActual, ts,ambitoActual); 
-	    	tipo_izq = ts.getAtributo(id_izq, AccionSemantica.TIPO);
+		    tipo_izq = ts.getAtributo(id_izq, AccionSemantica.TIPO);
 	    }
 	    
 	    if(id_izq == null) {
@@ -281,6 +281,17 @@ public class GeneradorCodigo {
             return texto;
         }
     }
+	
+	public String getTipoAccesoTripla(String acceso, TablaSimbolos ts) {
+		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+	    Matcher matcher = pattern.matcher(acceso);
+	    
+	    if(matcher.find()) {
+	    	return this.getTerceto(Integer.parseInt(acceso.substring(1, acceso.length()-1))).getTipo();
+	    } else {
+	    	return ts.getAtributo(acceso, AccionSemantica.TIPO);
+	    }
+	}
 
 	public String checkDeclaracion(String id, int lineaInicial, TablaSimbolos ts,String ambito) {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
@@ -325,6 +336,7 @@ public class GeneradorCodigo {
 	    	id_izq = op_izq;
 	    	Terceto tripla = this.getTerceto(Integer.parseInt(matcher_id.group(1)));
 	    	tipo_izq = tripla.getTipo();
+	    	System.out.println("op izq es "+op_izq+" y es de tipo "+tipo_izq);
 	    	if(tipo_der.equals("error")) {
     			declarado = false;	    
 	    	}	
@@ -418,7 +430,7 @@ public class GeneradorCodigo {
 		StringBuilder sb = new StringBuilder();
 		int cont = 0;
 		for (Terceto terceto : tercetos) {
-			sb.append("\n" + cont + ". (" + terceto.getOperador() + ", " + terceto.getOp1() + ", " + terceto.getOp2() +")");
+			sb.append("\n" + cont + ". (" + terceto.getOperador() + ", " + terceto.getOp1() + ", " + terceto.getOp2() +") tipo: "+ terceto.getTipo());
 			cont++;
 		}
 		return sb.toString();
