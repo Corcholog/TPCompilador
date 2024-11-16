@@ -11,6 +11,7 @@
 (global $globalAt1V2 (mut i32)(i32.const 0))
 (global $globalAt1V3 (mut i32)(i32.const 0))
 (global $globalAa (mut i32)(i32.const 0))
+(global $globalApepe (mut i32)(i32.const 0))
 (global $AUXNEG (mut i32) (i32.const 0))
 (global $f64auxTripla (mut f64) (f64.const 0))
 (global $i32auxTripla (mut i32) (i32.const 0))

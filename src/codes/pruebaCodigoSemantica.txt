@@ -3,6 +3,7 @@ BEGIN
 	TYPEDEF TRIPLE <ulongint> tripleta;
 	tripleta t1, t2, t3;
 	ulongint a;
+	ulongint pepe;
 	a := 1;
 	t2{1} := t2{2 * 3 - 3} + 1;
 
@@ -11,6 +12,4 @@ BEGIN
 	 	OUTF([ GOOOOOOOD AMIMIR ]);
 	 END
 	 END_IF;
-	
-	
 END

@@ -199,8 +199,10 @@ public class GeneradorCodigo {
 	    	ErrorHandler.addErrorSemantico("el parametro real " +expresion+ "  no esta al alcance", lineaActual);
 	    }
 	    
-	    if(!ts.getAtributo(ts.getAtributo(ambitoActual + ":"+funcionActual, AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals(tipo)){ 
-    		System.out.println("Tipo parametro: " + ts.getAtributo(ts.getAtributo(funcionActual, AccionSemantica.PARAMETRO), AccionSemantica.TIPO) + " y el tipo del real es: "+ tipo);
+	    System.out.println("La funcion invocada es :" + ambitoActual);
+	    System.out.println("el tipo del parametro formal es: " + ts.getAtributo(ts.getAtributo(ambitoActual , AccionSemantica.PARAMETRO), AccionSemantica.TIPO));
+	    if(!ts.getAtributo(ts.getAtributo(ambitoActual , AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals(tipo)){ 
+    		System.out.println("Tipo parametro: " + ts.getAtributo(ts.getAtributo(ambitoActual , AccionSemantica.PARAMETRO), AccionSemantica.TIPO) + " y el tipo del real es: "+ tipo);
 	    	ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lineaActual);
     	}
 	}
