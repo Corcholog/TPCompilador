@@ -215,7 +215,6 @@ public class GeneradorWasm {
 				if (operador.matches("^label\\d*")) {
 					this.generarLabel(t);
 			    }
-				System.out.println(operador);
 			    break;
 		}
 		t.setHecho(true);
@@ -343,7 +342,6 @@ public class GeneradorWasm {
 	}
 	
 	private void aritmeticaTripla(Terceto t, String sufijoOperacion) {
-		String op = t.getOperador();
 		String op1 = t.getOp1();
 		String op2 = t.getOp2().replace(':', 'A');
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
@@ -495,7 +493,6 @@ public class GeneradorWasm {
 
 	private void mayorIgual(Terceto t) {
 		String tipo = t.getTipo();
-		System.out.println("op1 " + t.getOp1() + " op2 " + t.getOp2() + " tipo " + tipo);
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
 			this.escribir(cuerpoActual,"f64.ge_s");

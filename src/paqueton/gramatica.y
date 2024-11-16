@@ -283,7 +283,7 @@ triple		: ID '{' expresion_matematica '}' {String tipo = gc.getTipoAccesoTripla(
 declaracion_fun : tipo_fun FUN ID '(' { if (esEmbebido($3.sval)){ErrorHandler.addErrorSemantico("No se puede declarar una funcion con un ID con tipos embebidos.", lex.getLineaInicial());}
 					else {
 					this.checkRedFuncion($3.sval, $1.sval);
-					this.funcionActual = $3.sval; 
+					this.funcionActual.push($3.sval); 
 					this.ambitoActual += ":" + $3.sval;
 					}
 					} lista_parametro ')' { 
@@ -299,6 +299,7 @@ declaracion_fun : tipo_fun FUN ID '(' { if (esEmbebido($3.sval)){ErrorHandler.ad
 								tags.get(this.tags.size()-1).tagsValidos(lex.getLineaInicial());
 								tags.remove(this.tags.size()-1);
 								this.cambiarAmbito();
+								this.funcionActual.pop();
 							}
 					
 		| tipo_fun FUN '(' lista_parametro ')'{ this.cantRetornos.add(0);} cuerpo_funcion_p { ErrorHandler.addErrorSintactico("Falta nombre de la funcion declarada", lex.getLineaInicial());
@@ -322,7 +323,7 @@ lista_parametro : lista_parametro ',' parametro { ErrorHandler.addErrorSintactic
 parametro	: tipo ID { 
 			this.ts.addClave(this.ambitoActual + ":" + $2.sval);
 			String id_param = gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
-			this.ts.addAtributo(id_param,AccionSemantica.TIPO, $1.sval); this.ts.addAtributo(id_param,AccionSemantica.USO,"nombre parametro"); this.ts.addAtributo(gc.checkDeclaracion(funcionActual, lex.getLineaInicial(), 				this.ts, this.ambitoActual), AccionSemantica.PARAMETRO, id_param); 
+			this.ts.addAtributo(id_param,AccionSemantica.TIPO, $1.sval); this.ts.addAtributo(id_param,AccionSemantica.USO,"nombre parametro"); this.ts.addAtributo(gc.checkDeclaracion(this.funcionActual.peek(), lex.getLineaInicial(), 				this.ts, this.ambitoActual), AccionSemantica.PARAMETRO, id_param); 
 			this.ts.addAtributo(id_param, AccionSemantica.TIPO, $1.sval); estructurasSintacticas("Se declaró el parámetro: " + $2.sval + " en la linea: " +			lex.getLineaInicial());}
 		| ID ID { ErrorHandler.addErrorSintactico("No se permite una tripla como parametro", lex.getLineaInicial());}
 
@@ -345,11 +346,13 @@ bloque_funcion : retorno
 		;
 
 retorno 	: RET '('expresion_matematica')' { this.cantRetornos.set(this.cantRetornos.size()-1, this.cantRetornos.get(this.cantRetornos.size()-1) + 1); 
-					$$.sval = gc.addTerceto("RET", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");		
+					String expresion = gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
+					gc.checkTipoRetorno(expresion, this.funcionActual.peek());
+					$$.sval = gc.addTerceto("RET", expresion, "");		
 		}
 		;
 
-invoc_fun	: ID '(' {funcionActual = $1.sval; } lista_parametro_real ')' { 
+invoc_fun	: ID '(' {this.funcionActual.push($1.sval); } lista_parametro_real ')' { 
 							estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());
 							String tipo = "";	
 							String idFunc = gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts,ambitoActual);
@@ -362,7 +365,7 @@ invoc_fun	: ID '(' {funcionActual = $1.sval; } lista_parametro_real ')' {
 								tipo = "error";
 							}
 							System.out.println("El tipo de la funcion invocada es: " + tipo);
-							$$.sval = gc.addTerceto("INVOC_FUN", this.ambitoActual + ":" + this.funcionActual, $4.sval, tipo);//porque $4? :c
+							$$.sval = gc.addTerceto("INVOC_FUN", this.ambitoActual + ":" + this.funcionActual.peek(), $4.sval, tipo);//porque $4? :c
 		}
 		
 		| ID '(' ')' { ErrorHandler.addErrorSintactico("Falta de parámetros en la invocación a la función", lex.getLineaInicial());}
@@ -373,10 +376,10 @@ lista_parametro_real : lista_parametro_real ',' param_real { $$.sval = $3.sval;E
 		| param_real { $$.sval = $1.sval;}
 		;
 
-param_real	: expresion_matematica {$$.sval = $1.sval; gc.checkParamReal($1.sval, lex.getLineaInicial(), this.ts, funcionActual,ambitoActual);}
+param_real	: expresion_matematica {$$.sval = $1.sval; gc.checkParamReal($1.sval, lex.getLineaInicial(), this.ts, ambitoActual);}
 		| tipo ID {
 if(!this.ts.getAtributo(gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), AccionSemantica.TIPO).equals($1.sval)){$$.sval = gc.addTerceto("TO".concat($1.sval), gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
-if(!this.ts.getAtributo(this.ts.getAtributo(gc.checkDeclaracion(funcionActual, lex.getLineaInicial(), this.ts, ambitoActual), AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals($1.sval)){ ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lex.getLineaInicial());}}
+if(!this.ts.getAtributo(this.ts.getAtributo(gc.checkDeclaracion(this.funcionActual.peek(), lex.getLineaInicial(), this.ts, ambitoActual), AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals($1.sval)){ ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lex.getLineaInicial());}}
 		;
 
 sald_mensaj	: OUTF '(' mensaje ')' {$$.sval = gc.addTerceto("OUTF", $3.sval, "");}
@@ -471,13 +474,13 @@ TablaSimbolos ts;
 GeneradorCodigo gc;
 GeneradorWasm gw;
 Stack<GeneradorCodigo> gc_funciones;
+Stack<String> funcionActual;
 String tipoVar;
 ArrayList<Integer> cantRetornos;
 ArrayList<ControlTagAmbito> tags; 
 String estructuras;
 ArrayList<String> varFors;
 String ambitoActual;
-String funcionActual;
 Integer inicioPatron;
 Integer posPatron;
 Integer cantPatronIzq;
@@ -486,7 +489,7 @@ Integer cantFors;
 public Parser(String nombreArchivo, TablaSimbolos t, GeneradorCodigo gc)
 {
 	this.nombreArchivo=nombreArchivo;
-	this.funcionActual = "";
+	this.funcionActual = new Stack<String>();
 	this.ambitoActual = "global";
 	this.inicioPatron = Integer.MAX_VALUE;
 	this.posPatron = -1;

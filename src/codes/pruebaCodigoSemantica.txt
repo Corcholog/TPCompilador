@@ -7,6 +7,16 @@ BEGIN
 	a := 1;
 	t2{1} := t2{2 * 3 - 3} + 1;
 
+	ULONGINT FUN funcion1(double parametro)
+	BEGIN
+		ulongint pepe;
+		DOUBLE FUN funcion2(ulongint parametro2)
+		BEGIN
+			RET (parametro);
+		END;
+		RET (parametro);
+	END;
+	
 	 IF(t2{1} > 0) THEN
 	 BEGIN
 	 	OUTF([ GOOOOOOOD AMIMIR ]);

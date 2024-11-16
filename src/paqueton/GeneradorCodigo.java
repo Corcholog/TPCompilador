@@ -69,6 +69,22 @@ public class GeneradorCodigo {
 		return this.tercetos.get(pos);
 	}
 	
+	public void checkTipoRetorno(String retorno, String funcion, TablaSimbolos ts, int linea) {
+		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+		
+	    Matcher matcher = pattern.matcher(retorno);
+	    if(matcher.find()) {
+	    	String tipo = this.getTerceto(Integer.parseInt(retorno.substring(1, retorno.length()-1))).getTipo();
+	    	if(!tipo.equals(ts.getAtributo(funcion, AccionSemantica.TIPO))) {
+	    		ErrorHandler.addErrorSemantico("El tipo del retorno es distinto al de la funcion.", linea);
+	    	}
+	    }else {
+	    	if(!ts.getAtributo(retorno, AccionSemantica.TIPO).equals(ts.getAtributo(funcion, AccionSemantica.TIPO))) {
+	    		ErrorHandler.addErrorSemantico("El tipo del retorno es distinto al de la funcion.", linea);
+	    	}
+	    }
+	}
+	
 	public int updateAndCheckSize(int pos, String op2, int lineaActual, TablaSimbolos ts, String ambitoActual) {
 		if(pos >= this.getCantTercetos()) {
 			ErrorHandler.addErrorSemantico("La longitud de los patrones a matchear es distinta.", lineaActual);
@@ -163,7 +179,6 @@ public class GeneradorCodigo {
 	    	
 	    }
 	    
-	    System.out.println("Se setea el tipo de: " + t + " como: " + tipo_izq);
 	    t.setTipo(tipo_izq);
 	    if(operando == "") {
 	    	return null;
@@ -179,12 +194,11 @@ public class GeneradorCodigo {
 	    return Integer.parseInt(matcher.group(1));
 	}
 
-	public void checkParamReal(String expresion, int lineaActual, TablaSimbolos ts, String funcionActual,String ambitoActual) {
+	public void checkParamReal(String expresion, int lineaActual, TablaSimbolos ts, String ambitoActual) {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 	    Matcher matcher = pattern.matcher(expresion);
 	    String tipo = "";
 	    boolean estaDeclarado = false;
-	    System.out.println("El parametro real es: " + expresion);
 	    if(!matcher.find()) {	
 	    	String parametro = checkDeclaracion(expresion, lineaActual, ts, ambitoActual);
 	    	estaDeclarado = parametro != null;
@@ -199,10 +213,7 @@ public class GeneradorCodigo {
 	    	ErrorHandler.addErrorSemantico("el parametro real " +expresion+ "  no esta al alcance", lineaActual);
 	    }
 	    
-	    System.out.println("La funcion invocada es :" + ambitoActual);
-	    System.out.println("el tipo del parametro formal es: " + ts.getAtributo(ts.getAtributo(ambitoActual , AccionSemantica.PARAMETRO), AccionSemantica.TIPO));
 	    if(!ts.getAtributo(ts.getAtributo(ambitoActual , AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals(tipo)){ 
-    		System.out.println("Tipo parametro: " + ts.getAtributo(ts.getAtributo(ambitoActual , AccionSemantica.PARAMETRO), AccionSemantica.TIPO) + " y el tipo del real es: "+ tipo);
 	    	ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lineaActual);
     	}
 	}
@@ -338,7 +349,6 @@ public class GeneradorCodigo {
 	    	id_izq = op_izq;
 	    	Terceto tripla = this.getTerceto(Integer.parseInt(matcher_id.group(1)));
 	    	tipo_izq = tripla.getTipo();
-	    	System.out.println("op izq es "+op_izq+" y es de tipo "+tipo_izq);
 	    	if(tipo_der.equals("error")) {
     			declarado = false;	    
 	    	}	

@@ -10,8 +10,9 @@
 (global $globalAt1V1 (mut i32)(i32.const 0))
 (global $globalAt1V2 (mut i32)(i32.const 0))
 (global $globalAt1V3 (mut i32)(i32.const 0))
-(global $globalAa (mut i32)(i32.const 0))
 (global $globalApepe (mut i32)(i32.const 0))
+(global $globalAfuncion1Apepe (mut i32)(i32.const 0))
+(global $globalAa (mut i32)(i32.const 0))
 (global $AUXNEG (mut i32) (i32.const 0))
 (global $f64auxTripla (mut f64) (f64.const 0))
 (global $i32auxTripla (mut i32) (i32.const 0))
@@ -32,6 +33,39 @@
 (data (i32.const 237)"Error en ejecucion: indice fuera de rango.")
 (data (i32.const 279) " goooooood amimir ")
 
+
+( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aparametro2 i32) (result f64)
+	(local $globalAfuncion1Afuncion2retorno f64)
+( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aparametro2 i32) (result f64)
+	(local $globalAfuncion1Afuncion2retorno f64)
+	f64.const 0
+	local.set $globalAfuncion1Afuncion2retorno
+	global.get $globalAfuncion1Aparametro
+	local.set $globalAfuncion1Afuncion2retorno
+	local.get $globalAfuncion1Afuncion2retorno
+)
+
+( func $globalAfuncion1 (param $globalAfuncion1Aparametro f64) (result i32)
+	(local $globalAfuncion1retorno i32)
+( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aparametro2 i32) (result f64)
+	(local $globalAfuncion1Afuncion2retorno f64)
+( func $globalAfuncion1Afuncion2 (param $globalAfuncion1Afuncion2Aparametro2 i32) (result f64)
+	(local $globalAfuncion1Afuncion2retorno f64)
+	f64.const 0
+	local.set $globalAfuncion1Afuncion2retorno
+	global.get $globalAfuncion1Aparametro
+	local.set $globalAfuncion1Afuncion2retorno
+	local.get $globalAfuncion1Afuncion2retorno
+)
+
+( func $globalAfuncion1 (param $globalAfuncion1Aparametro f64) (result i32)
+	(local $globalAfuncion1retorno i32)
+	i32.const 0
+	local.set $globalAfuncion1retorno
+	global.get $globalAfuncion1Aparametro
+	local.set $globalAfuncion1retorno
+	local.get $globalAfuncion1retorno
+)
 
 
 (func $main

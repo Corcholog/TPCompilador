@@ -1649,7 +1649,7 @@ case 136:
 break;
 case 137:
 //#line 376 "gramatica.y"
-{yyval.sval = val_peek(0).sval; gc.checkParamReal(val_peek(0).sval, lex.getLineaInicial(), this.ts, funcionActual,ambitoActual);}
+{yyval.sval = val_peek(0).sval; gc.checkParamReal(val_peek(0).sval, lex.getLineaInicial(), this.ts,ambitoActual);}
 break;
 case 138:
 //#line 377 "gramatica.y"
