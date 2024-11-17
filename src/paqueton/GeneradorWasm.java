@@ -10,6 +10,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 public class GeneradorWasm {
@@ -51,8 +52,12 @@ public class GeneradorWasm {
         this.fors = new Stack<String>();
         this.posicionActual = 0;
         this.ident = "";
-        this.filePath = System.getProperty("user.dir") + File.separator + "wat2wasm" + File.separator + "bin" + File.separator + path + ".wat";
-        System.out.println(this.filePath);
+        this.filePath = Paths.get(System.getProperty("user.dir"))
+                .getParent() 
+                .resolve("wat2wasm")
+                .resolve("bin")
+                .resolve(path + ".wat")
+                .toString();
         
         // Poner en blanco el archivo al inicializar
         try (FileWriter fw = new FileWriter(filePath, false)) {

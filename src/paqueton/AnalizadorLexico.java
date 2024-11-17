@@ -40,7 +40,12 @@ public class AnalizadorLexico {
 		this.listaTokens = "Tokens: \n";
 		this.setConcatActual("");
 		this.tablaSimbolos = ts;
-		String camino = System.getProperty("user.dir")+ File.separator + "\\codes" + File.separator + ruta +".txt";
+		String camino = Paths.get(System.getProperty("user.dir"))
+                .getParent()
+                .resolve("src")
+                .resolve("codes")
+                .resolve(ruta + ".txt")
+                .toString();
 		this.archivo = new File(camino);
 		this.lineaInicial=0;
 		this.lineaInicialDevolver=1;
