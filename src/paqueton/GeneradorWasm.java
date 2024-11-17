@@ -53,7 +53,6 @@ public class GeneradorWasm {
         this.posicionActual = 0;
         this.ident = "";
         this.filePath = Paths.get(System.getProperty("user.dir"))
-                .getParent() 
                 .resolve("wat2wasm")
                 .resolve("bin")
                 .resolve(path + ".wat")

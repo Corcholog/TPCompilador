@@ -41,7 +41,6 @@ public class AnalizadorLexico {
 		this.setConcatActual("");
 		this.tablaSimbolos = ts;
 		String camino = Paths.get(System.getProperty("user.dir"))
-                .getParent()
                 .resolve("src")
                 .resolve("codes")
                 .resolve(ruta + ".txt")

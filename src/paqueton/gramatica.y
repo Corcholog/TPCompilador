@@ -2,6 +2,7 @@
 	package paqueton;
 	import java.io.*;
 	import java.util.ArrayList;
+	import java.nio.file.Paths;
 	import java.util.Stack;
 %}
 
@@ -688,7 +689,6 @@ public static void main(String[] args) {
 	p.gw.traducir();
 	
         String filePath = Paths.get(System.getProperty("user.dir"))
-                .getParent() 
                 .resolve("wat2wasm")
                 .resolve("bin")
                 .resolve("assembly" + ".wat")

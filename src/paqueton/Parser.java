@@ -19,7 +19,8 @@
 //#line 2 "gramatica.y"
 	package paqueton;
 	import java.io.*;
-	import java.util.ArrayList;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 	import java.util.Stack;
 //#line 22 "Parser.java"
 
