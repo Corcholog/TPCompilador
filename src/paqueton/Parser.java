@@ -950,6 +950,38 @@ public static void main(String[] args) {
     if(ErrorHandler.huboError() == 0){
 	p.gw = new GeneradorWasm(p.ts, p.gc, "assembly");
 	p.gw.traducir();
+	
+        String filePath = Paths.get(System.getProperty("user.dir"))
+                .getParent() 
+                .resolve("wat2wasm")
+                .resolve("bin")
+                .resolve("assembly" + ".wat")
+                .toString();
+
+        // Ruta de salida para el archivo .wasm
+        String outputFilePath = filePath.replace(".wat", ".wasm");
+
+        // Comando para ejecutar wat2wasm
+        String comando = "wat2wasm \"" + filePath + "\" -o \"" + outputFilePath + "\"";
+
+        try {
+            // Construcción del proceso
+            ProcessBuilder processBuilder = new ProcessBuilder();
+            processBuilder.command("cmd.exe", "/c", comando);
+
+            // Iniciar el proceso
+            Process process = processBuilder.start();
+
+            // Esperar a que termine el proceso
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                System.out.println("Conversión a wasm exitosa: " + outputFilePath);
+            } else {
+                System.err.println("Error al convertir el archivo WAT a WASM.");
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
     System.out.println(ErrorHandler.erroresTraduccion());
     
@@ -959,7 +991,7 @@ public static void main(String[] args) {
         System.out.println("No se analizo completamente el codigo fuente, debido a uno o mas errores inesperados");
     }
 }
-//#line 891 "Parser.java"
+//#line 923 "Parser.java"
 //###############################################################
 // method: yylexdebug : check lexer state
 //###############################################################
@@ -1840,7 +1872,7 @@ case 166:
 //#line 485 "gramatica.y"
 { ErrorHandler.addErrorSintactico("Falta el ID de la tripla definida.", lex.getLineaInicial());}
 break;
-//#line 1767 "Parser.java"
+//#line 1799 "Parser.java"
 //########## END OF USER-SUPPLIED ACTIONS ##########
     }//switch
     //#### Now let's reduce... ####
