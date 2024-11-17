@@ -1,6 +1,10 @@
 nombre
 BEGIN
-	 IF((2.0, 3, -2.d-13) <= (2.0, 3, -2.d-13)) THEN
+	TYPEDEF TRIPLE <ulongint> tripleta;
+	tripleta t1, t2, t3;
+	t2{1} := 1;
+
+	 IF((2.0, 3, -2.d-13, t1) >= (2.0, 3, -2.d-13, t2)) THEN
 	 BEGIN
 	 	OUTF([ GOOOOOOOD AMIMIR ]);
 	 END

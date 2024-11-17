@@ -346,21 +346,18 @@ public class GeneradorWasm {
 	}
 
 	private void obtenerComparaciones(Terceto t) {
-		if(!this.hayPatternMatching) {
-			
-			int comp1 = Integer.parseInt(t.getOp1().split("\\[|\\]")[1]);
-			int comp2 = Integer.parseInt(t.getOp2().split("\\[|\\]")[1]);
-			
-			if(gc_main.getTerceto(this.posicionActual-1).getOperador().equals("AND")) {
-				this.escribir(cuerpoActual,"local.get $comp"+comp2);
-			}else{
-				this.escribir(cuerpoActual,"local.get $comp"+comp1);
-				this.escribir(cuerpoActual,"local.get $comp"+comp2);
-			}
+		int comp1 = Integer.parseInt(t.getOp1().split("\\[|\\]")[1]);
+		int comp2 = Integer.parseInt(t.getOp2().split("\\[|\\]")[1]);
+		
+		if(gc_main.getTerceto(this.posicionActual-1).getOperador().equals("AND")) {
+			this.escribir(cuerpoActual,"local.get $comp"+comp2);
+		}else{
+			this.escribir(cuerpoActual,"local.get $comp"+comp1);
+			this.escribir(cuerpoActual,"local.get $comp"+comp2);
 		}
 	}
 	
-	private void comparacionTripla(String comp, String and, String op1, String op2) {
+	private void comparacionTripla(String comp, String eq, String op1, String op2) {
 		op1 = op1.replace(':', 'A');
 		op2 = op2.replace(':', 'A');
 		this.escribir(cuerpoActual, "global.get $"+op1+"V1");
@@ -380,9 +377,14 @@ public class GeneradorWasm {
 		this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual+"V3");
 		this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual+"V3");
 		this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual+"V2");
-		this.escribir(cuerpoActual, and);
+		this.escribir(cuerpoActual, eq);
 		this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual+"V1");
-		this.escribir(cuerpoActual, and);
+		this.escribir(cuerpoActual, eq);
+		
+		if(this.hayPatternMatching) {
+			this.escribir(variablesActual, "(local $comp"+this.posicionActual + " i32)");
+			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
+		}
 	}
 	
 	private void aritmeticaTripla(Terceto t, String sufijoOperacion) {
@@ -482,13 +484,13 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual,"f64.lt");
 			this.escribir(variablesActual,"(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
-			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
+			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
 			this.escribir(cuerpoActual,"i32.lt_u");
 			this.escribir(variablesActual,"(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
-			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
+			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
 			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.lt_u":"f64.lt", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
@@ -502,13 +504,13 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual,"f64.le");
 			this.escribir(variablesActual,"(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
-			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
+			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
 			this.escribir(cuerpoActual,"i32.le_u");
 			this.escribir(variablesActual,"(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
-			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
+			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
 			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.le_u":"f64.le", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
@@ -519,19 +521,19 @@ public class GeneradorWasm {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"f64.gt_s");
+			this.escribir(cuerpoActual,"f64.gt");
 			this.escribir(variablesActual,"(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
-			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
+			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
 			this.escribir(cuerpoActual,"i32.gt_u" );
 			this.escribir(variablesActual,"(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
-			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
+			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
-			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.gt_u":"f64.gt_s", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
+			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.gt_u":"f64.gt", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
 		}
 	}
 
@@ -539,19 +541,19 @@ public class GeneradorWasm {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"f64.ge_s");
+			this.escribir(cuerpoActual,"f64.ge");
 			this.escribir(variablesActual,"(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
-			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
+			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
 			this.escribir(cuerpoActual,"i32.ge_u");
 			this.escribir(variablesActual,"(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
-			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
+			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
-			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.ge_u":"f64.ge_s", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq",t.getOp1(), t.getOp2());
+			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.ge_u":"f64.ge", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq",t.getOp1(), t.getOp2());
 		}
 	}
 
@@ -562,13 +564,13 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual,"f64.eq");
 			this.escribir(variablesActual, "(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
-			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
+			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
 			this.escribir(cuerpoActual,"i32.eq");
 			this.escribir(variablesActual, "(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
-			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
+			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
 			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
@@ -580,19 +582,19 @@ public class GeneradorWasm {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"f64.ne_s");
+			this.escribir(cuerpoActual,"f64.ne");
 			this.escribir(variablesActual, "(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
-			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
+			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"i32.ne_u");
+			this.escribir(cuerpoActual,"i32.ne");
 			this.escribir(variablesActual, "(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
-			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
+			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
-			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.ne_u":"f64.ne_s", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
+			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.ne":"f64.ne", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
 		}
 	}
 	
