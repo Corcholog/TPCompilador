@@ -1,9 +1,0 @@
-nombre
-BEGIN
-	ULONGINT fun funcion1(ulongint k)
-	BEGIN
-		RET(k);
-	END;
-	d := -2.4;
-	x := funcion1(d);
-END

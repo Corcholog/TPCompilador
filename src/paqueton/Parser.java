@@ -948,7 +948,7 @@ public static void main(String[] args) {
     System.out.println("Contenido de la tabla de simbolos:  \n" + tb);
     System.out.println("Codigo intermedio en tercetos: " + gc);
     if(ErrorHandler.huboError() == 0){
-	p.gw = new GeneradorWasm(p.ts, p.gc, "salida");
+	p.gw = new GeneradorWasm(p.ts, p.gc, "assembly");
 	p.gw.traducir();
     }
     System.out.println(ErrorHandler.erroresTraduccion());
