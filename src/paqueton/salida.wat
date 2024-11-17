@@ -29,29 +29,29 @@
 
 
 (func $main
-	(local $comp0 i32)
 	(local $comp1 i32)
 	(local $comp2 i32)
+	(local $comp3 i32)
 
-	f64.const 2.0000000000000000e+00
-	f64.const 2.0000000000000000e+00
+	f64.const 2,0000000000000000e+00
+	f64.const 2,0000000000000000e+00
 	f64.le
-	local.set $comp0
-	local.get $comp0
+	local.set $comp1
+	local.get $comp1
 	i32.const 3
 	i32.const 3
 	i32.le_u
-	local.set $comp1
-	local.get $comp1
-	f64.const -2.0000000000000000e-13
-	f64.const -2.0000000000000000e-13
-	f64.le
 	local.set $comp2
 	local.get $comp2
-	local.get $comp0
+	f64.const -2,0000000000000000e-13
+	f64.const -2,0000000000000000e-13
+	f64.le
+	local.set $comp3
+	local.get $comp3
 	local.get $comp1
-	i32.and
 	local.get $comp2
+	i32.and
+	local.get $comp3
 	i32.and
 	(if
 		(then
