@@ -25,9 +25,11 @@ public class GeneradorWasm {
 	private Stack<String> bloquesGOTO;
 	private boolean aux1EnUso;
 	private boolean seAccedioAtripla;
+	private boolean hayPatternMatching = false;;
 	private Set<String> accesoTriplas = new HashSet<String>();
 	private Set<String> gotos = new HashSet<String>();
-	private Map<String,Integer> funcionesId= new HashMap<String,Integer>();
+	private Map<String, Integer> funcionesId= new HashMap<String,Integer>();
+	private ManejadorErroresEjecucion erroresEj = new ManejadorErroresEjecucion();
 	
 	private StringBuilder variablesGlobales = new StringBuilder();
 	private StringBuilder funciones = new StringBuilder();
@@ -109,8 +111,8 @@ public class GeneradorWasm {
 			this.aumentarIdentacion();
 			this.escribir(cuerpoActual,"(then");
 			this.aumentarIdentacion();
-			this.escribir(cuerpoActual, "i32.const 279");
-			this.escribir(cuerpoActual, "i32.const 42");
+			this.escribir(cuerpoActual, "i32.const "+erroresEj.getDir("recursion"));
+			this.escribir(cuerpoActual, "i32.const "+erroresEj.getSizeMsj("recursion"));
 			this.escribir(cuerpoActual,"call $log");
 			this.escribir(cuerpoActual, "call $exit");
 			this.reducirIdentacion();
@@ -165,12 +167,14 @@ public class GeneradorWasm {
 
 	public void cargarCadmuls() {
 		Map<String, Integer> cadmuls = this.ts.getCadenas();
-		this.escribir(this.variablesGlobales, "(data (i32.const 101)" + "\"Error en ejecucion: El resultado de una operacion sin signo dio negativo.\")");
-		this.escribir(this.variablesGlobales, "(data (i32.const 174)" + "\"Error en ejecucion: se realizo una recursion sobre una funcion.\")");
-		this.escribir(this.variablesGlobales, "(data (i32.const 237)" + "\"Error en ejecucion: indice fuera de rango.\")");
-		this.escribir(this.variablesGlobales, "(data (i32.const 279)" + "\"Error en ejecucion: no se puede recursionar una funcion.\")");
-		this.escribir(this.variablesGlobales, "(data (i32.const 335)" + "\"Error en ejecucion: se intenta realizar una conversion de flotante negativo a entero sin signo.\")");
-		Integer dirMem = 430;
+		erroresEj.agregarError("negativo", "\"Error en ejecucion: El resultado de una operacion sin signo dio negativo.\")");
+		erroresEj.agregarError("recursion", "\"Error en ejecucion: se realizo una recursion sobre una funcion.\")");
+		erroresEj.agregarError("rango", "\"Error en ejecucion: indice fuera de rango.\")");
+		erroresEj.agregarError("conversionErronea", "\"Error en ejecucion: se intenta realizar una conversion de flotante negativo a entero sin signo.\")");
+		for (String error : erroresEj.getErrores().keySet()) {
+			this.escribir(this.variablesGlobales, "(data (i32.const " + erroresEj.getDir(error) + ")" +  erroresEj.getMsj(error));
+		}
+		Integer dirMem = erroresEj.getDirMax();
 		for(String key : cadmuls.keySet()) {
 			this.escribir(this.variablesGlobales,"(data (i32.const " + dirMem + ") \"" + key.substring("CADMUL:".length()) + "\")");
 			this.ts.setPosicionMemoria(key, dirMem);
@@ -231,11 +235,12 @@ public class GeneradorWasm {
 			case ">=": this.mayorIgual(t); break;
 			case "=": this.igual(t); break;
 			case "!=": this.distinto(t); break;
-			case "and": this.and(t); break;
+			case "and": this.hayPatternMatching = false; this.and(t);  break;
 			case "bi": this.bifurcacionIncondicional(t); break;
 			case "bf": this.bifurcacionPorFalso(t); break;
 			case ":=": this.asignacion(t); break;
 			case "todouble": this.toDouble(t); break;
+			case "patron": this.hayPatternMatching = true; break;
 			case "toulongint": this.toUlongint(t); break;
 			case "invoc_fun": this.invocacionFuncion(t); break;
 			case "ret": this.retornoFuncion(t); break;
@@ -341,15 +346,18 @@ public class GeneradorWasm {
 	}
 
 	private void obtenerComparaciones(Terceto t) {
-	    int comp1 = Integer.parseInt(t.getOp1().split("\\[|\\]")[1]);
-	    int comp2 = Integer.parseInt(t.getOp2().split("\\[|\\]")[1]);
-	    
-	    if(gc_main.getTerceto(this.posicionActual-1).getOperador().equals("AND")) {
-	    	this.escribir(cuerpoActual,"local.get $comp"+comp2);
-	    }else{
-	    	this.escribir(cuerpoActual,"local.get $comp"+comp1);
-	    	this.escribir(cuerpoActual,"local.get $comp"+comp2);
-	    }
+		if(!this.hayPatternMatching) {
+			
+			int comp1 = Integer.parseInt(t.getOp1().split("\\[|\\]")[1]);
+			int comp2 = Integer.parseInt(t.getOp2().split("\\[|\\]")[1]);
+			
+			if(gc_main.getTerceto(this.posicionActual-1).getOperador().equals("AND")) {
+				this.escribir(cuerpoActual,"local.get $comp"+comp2);
+			}else{
+				this.escribir(cuerpoActual,"local.get $comp"+comp1);
+				this.escribir(cuerpoActual,"local.get $comp"+comp2);
+			}
+		}
 	}
 	
 	private void comparacionTripla(String comp, String and, String op1, String op2) {
@@ -618,8 +626,8 @@ public class GeneradorWasm {
 		this.aumentarIdentacion();
 		this.escribir(cuerpoActual,"(then");
 		this.aumentarIdentacion();
-		this.escribir(cuerpoActual, "i32.const 101");
-		this.escribir(cuerpoActual, "i32.const 73");
+		this.escribir(cuerpoActual, "i32.const "+erroresEj.getDir("negativo"));
+		this.escribir(cuerpoActual, "i32.const "+erroresEj.getSizeMsj("negativo"));
 		this.escribir(cuerpoActual, "call $log");
 		this.escribir(cuerpoActual, "call $exit");
 		//exit
@@ -767,8 +775,8 @@ public class GeneradorWasm {
 		this.escribir(cuerpoActual, ")");
 		this.escribir(cuerpoActual, "(else");
 		this.aumentarIdentacion();
-		this.escribir(cuerpoActual, "i32.const 237");
-		this.escribir(cuerpoActual, "i32.const 42");
+		this.escribir(cuerpoActual, "i32.const "+erroresEj.getDir("rango"));
+		this.escribir(cuerpoActual, "i32.const "+erroresEj.getSizeMsj("rango"));
 		this.escribir(cuerpoActual, "call $log");
 		this.escribir(cuerpoActual, "call $exit");
 		this.reducirIdentacion();
@@ -820,8 +828,8 @@ public class GeneradorWasm {
 		this.aumentarIdentacion();
 		this.escribir(cuerpoActual, "(then");
 		this.aumentarIdentacion();
-		this.escribir(cuerpoActual, "i32.const 335");
-		this.escribir(cuerpoActual, "i32.const 95");
+		this.escribir(cuerpoActual, "i32.const "+erroresEj.getDir("conversionErronea"));
+		this.escribir(cuerpoActual, "i32.const "+erroresEj.getSizeMsj("conversionErronea"));
 		this.escribir(cuerpoActual, "call $log");
 		this.escribir(cuerpoActual, "call $exit");
 		this.reducirIdentacion();
@@ -926,8 +934,8 @@ public class GeneradorWasm {
 				this.escribir(cuerpoActual, ")");
 				this.escribir(cuerpoActual, "(else");
 				this.aumentarIdentacion();
-				this.escribir(cuerpoActual, "i32.const 237");
-				this.escribir(cuerpoActual, "i32.const 42");
+				this.escribir(cuerpoActual, "i32.const "+erroresEj.getDir("rango"));
+				this.escribir(cuerpoActual, "i32.const "+erroresEj.getSizeMsj("rango"));
 				this.escribir(cuerpoActual, "call $log");
 				this.escribir(cuerpoActual, "call $exit");
 				this.reducirIdentacion();

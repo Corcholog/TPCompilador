@@ -95,7 +95,9 @@ patron_izq	: lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); t
 		;
 
 lista_patron_izq    : lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); this.cantPatronIzq++;$$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
-		| expresion_matematica {this.iniciarPatron(); this.cantPatronIzq=1; $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
+		| expresion_matematica {
+		gc.addTerceto("PATRON", "-", "-");
+		this.iniciarPatron(); this.cantPatronIzq=1; $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 		;
 patron_der	: lista_patron_der ',' expresion_matematica { this.cantPatronDer++; posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
 		;

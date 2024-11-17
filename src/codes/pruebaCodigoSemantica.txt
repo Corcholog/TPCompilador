@@ -1,8 +1,8 @@
 nombre
 BEGIN
-
-	double a, b;
-	b := 13.0;
-	a := 1.3d+1;	
-	OUTF(a+b);
+	 IF((2.0, 3, -2.d-13) <= (2.0, 3, -2.d-13)) THEN
+	 BEGIN
+	 	OUTF([ GOOOOOOOD AMIMIR ]);
+	 END
+	 END_IF;
 END

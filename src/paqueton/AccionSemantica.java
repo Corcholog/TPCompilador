@@ -129,7 +129,7 @@ public abstract class AccionSemantica {
 	static class ASF1OCTAL extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
 	    	checkOctal(analizador);
-			this.tipoCte=ULONGINT;
+			AccionSemantica.tipoCte=ULONGINT;
 		    new AS1().ejecutar(analizador);
 		    new ASFBR().ejecutar(analizador);
 		    analizador.getTablaSimbolos().addAtributo(analizador.getConcatActual(), REPRESENTACION, OCTAL);
@@ -248,14 +248,14 @@ public abstract class AccionSemantica {
 	static class ASF2LongInt extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			checkLongInt(analizador);
-			this.tipoCte=ULONGINT;
+			AccionSemantica.tipoCte=ULONGINT;
 			new ASFBR().ejecutar(analizador);
 	    }
 	}
 	static class ASF2Double extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 			checkDouble(analizador);
-			this.tipoCte=DOUBLE;
+			AccionSemantica.tipoCte=DOUBLE;
 			new ASFBR().ejecutar(analizador);
 			
 	    }
@@ -264,7 +264,7 @@ public abstract class AccionSemantica {
 	static class ASF2OCTAL extends AccionSemantica {
 	    public void ejecutar(AnalizadorLexico analizador) {
 	    	checkOctal(analizador);
-			this.tipoCte=ULONGINT;
+			AccionSemantica.tipoCte=ULONGINT;
 		    new ASFBR().ejecutar(analizador);
 		    analizador.getTablaSimbolos().addAtributo(analizador.getConcatActual(), REPRESENTACION, OCTAL);
 	    }
@@ -281,6 +281,7 @@ public abstract class AccionSemantica {
 	static class ASE4 extends AccionSemantica {
 		public void ejecutar(AnalizadorLexico analizador) {
 	    	analizador.addWarning("Si quisiste armar un double, te falto la parte decimal");
+	    	AccionSemantica.tipoCte = ULONGINT;
 	        new ASFBR().ejecutar(analizador);
 	    }
 	}
