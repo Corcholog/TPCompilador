@@ -1,28 +1,8 @@
 nombre
 BEGIN
-	TYPEDEF TRIPLE <ulongint> tripleta;
-	tripleta t1, t2, t3;
-	ulongint a;
-	ulongint pepe;
-	a := 1;
-	t2{1} := t2{2 * 3 - 3} + 1;
 
-	ULONGINT FUN funcion1(double parametro)
-	BEGIN
-		double pija;
-		a := funcion1(pija);
-		RET(3);
-	END;
-	
-	ULONGINT FUN funcion2(ulongint pepe)
-	BEGIN
-		RET(3);
-	END;
-
-	
-	 IF(t2{1} > 0) THEN
-	 BEGIN
-	 	OUTF([ GOOOOOOOD AMIMIR ]);
-	 END
-	 END_IF;
+	double a, b;
+	b := 13.0;
+	a := 1.3d+1;	
+	OUTF(a+b);
 END

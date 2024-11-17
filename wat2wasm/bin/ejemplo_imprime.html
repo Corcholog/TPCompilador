@@ -1,37 +1,66 @@
-<!doctype html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAssembly: Imprimir Variables y Strings</title>
+</head>
+<body>
+    <h1>Ejemplo de WebAssembly: Imprimir Variables y Strings</h1>
+    <p>Abre la consola para ver el resultado.</p>
 
-<html>
-
-  <head>
-    <meta charset="utf-8">
-    <title>Simple add example</title>
-  </head>
-  <body>
     <script>
-      var memory = new WebAssembly.Memory({ initial : 1 });
+        // Crear memoria para el WebAssembly
+        var memory = new WebAssembly.Memory({ initial: 1 });
 
-function consoleLogString(offset, length) {
-  var bytes = new Uint8Array(memory.buffer, offset, length);
-  var string = new TextDecoder('utf8').decode(bytes);
-  console.log(string);
-}
+        // Función para imprimir strings desde WebAssembly
+        function consoleLogString(offset, length) {
+            var bytes = new Uint8Array(memory.buffer, offset, length);
+            var string = new TextDecoder('utf8').decode(bytes);
+            console.log("String desde WebAssembly:", string);
+        }
 
-var importObject = {
-  console: {
-    log: consoleLogString
-  },
-  js: {
-    mem: memory
-  }
-};
+        // Función para imprimir valores numéricos desde WebAssembly
+        function console_log(valor) {
+            console.log("El valor desde WebAssembly es:", valor);
+        }
 
+        // Función exit para cortar la ejecución
+        function exit() {
+            console.error("Ejecución detenida por WebAssembly");
+            throw new Error("Ejecución terminada desde WebAssembly");
+        }
 
-      WebAssembly.instantiateStreaming(fetch('ejemplo_imprime.wasm'), importObject)
-      .then(obj => {
-        console.log(obj.instance.exports.main());        
-      });
+        // Objeto de importaciones para WebAssembly
+        var importObject = {
+            console: {
+                log: consoleLogString // Imprimir strings
+            },
+            env: {
+                console_log: console_log, // Imprimir valores numéricos
+                exit: exit // Método para cortar ejecución
+            },
+            js: {
+                mem: memory
+            }
+        };
+
+        // Cargar y ejecutar el módulo .wasm
+        WebAssembly.instantiateStreaming(fetch('ejemplo_imprime.wasm'), importObject)
+            .then(({ instance }) => {
+                try {
+                    // Llamar a las funciones exportadas
+                    if (instance.exports.main) {
+                        console.log(instance.exports.main());
+                    }
+                    if (instance.exports.imprimir_valor) {
+                        instance.exports.imprimir_valor();
+                    }
+                } catch (error) {
+                    console.error("Error capturado:", error);
+                }
+            })
+            .catch(console.error);
     </script>
-  </body>
-  
-
+</body>
 </html>

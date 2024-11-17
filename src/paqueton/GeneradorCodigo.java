@@ -63,6 +63,7 @@ public class GeneradorCodigo {
 	}
 	
 	public Terceto getTerceto(int pos) {
+		System.out.println("pos " + pos + " cant " + this.getCantTercetos());
 		if(pos >= this.getCantTercetos()) {
 			return null;
 		}
@@ -270,7 +271,6 @@ public class GeneradorCodigo {
 	    	id_der = opAsig;
 		    id_der = checkDeclaracion(id_der, lineaActual, ts,ambitoActual); 
 		    tipo_der = ts.getAtributo(id_der, AccionSemantica.TIPO);
-
 	    	if(id_der == null) {
 	    		declarado = false;
 	    	}
@@ -316,7 +316,7 @@ public class GeneradorCodigo {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 	    Matcher matcher = pattern.matcher(id);
 	    
-		if (id.matches("^[0-9].*") || matcher.find()) {
+		if (id.matches("^[0-9].*") || id.matches("^-.*") || matcher.find()) {
 			return id;
 		} 
 		else {
@@ -330,7 +330,7 @@ public class GeneradorCodigo {
 			    if (ts.estaEnTablaSimbolos(claveTs)) {
 			    	return claveTs;
 			    }
-			}
+			}System.out.println("ambito: "+ambito + " id: "+id);
 			ErrorHandler.addErrorSemantico("La variable " + id + " no esta al alcance o no fue declarada.",  lineaInicial);
 			return null;
 		}

@@ -74,26 +74,33 @@ public class GeneradorWasm {
 		this.escribir(this.variablesGlobales,"(module");
 		this.escribir(this.variablesGlobales,"(import \"console\" \"log\" (func $log (param i32 i32)))");
 		this.escribir(this.variablesGlobales,"(import \"js\" \"mem\" (memory 1))");
+		this.escribir(this.variablesGlobales, "(import \"env\" \"console_log\" (func $console_log_i32 (param i32)))");
+		this.escribir(this.variablesGlobales, "(import \"env\" \"console_log\" (func $console_log_f64 (param f64)))");
+		this.escribir(this.variablesGlobales, "(import \"env\" \"exit\" (func $exit))");
 		this.cargarVariables();
 		this.cargarCadmuls();
 		this.escribir(this.variablesGlobales, "");
 		this.reducirIdentacion();
 		this.funcionesId.put("global", 0);
 		int contador = 1;
-		
+		GeneradorCodigo aux = gc_main;
 		Map<String, GeneradorCodigo> funciones = this.ts.getFunciones();
 		for (String funcion : funciones.keySet()) {
 			this.funcionesId.put(funcion, contador);
 			cuerpoActual = new StringBuilder();
 			bloquesGOTO = new Stack<String>();
 			this.funcionActual = funcion;
-			GeneradorCodigo gcFuncion = funciones.get(funcion);
+			gc_main = funciones.get(funcion);
 			String parametro = this.ts.getAtributo(funcion, AccionSemantica.PARAMETRO);
 			String tipoParam = this.ts.getAtributo(parametro, AccionSemantica.TIPO).equals("double")? "f64":"i32";
 			String tipoFuncion = this.ts.getAtributo(funcion, AccionSemantica.TIPO).equals("double")? "f64":"i32";
-			this.escribir(this.funciones, "( func $"+funcion.replace(':', 'A')  + " (param $"+ parametro.replace(':', 'A')  + " " + tipoParam+") (result "+ tipoFuncion + ")");
+			parametro = parametro.replace(':', 'A');
+			this.escribir(this.funciones, "( func $"+funcion.replace(':', 'A')  + " (param $"+ parametro  + " " + tipoParam+") (result "+ tipoFuncion + ")");
+			this.escribir(variablesGlobales, "(global $"+ parametro +" (mut "+tipoParam+") ("+tipoParam+".const 0))");
+			this.escribir(cuerpoActual, "local.get $" + parametro);
+			this.escribir(cuerpoActual, "global.set $" + parametro);
 			this.aumentarIdentacion();
-			variablesActual = this.funciones;
+			variablesActual = new StringBuilder();
 			this.escribir(variablesActual,"(local $" + funcion.replace(':', 'A') +"retorno " + tipoFuncion + ")");
 			this.escribir(cuerpoActual, "i32.const " + contador);
 			this.escribir(cuerpoActual, "global.get $funcionLlamadora");
@@ -105,15 +112,16 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual, "i32.const 279");
 			this.escribir(cuerpoActual, "i32.const 42");
 			this.escribir(cuerpoActual,"call $log");
+			this.escribir(cuerpoActual, "call $exit");
 			this.reducirIdentacion();
 			this.escribir(cuerpoActual,")");
 			this.reducirIdentacion();
 			this.escribir(cuerpoActual,")");
 			this.escribir(cuerpoActual,tipoFuncion+".const 0");
 			this.escribir(cuerpoActual,"local.set $"+funcion.replace(':', 'A') +"retorno");
-			for (int i = 0; i < gcFuncion.getCantTercetos(); i++) {
+			for (int i = 0; i < gc_main.getCantTercetos(); i++) {
 				this.posicionActual = i;
-				Terceto t = gcFuncion.getTerceto(i);
+				Terceto t = gc_main.getTerceto(i);
 				if(!t.isHecho()) {
 					this.ejecutarTraduccion(t);				
 				}
@@ -127,6 +135,8 @@ public class GeneradorWasm {
 			this.funciones.append(cuerpoActual.toString());
 			
 		}
+		this.funcionActual = "global";
+		gc_main = aux;
 		this.cuerpoActual = cuerpoMain;
 		this.variablesActual = inicioMain;
 		this.escribir(inicioMain,"(func $main");
@@ -158,8 +168,9 @@ public class GeneradorWasm {
 		this.escribir(this.variablesGlobales, "(data (i32.const 101)" + "\"Error en ejecucion: El resultado de una operacion sin signo dio negativo.\")");
 		this.escribir(this.variablesGlobales, "(data (i32.const 174)" + "\"Error en ejecucion: se realizo una recursion sobre una funcion.\")");
 		this.escribir(this.variablesGlobales, "(data (i32.const 237)" + "\"Error en ejecucion: indice fuera de rango.\")");
-		this.escribir(this.variablesActual, "(data (i32.const 279)" + "\"Error no se puede recursionar una funcion.\")");
-		Integer dirMem = 321;
+		this.escribir(this.variablesGlobales, "(data (i32.const 279)" + "\"Error en ejecucion: no se puede recursionar una funcion.\")");
+		this.escribir(this.variablesGlobales, "(data (i32.const 335)" + "\"Error en ejecucion: se intenta realizar una conversion de flotante negativo a entero sin signo.\")");
+		Integer dirMem = 430;
 		for(String key : cadmuls.keySet()) {
 			this.escribir(this.variablesGlobales,"(data (i32.const " + dirMem + ") \"" + key.substring("CADMUL:".length()) + "\")");
 			this.ts.setPosicionMemoria(key, dirMem);
@@ -259,13 +270,12 @@ public class GeneradorWasm {
 				this.escribir(cuerpoActual,"global.get $"+op2.replace(':', 'A'));	
 			}
 		}
-		//LAVIEJA
 		if(!this.accesoTriplas.contains(op1)) {
-			this.escribir(variablesActual, "(local $accesoAsig"+op1.replace(':', 'A')+ " i32)");
-			this.escribir(variablesActual, "(local $acceso"+op1.replace(':', 'A')+ " i32)");
+			this.escribir(variablesGlobales, "(global $accesoAsig"+op1.replace(':', 'A')+ " (mut i32) (i32.const 1))");
+			this.escribir(variablesGlobales, "(global $acceso"+op1.replace(':', 'A')+  " (mut i32) (i32.const 1))");
 			this.accesoTriplas.add(op1);
 		}
-		this.escribir(cuerpoActual, "local.set $accesoAsig"+op1.replace(':', 'A'));
+		this.escribir(cuerpoActual, "global.set $accesoAsig"+op1.replace(':', 'A'));
 	}
 	
 	private void obtenerGets(Terceto t) {
@@ -280,13 +290,15 @@ public class GeneradorWasm {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 		
 	    Matcher matcher1 = pattern.matcher(op1);
-	    boolean find1 = matcher1.find();
 	    Matcher matcher2 = pattern.matcher(op2);
+	    boolean find1 = matcher1.find();
+	    boolean find2 = matcher2.find();
 	    
 	    if(quieroIzquierdo && !find1) {
 	    	if(!op1.equals("")) {
-	    		if(op1.matches("^[0-9].*")) {
-	    		 this.escribir(cuerpoActual,t.getTipo().equals("double") ? "f64.const "+op1 : "i32.const "+op1);	
+	    		if(op1.matches("^[0-9].*") || op1.matches("^-.*")) {
+	    			
+	    		 this.escribir(cuerpoActual,this.ts.getAtributo(op1, AccionSemantica.TIPO).equals("double") ? "f64.const "+op1 : "i32.const "+op1);	
 	    		} else {
 	    			this.escribir(cuerpoActual,"global.get $"+op1.replace(':', 'A')); 		
 	    		}
@@ -304,15 +316,16 @@ public class GeneradorWasm {
 	    	}
 	    }
 
-	    if(!matcher2.find()) {
+	    if(!find2) {
 	    	if(!op2.equals("")) {
-	    		if(op2.matches("^[0-9].*")) {
+	    		if(op2.matches("^[0-9].*") || op2.matches("^-.*")) {
 	    			this.escribir(cuerpoActual,this.ts.getAtributo(op2, AccionSemantica.TIPO).equals("double") ? "f64.const "+t.getOp2() : "i32.const "+t.getOp2()); 
 	    		} else {
 	    			this.escribir(cuerpoActual,"global.get $"+op2.replace(':', 'A'));	
 	    		}
 	    	}
 	    } else {
+	    	System.out.println("Terceto: " + matcher2.group(1));
 	    	int indiceTerceto = Integer.parseInt(matcher2.group(1));
 	    	Terceto t_op2 = this.gc_main.getTerceto(indiceTerceto);
 	    	if(pos < indiceTerceto) {
@@ -458,7 +471,7 @@ public class GeneradorWasm {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"f64.lt_s");
+			this.escribir(cuerpoActual,"f64.lt");
 			this.escribir(variablesActual,"(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
 			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
@@ -470,7 +483,7 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
-			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.lt_u":"f64.lt_s", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
+			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.lt_u":"f64.lt", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
 		}
 	}
 
@@ -478,7 +491,7 @@ public class GeneradorWasm {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"f64.le_s");
+			this.escribir(cuerpoActual,"f64.le");
 			this.escribir(variablesActual,"(local $comp"+this.posicionActual + " i32)");
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
 			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
@@ -490,7 +503,7 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
-			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.le_u":"f64.le_s", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
+			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.le_u":"f64.le", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
 		}
 	}
 
@@ -608,6 +621,7 @@ public class GeneradorWasm {
 		this.escribir(cuerpoActual, "i32.const 101");
 		this.escribir(cuerpoActual, "i32.const 73");
 		this.escribir(cuerpoActual, "call $log");
+		this.escribir(cuerpoActual, "call $exit");
 		//exit
 		this.reducirIdentacion();
 		this.escribir(cuerpoActual,")");
@@ -682,7 +696,8 @@ public class GeneradorWasm {
 		// TODO Auto-generated method stub
 		String op1 = t.getOp1();
 		if(!this.accesoTriplas.contains(op1)) {
-			this.escribir(variablesActual, "(local $acceso"+op1.replace(':', 'A')+ " i32)");
+			this.escribir(variablesGlobales, "(global $acceso"+op1.replace(':', 'A')+  " (mut i32) (i32.const 1))");
+			this.escribir(variablesGlobales, "(global $accesoAsig"+op1.replace(':', 'A')+ " (mut i32) (i32.const 1))");
 			this.accesoTriplas.add(op1);
 		}
 		
@@ -696,17 +711,17 @@ public class GeneradorWasm {
 		op1 =t.getOp1().replace(':', 'A');
 
 		if(find) {
-			this.escribir(cuerpoActual, "local.set $acceso"+op1);			
+			this.escribir(cuerpoActual, "global.set $acceso"+op1);			
 		}else {
 			if(op2.matches("^[0-9].*")) {
 				this.escribir(cuerpoActual, "i32.const "+op2);
 			}else {
 				this.escribir(cuerpoActual, "global.get $"+op1);
 			}
-			this.escribir(cuerpoActual, "local.set $acceso"+op1);	
+			this.escribir(cuerpoActual, "global.set $acceso"+op1);	
 		}
 		
-		this.escribir(cuerpoActual, "local.get $acceso"+op1);
+		this.escribir(cuerpoActual, "global.get $acceso"+op1);
 		this.escribir(cuerpoActual, "i32.const 1");
 		this.escribir(cuerpoActual, "i32.eq");
 		this.escribir(cuerpoActual, "(if");
@@ -722,7 +737,7 @@ public class GeneradorWasm {
 		this.escribir(cuerpoActual, ")");
 		this.escribir(cuerpoActual, "(else");
 		this.aumentarIdentacion();
-		this.escribir(cuerpoActual, "local.get $acceso"+op1);
+		this.escribir(cuerpoActual, "global.get $acceso"+op1);
 		this.escribir(cuerpoActual, "i32.const 2");
 		this.escribir(cuerpoActual, "i32.eq");
 		this.escribir(cuerpoActual, "(if");
@@ -737,7 +752,7 @@ public class GeneradorWasm {
 		this.escribir(cuerpoActual, ")");
 		this.escribir(cuerpoActual, "(else");
 		this.aumentarIdentacion();
-		this.escribir(cuerpoActual, "local.get $acceso"+op1);
+		this.escribir(cuerpoActual, "global.get $acceso"+op1);
 		this.escribir(cuerpoActual, "i32.const 3");
 		this.escribir(cuerpoActual, "i32.eq");
 		this.escribir(cuerpoActual, "(if");
@@ -755,7 +770,7 @@ public class GeneradorWasm {
 		this.escribir(cuerpoActual, "i32.const 237");
 		this.escribir(cuerpoActual, "i32.const 42");
 		this.escribir(cuerpoActual, "call $log");
-		// TODO call a exit 
+		this.escribir(cuerpoActual, "call $exit");
 		this.reducirIdentacion();
 		this.escribir(cuerpoActual, ")");
 		this.reducirIdentacion();
@@ -794,10 +809,25 @@ public class GeneradorWasm {
 	
 	private void toDouble(Terceto t) {
 		this.obtenerGets(t);
-		this.escribir(cuerpoActual,"f64_convert_i32_s");
+		this.escribir(cuerpoActual,"f64.convert_i32_s");
 	}
 	
 	private void toUlongint(Terceto t) {
+		this.obtenerGets(t);
+		this.escribir(cuerpoActual, "f64.const 0");
+		this.escribir(cuerpoActual, "f64.lt");
+		this.escribir(cuerpoActual, "(if");
+		this.aumentarIdentacion();
+		this.escribir(cuerpoActual, "(then");
+		this.aumentarIdentacion();
+		this.escribir(cuerpoActual, "i32.const 335");
+		this.escribir(cuerpoActual, "i32.const 95");
+		this.escribir(cuerpoActual, "call $log");
+		this.escribir(cuerpoActual, "call $exit");
+		this.reducirIdentacion();
+		this.escribir(cuerpoActual, ")");
+		this.reducirIdentacion();
+		this.escribir(cuerpoActual, ")");
 		this.obtenerGets(t);
 		this.escribir(cuerpoActual,"i32.trunc_f64_u");
 	}
@@ -831,7 +861,7 @@ public class GeneradorWasm {
 			String tipoOp1 = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO);
 			if(!tipoOp1.equals("ulongint") && !tipoOp1.equals("double")) {
 				String op1 =t.getOp1().replace(':', 'A');
-				this.escribir(cuerpoActual, "local.get $accesoAsig"+op1);
+				this.escribir(cuerpoActual, "global.get $accesoAsig"+op1);
 				this.escribir(cuerpoActual, "i32.const 1");
 				this.escribir(cuerpoActual, "i32.eq");
 				this.escribir(cuerpoActual, "(if");
@@ -854,7 +884,7 @@ public class GeneradorWasm {
 				this.escribir(cuerpoActual, ")");
 				this.escribir(cuerpoActual, "(else");
 				this.aumentarIdentacion();
-				this.escribir(cuerpoActual, "local.get $accesoAsig"+op1);
+				this.escribir(cuerpoActual, "global.get $accesoAsig"+op1);
 				this.escribir(cuerpoActual, "i32.const 2");
 				this.escribir(cuerpoActual, "i32.eq");
 				this.escribir(cuerpoActual, "(if");
@@ -875,7 +905,7 @@ public class GeneradorWasm {
 				this.escribir(cuerpoActual, ")");
 				this.escribir(cuerpoActual, "(else");
 				this.aumentarIdentacion();
-				this.escribir(cuerpoActual, "local.get $accesoAsig"+op1);
+				this.escribir(cuerpoActual, "global.get $accesoAsig"+op1);
 				this.escribir(cuerpoActual, "i32.const 3");
 				this.escribir(cuerpoActual, "i32.eq");
 				this.escribir(cuerpoActual, "(if");
@@ -899,7 +929,7 @@ public class GeneradorWasm {
 				this.escribir(cuerpoActual, "i32.const 237");
 				this.escribir(cuerpoActual, "i32.const 42");
 				this.escribir(cuerpoActual, "call $log");
-				// TODO call a exit 
+				this.escribir(cuerpoActual, "call $exit");
 				this.reducirIdentacion();
 				this.escribir(cuerpoActual, ")");
 				this.reducirIdentacion();
@@ -932,14 +962,20 @@ public class GeneradorWasm {
 	private void invocacionFuncion(Terceto t) {
 		this.obtenerGets(t, false);
 		String funcion = t.getOp1();
-		this.escribir(cuerpoActual ,"i32.const " + this.funcionesId.get(funcion));
+		this.escribir(cuerpoActual ,"i32.const " + this.funcionesId.get(funcionActual));
 		this.escribir(cuerpoActual, "global.set $funcionLlamadora");
+		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+		String op2 = t.getOp2();
+	    Matcher matcher = pattern.matcher(op2);
+
 		this.escribir(cuerpoActual,"call $" + funcion.replace(':', 'A'));
 	}
 	
 	private void retornoFuncion(Terceto t) {
 		this.obtenerGets(t);
 		this.escribir(cuerpoActual,"local.set $"+this.funcionActual.replace(':', 'A') +"retorno");
+		this.escribir(cuerpoActual,"local.get $"+this.funcionActual.replace(':', 'A') +"retorno");
+		this.escribir(cuerpoActual, "return");
 	}
 	
 	private void generarLabel(Terceto t) {
@@ -992,9 +1028,47 @@ public class GeneradorWasm {
 	        this.escribir(cuerpoActual,"i32.const "+ this.ts.getPosicionMemoria(cadmul));
 	        this.escribir(cuerpoActual,"i32.const "+ cadmul.substring("CADMUL:".length()).length());
 	        this.escribir(cuerpoActual,"call $log");
-	    } /*else {
-	    	this.obtenerGets(t);
-	    	this.escribir(cuerpoActual,"i32.const 0");
-	    }*/
+	    } else {
+			Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+			String op1 = t.getOp1();
+		    Matcher matcher1 = pattern.matcher(op1);
+		    boolean find = matcher1.find();
+		    if(find) {
+		    	String terceto = matcher1.group(1);
+		    	String tipo = gc_main.getTerceto(Integer.parseInt(terceto)).getTipo().equals("ulongint")?"i32":"f64";
+		    	this.escribir(cuerpoActual, "call $console_log_"+tipo);
+		    } else {
+		    	String tipo = this.ts.getAtributo(op1, AccionSemantica.TIPO);
+		    	if(this.ts.getAtributo(op1, AccionSemantica.USO).contains("nombre")) {
+		    		op1 = op1.replace(':', 'A');
+		    		this.escribir(cuerpoActual, "global.get $"+op1);
+		    		tipo = tipo.equals("ulongint")?"i32":"f64";
+		    		this.escribir(cuerpoActual, "call $console_log_"+tipo);
+		    	}else {
+		    		op1 = op1.replace(':', 'A');
+		    		switch(tipo) {
+		    		case "ulongint":this.escribir(cuerpoActual, "i32.const "+op1);
+		    		this.escribir(cuerpoActual, "call $console_log_i32");
+		    		break;
+		    		case "double":this.escribir(cuerpoActual, "f64.const "+op1);
+		    		this.escribir(cuerpoActual, "call $console_log_f64");
+		    		break;
+		    		default:
+		    			System.out.println("op1 es "+op1);
+		    			System.out.println("tipo es "+tipo);
+		    			tipo = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64";
+		    			System.out.println("tipo es "+tipo);
+		    			this.escribir(cuerpoActual, "global.get $"+op1+"V1");
+		    			this.escribir(cuerpoActual, "call $console_log_"+tipo);
+		    			this.escribir(cuerpoActual, "global.get $"+op1+"V2");
+		    			this.escribir(cuerpoActual, "call $console_log_"+tipo);
+		    			this.escribir(cuerpoActual, "global.get $"+op1+"V3");
+		    			this.escribir(cuerpoActual, "call $console_log_"+tipo);
+		    			break;
+		    		}
+		    	}
+		    }
+	    	
+	    }
 	}
 }

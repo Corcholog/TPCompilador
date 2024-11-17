@@ -5,6 +5,7 @@ public class ErrorHandler {
 	public static int cantErroresSintacticos = 0;
 	public static int cantErroresSemanticos = 0;
 	public static String errores = "";
+	public static String erroresTrad = "";
 	private static GeneradorCodigo gc;
 	
 	public static String getErrores() {
@@ -40,6 +41,18 @@ public class ErrorHandler {
 	
 	public static void addWarningLexico(String e, int linea) {
 		ErrorHandler.errores += "Warning Lexico en linea " + linea + ": " + e + "\n";
+	}
+	
+	public static void addWarningSemantico(String e, int linea) {
+		ErrorHandler.errores += "Warning Semantico en linea " + linea + ": " + e + "\n";
+	}
+	
+	public static void addWarningTraduccion(String e) {
+		ErrorHandler.erroresTrad += "Warning en traduccion: " + e + "\n";
+	}
+	
+	public static String erroresTraduccion() {
+		return ErrorHandler.erroresTrad;
 	}
 	
 	public static void huboErrorGC() {

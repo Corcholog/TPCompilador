@@ -37,35 +37,42 @@ public abstract class AccionSemantica {
 	}
 	
 	public void checkDouble(AnalizadorLexico analizador) {
-        try {
-        	String number = analizador.getConcatActual();
-            String normalizedNumber = number.replaceAll("d", "e").replaceAll("D", "e");
-            double value = Double.parseDouble(normalizedNumber);
-            if(value > MAX_DOUBLE){
-            	analizador.addWarning("La constante Double esta fuera de rango, es mayor a la representacion, se trunco al maximo representable");
-            	value = MAX_DOUBLE;
-            	String valueString = String.format("%.16E", value).replace('E', 'd');
-            	analizador.setConcatActual(valueString);
+	    try {
+	        String number = analizador.getConcatActual();
+	        String normalizedNumber = number.toLowerCase().replaceAll("d", "e");
 
-            }
-            else if(value < MIN_DOUBLE){
-            	analizador.addWarning("La constante Double esta fuera de rango, es menor a la representacion,se trunco al minimo representable");
-            	value = MIN_DOUBLE;
-            	String valueString = String.format("%.16E", value).replace('E', 'd');
-            	analizador.setConcatActual(valueString);
-            }
-            else {
-            	if (number.charAt(number.length()-1) == '.') {
-            		analizador.addWarning("Falta parte decimal luego del .  , se agregara un 0");
-            		analizador.setConcatActual(number+"0");
-            	}
-            }
-            
-        } catch (NumberFormatException e) {
-            // Si el formato no es correcto, no es un double válido
-            
-        }
+	        // Verificar si falta parte decimal (caso: "2.", "-2.")
+	        if (normalizedNumber.endsWith(".")) {
+	            analizador.addWarning("Falta parte decimal luego del '.', se agregará un '0'");
+	            normalizedNumber += "0";
+	        }
+
+	        // Verificar si falta el exponente (caso: "2.0", "2.", "-2.0")
+	        if (!normalizedNumber.contains("e")) {
+	            analizador.addWarning("Falta exponente, se agregará 'e0'");
+	            normalizedNumber += "e0";
+	        }
+
+	        // Chequear el rango
+	        double value = Double.parseDouble(normalizedNumber);
+	        if (value > MAX_DOUBLE) {
+	            analizador.addWarning("La constante Double está fuera de rango, es mayor a la representación; se truncó al máximo representable");
+	            value = MAX_DOUBLE;
+	            analizador.setConcatActual(String.format("%.16e", value));
+	        } else if (value < MIN_DOUBLE) {
+	            analizador.addWarning("La constante Double está fuera de rango, es menor a la representación; se truncó al mínimo representable");
+	            value = MIN_DOUBLE;
+	            analizador.setConcatActual(String.format("%.16e", value));
+	        } else {
+	            // Formateo al estilo WebAssembly (notación científica con 'e')
+	            analizador.setConcatActual(String.format("%.16e", value));
+	        }
+
+	    } catch (NumberFormatException e) {
+	        analizador.addWarning("Número inválido para double");
+	    }
 	}
+
 	
 	public void checkOctal(AnalizadorLexico analizador) {
 		String number = analizador.getConcatActual();
@@ -74,8 +81,9 @@ public abstract class AccionSemantica {
 			analizador.addWarning("Constante Ulongint base 8 fuera de rango, se trunco al maximo representable");
 	        BigInteger maxOctalInt = new BigInteger("4294967295");
 	        String octalString = maxOctalInt.toString(8);
-        	analizador.setConcatActual("0"+octalString);
-
+        	analizador.setConcatActual(maxOctalInt.toString());
+		}else {
+			analizador.setConcatActual(actual.toString());
 		}
 	}
  

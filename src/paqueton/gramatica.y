@@ -59,7 +59,8 @@ sentec_eject	: asignacion
 		| invoc_fun 
 		| seleccion 
 		| sald_mensaj  {estructurasSintacticas("Se imprimio un mensaje, en linea: " + lex.getLineaInicial()); }
-		| for 
+		| for
+		| retorno 
 		| goto  {estructurasSintacticas("Se llamo a una etiqueta goto, en linea: " + lex.getLineaInicial()); }
 		
 		;
@@ -249,8 +250,9 @@ constante 	: CTE 	{ $$.sval = $1.sval;}
 				}
 				else {
 					ts.convertirNegativo($2.sval);
+					$$.sval = "-" + $2.sval;
 				}
-				$$.sval = $2.sval;
+				
 			}
 		;
 
@@ -339,8 +341,7 @@ bloques_funcion : bloques_funcion';' bloque_funcion
     		| bloques_funcion bloque_funcion {ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
     		;
     
-bloque_funcion : retorno
-		| sentencia
+bloque_funcion : sentencia
 		;
 
 retorno 	: RET '('expresion_matematica')' { this.cantRetornos.set(this.cantRetornos.size()-1, this.cantRetornos.get(this.cantRetornos.size()-1) + 1); 
@@ -353,7 +354,7 @@ retorno 	: RET '('expresion_matematica')' { this.cantRetornos.set(this.cantRetor
 invoc_fun	: ID '(' {idFuncion = gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts,ambitoActual);} lista_parametro_real ')' { 
 							estructurasSintacticas("Se invocó a la función: " + $1.sval + " en la linea: " + lex.getLineaInicial());
 							String tipo = "";	
-							String idFunc = gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts,ambitoActual);
+							String idFunc = gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts, this.ambitoActual);
 							if(idFunc != null){
 								System.out.println("F invocada es: " + idFunc + "y es de tipo: " + this.ts.getAtributo(idFunc, AccionSemantica.TIPO));
 								tipo = this.ts.getAtributo(idFunc, AccionSemantica.TIPO);
@@ -363,7 +364,7 @@ invoc_fun	: ID '(' {idFuncion = gc.checkDeclaracion($1.sval,lex.getLineaInicial(
 								tipo = "error";
 							}
 							System.out.println("El tipo de la funcion invocada es: " + tipo);
-							$$.sval = gc.addTerceto("INVOC_FUN",idFunc, $4.sval, tipo);//porque $4? :c
+							$$.sval = gc.addTerceto("INVOC_FUN",idFunc, gc.checkDeclaracion($4.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), tipo);//porque $4? :c
 		}
 		
 		| ID '(' ')' { ErrorHandler.addErrorSintactico("Falta de parámetros en la invocación a la función", lex.getLineaInicial());}
@@ -376,8 +377,9 @@ lista_parametro_real : lista_parametro_real ',' param_real { $$.sval = $3.sval;E
 
 param_real	: expresion_matematica {$$.sval = $1.sval; gc.checkParamReal($1.sval, lex.getLineaInicial(), this.ts, ambitoActual,idFuncion);}
 		| tipo ID {
-if(!this.ts.getAtributo(gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), AccionSemantica.TIPO).equals($1.sval)){$$.sval = gc.addTerceto("TO".concat($1.sval), gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
-if(!this.ts.getAtributo(this.ts.getAtributo(gc.checkDeclaracion(this.ambitoActual, lex.getLineaInicial(), this.ts, ambitoActual), AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals($1.sval)){ ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lex.getLineaInicial());}}
+if(!this.ts.getAtributo(gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), AccionSemantica.TIPO).equals($1.sval)){$$.sval = gc.addTerceto("TO".concat($1.sval), gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");} else { ErrorHandler.addWarningSemantico("Se intenta realizar una conversion innecesaria. No se realizará.", lex.getLineaInicial()); $$.sval = $2.sval; gc.checkParamReal($2.sval, lex.getLineaInicial(), this.ts, ambitoActual,idFuncion);}
+
+if(!this.ts.getAtributo(this.ts.getAtributo(idFuncion, AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals($1.sval)){ ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lex.getLineaInicial());}}
 		;
 
 sald_mensaj	: OUTF '(' mensaje ')' {$$.sval = gc.addTerceto("OUTF", $3.sval, "");}
@@ -387,8 +389,8 @@ sald_mensaj	: OUTF '(' mensaje ')' {$$.sval = gc.addTerceto("OUTF", $3.sval, "")
 					lex.setErrorHandlerToken(")");}
 		;
 
-mensaje		: expresion_matematica { $$.sval = $1.sval;}
-		| CADMUL { System.out.println("CAMUL: " + $1.sval); $$.sval = $1.sval;}
+mensaje		: expresion_matematica { $$.sval = gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);}
+		| CADMUL { $$.sval = $1.sval;}
 		;
 
 for		: FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iteracion {	estructurasSintacticas("Se declaró un bucle FOR en la linea: " + lex.getLineaInicial()); 
@@ -668,6 +670,7 @@ public static void main(String[] args) {
 	p.gw = new GeneradorWasm(p.ts, p.gc, "salida");
 	p.gw.traducir();
     }
+    System.out.println(ErrorHandler.erroresTraduccion());
     
     if (valido == 0) {
         System.out.println("Se analizo todo el codigo fuente");
