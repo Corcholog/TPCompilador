@@ -1,0 +1,102 @@
+
+BEGIN
+	ulongint a, b . c
+	double d, e f;
+	ULONGINT FUN funcion1()
+	BEGIN
+		ulongint pepe;
+		DOUBLE FUN (ulongint parametro2, double pepe)
+		BEGIN
+			paqui :=3;
+		END;
+		
+	END;
+
+	a := funcion1(ulongint b);
+	b := funcion1(a + 3)
+	a := funcion1();
+	b := funcion1(a + 3, 2 + 65);
+	
+	IF a < b THEN
+	BEGIN
+		a := b
+	END
+	
+	ELSE
+	BEGIN
+		b := a
+		
+	END	
+	END_IF;
+
+	IF (b < a) THEN
+	BEGIN
+		b := a
+		OUTF( [b era 
+		menor que 
+		a] );
+	
+		OUTF(  );
+	END
+	END_IF;
+
+	
+	FOR ( i := 1 ; (i < 10) ; UP 1 ) 
+	BEGIN	
+		OUTF( / );
+		GOTO PEPE@
+	END;
+	PEPE@
+	
+	FOR ( i := 1 ; (i < 10) ; UP 1 ) 
+	BEGIN	
+	END;
+
+
+	IF ( (a, b, c) <= ( 1, 2, 3 + 4 )) THEN
+	BEGIN
+		OUTF( 18 );
+	END
+	END_IF
+	
+	IF ( (a, b, c) <= ( 1, 2, 3 + 4 )) THEN
+	BEGIN
+		OUTF( 18 );
+	END
+	
+	IF (a < b) THEN
+	ELSE
+	END_IF;
+	
+	pepe := + 3;
+	pipi := 2 +;
+	popo := 2 -;
+	pepe := * 3;
+	pipi := 2 /;
+	popo := 2 *;
+	pupu := 2 4;
+	
+	FOR ( i := 1 ;  (i < 10)  1 ) 
+	BEGIN	
+		paqui := 3;
+	END;
+	
+	FOR ( i := 1  (i < 10)  UP 1 ) 
+	BEGIN	
+		paqui := 3;
+	END;
+
+	TYPEDEF TRIPLE double tripleta;
+	TYPEDEF TRIPLE <double> ;
+	TYPEDEF  <double> tripleta;
+	TYPEDEF TRIPLE <double> tripleta;
+	
+	TYPEDEF TRIPLE <double> tripleta;
+	tripleta t1, t2, t3
+	t1{0} := 8;
+	t2 := t1;
+	x := t2{3};
+	
+	GOTO ;
+	
+	

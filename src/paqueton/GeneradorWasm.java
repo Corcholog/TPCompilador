@@ -19,18 +19,19 @@ public class GeneradorWasm {
 	private String funcionActual;
 	private int posicionActual;
 	private String ident;
-	private String tipoFlujoActual;
+	private Stack<String> tipoFlujoActual = new Stack<String>();
 	private Stack<String> ifs;
 	private Stack<String> fors;
 	private Stack<String> bloquesGOTO;
 	private boolean aux1EnUso;
 	private boolean seAccedioAtripla;
-	private boolean hayPatternMatching = false;;
+	private boolean seAsignoTripla = false;;
+	private boolean hayPatternMatching = false;
+	private boolean calculoLadoDerecho = false;
 	private Set<String> accesoTriplas = new HashSet<String>();
 	private Set<String> gotos = new HashSet<String>();
 	private Map<String, Integer> funcionesId= new HashMap<String,Integer>();
 	private ManejadorErroresEjecucion erroresEj = new ManejadorErroresEjecucion();
-	
 	private StringBuilder variablesGlobales = new StringBuilder();
 	private StringBuilder funciones = new StringBuilder();
 	private StringBuilder inicioMain = new StringBuilder();
@@ -42,7 +43,6 @@ public class GeneradorWasm {
         this.ts = ts;
         this.gc_main = gc;
         this.funcionActual = "";
-        this.tipoFlujoActual = "IF";
         this.aux1EnUso = false;
         this.seAccedioAtripla = false;
         this.ifs = new Stack<String>();
@@ -51,7 +51,8 @@ public class GeneradorWasm {
         this.fors = new Stack<String>();
         this.posicionActual = 0;
         this.ident = "";
-        this.filePath = System.getProperty("user.dir") + File.separator + "src" + File.separator + "paqueton" + File.separator + path + ".wat";
+        this.filePath = System.getProperty("user.dir") + File.separator + "wat2wasm" + File.separator + "bin" + File.separator + path + ".wat";
+        System.out.println(this.filePath);
         
         // Poner en blanco el archivo al inicializar
         try (FileWriter fw = new FileWriter(filePath, false)) {
@@ -80,6 +81,7 @@ public class GeneradorWasm {
 		this.escribir(this.variablesGlobales, "(import \"env\" \"console_log\" (func $console_log_f64 (param f64)))");
 		this.escribir(this.variablesGlobales, "(import \"env\" \"exit\" (func $exit))");
 		this.cargarVariables();
+		this.cargarErrores();
 		this.cargarCadmuls();
 		this.escribir(this.variablesGlobales, "");
 		this.reducirIdentacion();
@@ -165,8 +167,7 @@ public class GeneradorWasm {
 	    }
 	}
 
-	public void cargarCadmuls() {
-		Map<String, Integer> cadmuls = this.ts.getCadenas();
+	public void cargarErrores() {
 		erroresEj.agregarError("negativo", "\"Error en ejecucion: El resultado de una operacion sin signo dio negativo.\")");
 		erroresEj.agregarError("recursion", "\"Error en ejecucion: se realizo una recursion sobre una funcion.\")");
 		erroresEj.agregarError("rango", "\"Error en ejecucion: indice fuera de rango.\")");
@@ -174,6 +175,10 @@ public class GeneradorWasm {
 		for (String error : erroresEj.getErrores().keySet()) {
 			this.escribir(this.variablesGlobales, "(data (i32.const " + erroresEj.getDir(error) + ")" +  erroresEj.getMsj(error));
 		}
+	}
+	
+	public void cargarCadmuls() {
+		Map<String, Integer> cadmuls = this.ts.getCadenas();
 		Integer dirMem = erroresEj.getDirMax();
 		for(String key : cadmuls.keySet()) {
 			this.escribir(this.variablesGlobales,"(data (i32.const " + dirMem + ") \"" + key.substring("CADMUL:".length()) + "\")");
@@ -204,7 +209,6 @@ public class GeneradorWasm {
 			}
 		}
 		this.escribir(this.variablesGlobales, "(global $funcionLlamadora (mut i32) (i32.const 0))");
-
 		this.escribir(this.variablesGlobales, "(global $AUXNEG (mut i32) (i32.const 0))");
 		this.escribir(this.variablesGlobales, "(global $f64auxTripla (mut f64) (f64.const 0))");
 		this.escribir(this.variablesGlobales, "(global $i32auxTripla (mut i32) (i32.const 0))");
@@ -236,10 +240,13 @@ public class GeneradorWasm {
 			case "=": this.igual(t); break;
 			case "!=": this.distinto(t); break;
 			case "and": this.hayPatternMatching = false; this.and(t);  break;
+			case "nand": this.hayPatternMatching = false; this.nand(t);  break;
 			case "bi": this.bifurcacionIncondicional(t); break;
 			case "bf": this.bifurcacionPorFalso(t); break;
 			case ":=": this.asignacion(t); break;
+			case "finladoizq": this.calculoLadoDerecho = true; break;
 			case "todouble": this.toDouble(t); break;
+			case "inicioif": this.tipoFlujoActual.push("IF"); break;
 			case "patron": this.hayPatternMatching = true; break;
 			case "toulongint": this.toUlongint(t); break;
 			case "invoc_fun": this.invocacionFuncion(t); break;
@@ -259,7 +266,14 @@ public class GeneradorWasm {
 		t.setHecho(true);
 	}
 	
+	private void nand(Terceto t) {
+		this.obtenerComparaciones(t);
+		this.escribir(cuerpoActual,"i32.and");
+		this.escribir(cuerpoActual,"i32.eqz");
+		
+	}
 	private void asigTripla(Terceto t) {
+		this.seAsignoTripla = true;
 		this.seAccedioAtripla = true;
 		String op1 = t.getOp1();
 		String op2 = t.getOp2();
@@ -269,7 +283,6 @@ public class GeneradorWasm {
 	    boolean find = matcher1.find();
 		if(!find) {
 			if(op2.matches("^[0-9].*")) {
-				
 				this.escribir(cuerpoActual, "i32.const "+op2);
 			}else {
 				this.escribir(cuerpoActual,"global.get $"+op2.replace(':', 'A'));	
@@ -291,9 +304,7 @@ public class GeneradorWasm {
 		int pos = this.posicionActual;
 		String op1 = t.getOp1();
 		String op2 = t.getOp2();
-		
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
-		
 	    Matcher matcher1 = pattern.matcher(op1);
 	    Matcher matcher2 = pattern.matcher(op2);
 	    boolean find1 = matcher1.find();
@@ -330,7 +341,6 @@ public class GeneradorWasm {
 	    		}
 	    	}
 	    } else {
-	    	System.out.println("Terceto: " + matcher2.group(1));
 	    	int indiceTerceto = Integer.parseInt(matcher2.group(1));
 	    	Terceto t_op2 = this.gc_main.getTerceto(indiceTerceto);
 	    	if(pos < indiceTerceto) {
@@ -349,29 +359,73 @@ public class GeneradorWasm {
 		int comp1 = Integer.parseInt(t.getOp1().split("\\[|\\]")[1]);
 		int comp2 = Integer.parseInt(t.getOp2().split("\\[|\\]")[1]);
 		
-		if(gc_main.getTerceto(this.posicionActual-1).getOperador().equals("AND")) {
-			this.escribir(cuerpoActual,"local.get $comp"+comp2);
-		}else{
+		if(!gc_main.getTerceto(this.posicionActual-1).getOperador().equals("AND")) 
 			this.escribir(cuerpoActual,"local.get $comp"+comp1);
-			this.escribir(cuerpoActual,"local.get $comp"+comp2);
-		}
+			
+		this.escribir(cuerpoActual,"local.get $comp"+comp2);
 	}
 	
 	private void comparacionTripla(String comp, String eq, String op1, String op2) {
-		op1 = op1.replace(':', 'A');
-		op2 = op2.replace(':', 'A');
-		this.escribir(cuerpoActual, "global.get $"+op1+"V1");
-		this.escribir(cuerpoActual, "global.get $"+op2+"V1");
+		if(calculoLadoDerecho) {
+			this.calculoLadoDerecho = false;
+		}
+		String op1v1 = "";
+		String op1v2 = "";
+		String op1v3 = "";
+		String op2v1 = "";
+		String op2v2 = "";
+		String op2v3 = "";
+		
+		if(op1.startsWith("[")) {
+			String indice = op1.substring(1, op1.length()-1);
+			String tipo = gc_main.getTerceto(Integer.parseInt(indice)).getTipo();
+			if(!tipo.equals("double") && !tipo.equals("ulongint")) {
+				tipo = this.ts.getAtributo(tipo, AccionSemantica.TIPO_BASICO);
+			}
+			tipo = tipo.equals("ulongint")?"i32":"f64";
+			op1v1 = "AUX1V1"+tipo;
+			op1v2 = "AUX1V2"+tipo;
+			op1v3 = "AUX1V3"+tipo;
+			
+		}else {
+			op1 = op1.replace(':', 'A');
+			op1v1 = op1+"V1";
+			op1v2 = op1+"V2";
+			op1v3 = op1+"V3";
+			
+		}
+		if(op2.startsWith("[")) {
+			String indice = op2.substring(1, op2.length()-1);
+			String tipo = gc_main.getTerceto(Integer.parseInt(indice)).getTipo();
+			if(!tipo.equals("double") && !tipo.equals("ulongint")) {
+				tipo = this.ts.getAtributo(tipo, AccionSemantica.TIPO_BASICO);
+			}
+			tipo = tipo.equals("ulongint")?"i32":"f64";
+			op2v1 = "AUX2V1"+tipo;
+			op2v2 = "AUX2V2"+tipo;
+			op2v3 = "AUX2V3"+tipo;
+			
+		} else {
+			op2 = op2.replace(':', 'A');
+			op2v1 = op2+"V1";
+			op2v2 = op2+"V2";
+			op2v3 = op2+"V3";
+			
+		}
+		
+		
+		this.escribir(cuerpoActual, "global.get $"+op1v1);
+		this.escribir(cuerpoActual, "global.get $"+op2v1);
 		this.escribir(cuerpoActual, comp);
 		this.escribir(variablesActual, "(local $comp"+this.posicionActual+"V1" + " i32)");
 		this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual+"V1");
-		this.escribir(cuerpoActual, "global.get $"+op1+"V2");
-		this.escribir(cuerpoActual, "global.get $"+op2+"V2");
+		this.escribir(cuerpoActual, "global.get $"+op1v2);
+		this.escribir(cuerpoActual, "global.get $"+op2v2);
 		this.escribir(cuerpoActual, comp);
 		this.escribir(variablesActual, "(local $comp"+this.posicionActual+"V2" + " i32)");
 		this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual+"V2");
-		this.escribir(cuerpoActual, "global.get $"+op1+"V3");
-		this.escribir(cuerpoActual, "global.get $"+op2+"V3");
+		this.escribir(cuerpoActual, "global.get $"+op1v3);
+		this.escribir(cuerpoActual, "global.get $"+op2v3);
 		this.escribir(cuerpoActual, comp);
 		this.escribir(variablesActual, "(local $comp"+this.posicionActual+"V3" + " i32)");
 		this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual+"V3");
@@ -399,85 +453,100 @@ public class GeneradorWasm {
 	    String tipo = this.ts.getAtributo(op1, AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64";
 	    String operacion = tipo + sufijoOperacion;
 	    String aux = "AUX1";
+	    String aux2 = "AUX2";
 	    op1 = op1.replace(':', 'A');
-	    if(find1 && !find2) {
-	    	this.escribir(cuerpoActual, "global.get $AUX1"+"V1"+tipo);
-			this.escribir(cuerpoActual, "global.get $"+op2+"V1");
-			this.escribir(cuerpoActual, operacion);
-			
-			this.escribir(cuerpoActual, "global.set $AUX1"+"V1"+tipo);
-			
-			this.escribir(cuerpoActual, "global.get $AUX1"+"V2"+tipo);
-			this.escribir(cuerpoActual, "global.get $"+op2+"V2");
-			this.escribir(cuerpoActual, operacion);
-			this.escribir(cuerpoActual, "global.set $AUX1"+"V2"+tipo);
-			
-			this.escribir(cuerpoActual, "global.get $AUX1"+"V3"+tipo);
-			this.escribir(cuerpoActual, "global.get $"+op2+"V3");
-			this.escribir(cuerpoActual, operacion);
-			this.escribir(cuerpoActual, "global.set $AUX1"+"V3"+tipo);
-	    } else if(find1 && find2) {
-	    	this.escribir(cuerpoActual, "global.get $AUX1"+"V1"+tipo);
-			this.escribir(cuerpoActual, "global.get $AUX2"+"V1"+tipo);
-			this.escribir(cuerpoActual, operacion);
-			this.escribir(cuerpoActual, "global.set $AUX1"+"V1"+tipo);
-			
-			this.escribir(cuerpoActual, "global.get $AUX1"+"V2"+tipo);
-			this.escribir(cuerpoActual, "global.get $AUX2"+"V2"+tipo);
-			this.escribir(cuerpoActual, operacion);
-			this.escribir(cuerpoActual, "global.set $AUX1"+"V2"+tipo);
-			
-			this.escribir(cuerpoActual, "global.get $AUX1"+"V3"+tipo);
-			this.escribir(cuerpoActual, "global.get $AUX2"+"V3"+tipo);
-			this.escribir(cuerpoActual, operacion);
-			this.escribir(cuerpoActual, "global.set $AUX1"+"V3"+tipo);
-	    } else if(!find1 && find2){
-	    	this.escribir(cuerpoActual, "global.get $AUX1"+"V1"+tipo);
-			this.escribir(cuerpoActual, "global.get $"+op1+"V1");
-			this.escribir(cuerpoActual, operacion);
-			
-			this.escribir(cuerpoActual, "global.set $AUX1"+"V1"+tipo);
-			
-			this.escribir(cuerpoActual, "global.get $AUX1"+"V2"+tipo);
-			this.escribir(cuerpoActual, "global.get $"+op1+"V2");
-			this.escribir(cuerpoActual, operacion);
-			this.escribir(cuerpoActual, "global.set $AUX1"+"V2"+tipo);
-			
-			this.escribir(cuerpoActual, "global.get $AUX1"+"V3"+tipo);
-			this.escribir(cuerpoActual, "global.get $"+op1+"V3");
-			this.escribir(cuerpoActual, operacion);
-			this.escribir(cuerpoActual, "global.set $AUX1"+"V3"+tipo);
-	    } else {
-	    	
-	    	if(this.aux1EnUso) {
-	    		aux = "AUX2";
-	    	}else {
-	    		aux = "AUX1";
-	    		this.aux1EnUso = true;
-	    	}
-	    	this.escribir(cuerpoActual, "global.get $"+op1+"V1");
-			this.escribir(cuerpoActual, "global.get $"+op2+"V1");
-			this.escribir(cuerpoActual, operacion);
-			this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
-			
-			this.escribir(cuerpoActual, "global.get $"+op1+"V2");
-			this.escribir(cuerpoActual, "global.get $"+op2+"V2");
-			this.escribir(cuerpoActual, operacion);
-			this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
-			
-			this.escribir(cuerpoActual, "global.get $"+op1+"V3");
-			this.escribir(cuerpoActual, "global.get $"+op2+"V3");
-			this.escribir(cuerpoActual, operacion);
-			this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
+	    if(calculoLadoDerecho) {
+	    	aux = "AUX2";
+	    	aux2 = "AUX3";
 	    }
-	    if(tipo.equals("ulongint") && sufijoOperacion.equals("sub")) {
-	    	this.checkResNegativo("global.get $"+aux+"V1"+tipo);
-	    	this.checkResNegativo("global.get $"+aux+"V2"+tipo);
-	    	this.checkResNegativo("global.get $"+aux+"V3"+tipo);
-	    }
+    	if(find1 && !find2) {
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V1"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+op2+"V1");
+    		this.escribir(cuerpoActual, operacion);
+    		
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V2"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+op2+"V2");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V3"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+op2+"V3");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
+    	} else if(find1 && find2) {
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V1"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+aux2+"V1"+tipo);
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V2"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+aux2+"V2"+tipo);
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V3"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+aux2+"V3"+tipo);
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
+    	} else if(!find1 && find2){
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V1"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+op1+"V1");
+    		this.escribir(cuerpoActual, operacion);
+    		
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V2"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+op1+"V2");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V3"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+op1+"V3");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
+    	} else {
+    		
+    		if(this.aux1EnUso) {
+    			aux = "AUX2";
+    		}else {
+    			aux = "AUX1";
+    			this.aux1EnUso = true;
+    		}
+    	    if(calculoLadoDerecho) {
+    	    	if(this.aux1EnUso) {
+        			aux = "AUX2";
+        		}else {
+        			aux = "AUX1";
+        			this.aux1EnUso = true;
+        		}
+    	    }
+    	
+    		this.escribir(cuerpoActual, "global.get $"+op1+"V1");
+    		this.escribir(cuerpoActual, "global.get $"+op2+"V1");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+op1+"V2");
+    		this.escribir(cuerpoActual, "global.get $"+op2+"V2");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+op1+"V3");
+    		this.escribir(cuerpoActual, "global.get $"+op2+"V3");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
+    	}
+    	if(tipo.equals("ulongint") && sufijoOperacion.equals("sub")) {
+    		this.checkResNegativo("global.get $"+aux+"V1"+tipo);
+    		this.checkResNegativo("global.get $"+aux+"V2"+tipo);
+    		this.checkResNegativo("global.get $"+aux+"V3"+tipo);
+    	}
+	    
 	}
 	
- 	private void menor(Terceto t) { // una vez que planteemos las triplas se puede modularizar esto seguro.
+ 	private void menor(Terceto t) { 
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
@@ -493,7 +562,7 @@ public class GeneradorWasm {
 			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
-			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.lt_u":"f64.lt", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
+			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.lt_u":"f64.lt", "i32.eq", t.getOp1(), t.getOp2());
 		}
 	}
 
@@ -513,7 +582,7 @@ public class GeneradorWasm {
 			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
-			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.le_u":"f64.le", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
+			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.le_u":"f64.le", "i32.eq", t.getOp1(), t.getOp2());
 		}
 	}
 
@@ -533,7 +602,7 @@ public class GeneradorWasm {
 			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
-			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.gt_u":"f64.gt", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
+			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.gt_u":"f64.gt", "i32.eq", t.getOp1(), t.getOp2());
 		}
 	}
 
@@ -553,7 +622,7 @@ public class GeneradorWasm {
 			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
-			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.ge_u":"f64.ge", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq",t.getOp1(), t.getOp2());
+			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.ge_u":"f64.ge", "i32.eq",t.getOp1(), t.getOp2());
 		}
 	}
 
@@ -573,7 +642,7 @@ public class GeneradorWasm {
 			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
-			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
+			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", "i32.eq", t.getOp1(), t.getOp2());
 		}
 
 	}
@@ -594,7 +663,7 @@ public class GeneradorWasm {
 			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
 			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
-			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.ne":"f64.ne", tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", t.getOp1(), t.getOp2());
+			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.ne":"f64.ne", "i32.eq", t.getOp1(), t.getOp2());
 		}
 	}
 	
@@ -632,7 +701,6 @@ public class GeneradorWasm {
 		this.escribir(cuerpoActual, "i32.const "+erroresEj.getSizeMsj("negativo"));
 		this.escribir(cuerpoActual, "call $log");
 		this.escribir(cuerpoActual, "call $exit");
-		//exit
 		this.reducirIdentacion();
 		this.escribir(cuerpoActual,")");
 		this.reducirIdentacion();
@@ -676,14 +744,14 @@ public class GeneradorWasm {
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
 			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"f64.div_s");
+			this.escribir(cuerpoActual,"f64.div");
 			this.setAuxTripla("f64");
 		} else if(tipo.equals("ulongint")) {
 			this.obtenerGets(t);
 			this.escribir(cuerpoActual,"i32.div_u");
 			this.setAuxTripla("i32");
 		} else {
-			this.aritmeticaTripla(t, this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO).equals("ulongint")?"div_u":"div_s");
+			this.aritmeticaTripla(t, this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO).equals("ulongint")?".div_u":".div");
 		}
 	}
 
@@ -694,16 +762,13 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual, ") ;; fin de tag: " + tag);
 			this.gotos.add(tag);
 		}
-		
 	}
 
 	private void saltoIncondicional(Terceto t) {
 		this.escribir(cuerpoActual,"br $"+t.getOp1().replace(':', 'A'));
-		
 	}
 
 	private void accesoTriple(Terceto t) {
-		// TODO Auto-generated method stub
 		String op1 = t.getOp1();
 		if(!this.accesoTriplas.contains(op1)) {
 			this.escribir(variablesGlobales, "(global $acceso"+op1.replace(':', 'A')+  " (mut i32) (i32.const 1))");
@@ -794,17 +859,18 @@ public class GeneradorWasm {
 		this.reducirIdentacion();
 		this.escribir(cuerpoActual, ")");
 		this.reducirIdentacion();
-		this.escribir(cuerpoActual, "global.get $"+tipoOp1+"auxTripla");
+		if(!this.seAsignoTripla)
+			this.escribir(cuerpoActual, "global.get $"+tipoOp1+"auxTripla");
+		this.seAccedioAtripla = true;
 
 	}
 
 	private void escribir(StringBuilder builder, String code) {
         	builder.append(this.ident + code + "\n");
-       
     }
 	
 	private void escribeArchivo() {
-        try (FileWriter fw = new FileWriter(filePath, true);
+        try (FileWriter fw = new FileWriter(this.filePath, true);
             BufferedWriter bw = new BufferedWriter(fw)) {
         	bw.write(variablesGlobales.toString() + "\n" );
         	bw.write(funciones.toString()+ "\n");
@@ -881,13 +947,17 @@ public class GeneradorWasm {
 				String tipoOp2 = this.ts.getAtributo(op2, AccionSemantica.TIPO).equals("ulongint")?"i32":"f64";
 				tipoOp1 = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64";
 				if(!find) {
-					if(this.ts.getAtributo(op2, AccionSemantica.USO).equals("nombre variable")) {
+					if(gc_main.getTerceto(this.posicionActual-1).getOperador().equals("ACCESOTRIPLE")) {
+						this.escribir(cuerpoActual, "global.get $"+(t.getTipo().equals("ulongint")?"i32":"f64")+"auxTripla");
+					} else if(this.ts.getAtributo(op2, AccionSemantica.USO).equals("nombre variable")) {
 						this.escribir(cuerpoActual, "global.get $"+op2.replace(':', 'A'));
 					}else {
 						this.escribir(cuerpoActual, tipoOp2+".const " + op2);
+						
 					}
-				} else {
-					this.escribir(cuerpoActual, "global.get $"+tipoOp1+"auxTripla");
+				}  else {
+					if(!gc_main.getTerceto(this.posicionActual-1).getOperador().equals("ACCESOTRIPLE"))
+						this.escribir(cuerpoActual, "global.get $"+tipoOp1+"auxTripla");
 				}
 				this.escribir(cuerpoActual, "global.set $"+op1+"V1");
 				this.reducirIdentacion();
@@ -902,13 +972,16 @@ public class GeneradorWasm {
 				this.escribir(cuerpoActual, "(then");
 				this.aumentarIdentacion();
 				if(!find) {
-					if(this.ts.getAtributo(op2, AccionSemantica.USO).equals("nombre variable")) {
+					if(gc_main.getTerceto(this.posicionActual-1).getOperador().equals("ACCESOTRIPLE")) {
+						this.escribir(cuerpoActual, "global.get $"+(t.getTipo().equals("ulongint")?"i32":"f64")+"auxTripla");
+					} else if(this.ts.getAtributo(op2, AccionSemantica.USO).equals("nombre variable")) {
 						this.escribir(cuerpoActual, "global.get $"+op2.replace(':', 'A'));
 					}else {
 						this.escribir(cuerpoActual, tipoOp2+".const " + op2);
 					}
 				} else {
-					this.escribir(cuerpoActual, "global.get $"+tipoOp1+"auxTripla");
+					if(!gc_main.getTerceto(this.posicionActual-1).getOperador().equals("ACCESOTRIPLE"))
+						this.escribir(cuerpoActual, "global.get $"+tipoOp1+"auxTripla");
 				}
 				this.escribir(cuerpoActual, "global.set $"+op1+"V2");
 				this.reducirIdentacion();
@@ -923,13 +996,16 @@ public class GeneradorWasm {
 				this.escribir(cuerpoActual, "(then");
 				this.aumentarIdentacion();
 				if(!find) {
-					if(this.ts.getAtributo(op2, AccionSemantica.USO).equals("nombre variable")) {
+					if(gc_main.getTerceto(this.posicionActual-1).getOperador().equals("ACCESOTRIPLE")) {
+						this.escribir(cuerpoActual, "global.get $"+(t.getTipo().equals("ulongint")?"i32":"f64")+"auxTripla");
+					} else if(this.ts.getAtributo(op2, AccionSemantica.USO).equals("nombre variable")) {
 						this.escribir(cuerpoActual, "global.get $"+op2.replace(':', 'A'));
 					}else {
 						this.escribir(cuerpoActual, tipoOp2+".const " + op2);
 					}
 				} else {
-					this.escribir(cuerpoActual, "global.get $"+tipoOp1+"auxTripla");
+					if(!gc_main.getTerceto(this.posicionActual-1).getOperador().equals("ACCESOTRIPLE"))
+						this.escribir(cuerpoActual, "global.get $"+tipoOp1+"auxTripla");
 				}
 				this.escribir(cuerpoActual, "global.set $"+op1+"V3");
 				this.reducirIdentacion();
@@ -957,8 +1033,10 @@ public class GeneradorWasm {
 				}
 				this.reducirIdentacion();
 				this.seAccedioAtripla = false;
+				this.seAsignoTripla = false;
 			}else {
-				this.obtenerGets(t, false);
+				
+				if(!this.seAccedioAtripla)this.obtenerGets(t, false);
 				this.escribir(cuerpoActual,"global.set $" + t.getOp1().replace(':', 'A'));
 			}
 		}
@@ -974,10 +1052,6 @@ public class GeneradorWasm {
 		String funcion = t.getOp1();
 		this.escribir(cuerpoActual ,"i32.const " + this.funcionesId.get(funcionActual));
 		this.escribir(cuerpoActual, "global.set $funcionLlamadora");
-		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
-		String op2 = t.getOp2();
-	    Matcher matcher = pattern.matcher(op2);
-
 		this.escribir(cuerpoActual,"call $" + funcion.replace(':', 'A'));
 	}
 	
@@ -991,12 +1065,22 @@ public class GeneradorWasm {
 	private void generarLabel(Terceto t) {
 		String op1 = t.getOp1().replace(':', 'A');
 		switch(op1) {
-		case "else": /*this.escribir("($elseA"+this.ifs.peek()+")");*/ break;
-		case "endif": this.reducirIdentacion();this.escribir(cuerpoActual,")");this.reducirIdentacion();this.escribir(cuerpoActual,")");break;
-		case "FIN_IF_SOLO" : this.reducirIdentacion();this.escribir(cuerpoActual,")");this.reducirIdentacion();this.escribir(cuerpoActual,")"); this.ifs.add("IF"+this.ifs.size()); break;
-		case "endfor": this.tipoFlujoActual="IF"; this.fors.pop(); break;
+		case "else":break;
+		case "endif": this.tipoFlujoActual.pop();
+					this.reducirIdentacion();
+					this.escribir(cuerpoActual,")");
+					this.reducirIdentacion();
+					this.escribir(cuerpoActual,")");
+					break;
+		case "FIN_IF_SOLO" : this.reducirIdentacion();
+					this.escribir(cuerpoActual,")");
+					this.reducirIdentacion();
+					this.escribir(cuerpoActual,")"); 
+					this.ifs.add("IF"+this.ifs.size());
+					break;
+		case "endfor": this.tipoFlujoActual.pop(); this.fors.pop(); break;
 		default: 
-			this.tipoFlujoActual = "FOR";
+			this.tipoFlujoActual.push("FOR");
 			this.escribir(cuerpoActual,"block $endforA"+ t.getOp1());
 			this.escribir(cuerpoActual,"loop $"+op1);
 			this.aumentarIdentacion();
@@ -1006,12 +1090,12 @@ public class GeneradorWasm {
 	}
 	
 	private void bifurcacionIncondicional(Terceto t) {
-		if(this.tipoFlujoActual.equals("IF")) {
+		if(this.tipoFlujoActual.peek().equals("IF")) {
 			this.reducirIdentacion();
 			this.escribir(cuerpoActual,")");
 			this.escribir(cuerpoActual,"(else");
 			this.aumentarIdentacion();
-		}else if(this.tipoFlujoActual.equals("FOR")) {
+		}else if(this.tipoFlujoActual.peek().equals("FOR")) {
 			this.escribir(cuerpoActual,"br $"+ this.fors.peek());
 			this.reducirIdentacion();
 			this.escribir(cuerpoActual,"end");
@@ -1020,7 +1104,7 @@ public class GeneradorWasm {
 	}
 	
 	private void bifurcacionPorFalso(Terceto t) {
-		boolean esIf = tipoFlujoActual.equals("IF");
+		boolean esIf = tipoFlujoActual.peek().equals("IF");
 		if(esIf) {
 			this.escribir(cuerpoActual,"(if");
 			this.aumentarIdentacion();
@@ -1049,7 +1133,7 @@ public class GeneradorWasm {
 		    	this.escribir(cuerpoActual, "call $console_log_"+tipo);
 		    } else {
 		    	String tipo = this.ts.getAtributo(op1, AccionSemantica.TIPO);
-		    	if(this.ts.getAtributo(op1, AccionSemantica.USO).contains("nombre")) {
+		    	if(this.ts.getAtributo(op1, AccionSemantica.USO).contains("nombre") && ( this.ts.getAtributo(op1, AccionSemantica.TIPO_BASICO).equals("") )) {
 		    		op1 = op1.replace(':', 'A');
 		    		this.escribir(cuerpoActual, "global.get $"+op1);
 		    		tipo = tipo.equals("ulongint")?"i32":"f64";
@@ -1058,22 +1142,20 @@ public class GeneradorWasm {
 		    		op1 = op1.replace(':', 'A');
 		    		switch(tipo) {
 		    		case "ulongint":this.escribir(cuerpoActual, "i32.const "+op1);
-		    		this.escribir(cuerpoActual, "call $console_log_i32");
-		    		break;
+		    					this.escribir(cuerpoActual, "call $console_log_i32");
+		    					break;
 		    		case "double":this.escribir(cuerpoActual, "f64.const "+op1);
-		    		this.escribir(cuerpoActual, "call $console_log_f64");
-		    		break;
+		    					this.escribir(cuerpoActual, "call $console_log_f64");
+		    					break;
 		    		default:
-		    			System.out.println("op1 es "+op1);
-		    			System.out.println("tipo es "+tipo);
 		    			tipo = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64";
-		    			System.out.println("tipo es "+tipo);
 		    			this.escribir(cuerpoActual, "global.get $"+op1+"V1");
 		    			this.escribir(cuerpoActual, "call $console_log_"+tipo);
 		    			this.escribir(cuerpoActual, "global.get $"+op1+"V2");
 		    			this.escribir(cuerpoActual, "call $console_log_"+tipo);
 		    			this.escribir(cuerpoActual, "global.get $"+op1+"V3");
 		    			this.escribir(cuerpoActual, "call $console_log_"+tipo);
+		    			this.seAccedioAtripla = false;
 		    			break;
 		    		}
 		    	}

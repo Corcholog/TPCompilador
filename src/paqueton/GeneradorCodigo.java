@@ -63,18 +63,47 @@ public class GeneradorCodigo {
 	}
 	
 	public Terceto getTerceto(int pos) {
-		System.out.println("pos " + pos + " cant " + this.getCantTercetos());
 		if(pos >= this.getCantTercetos()) {
 			return null;
 		}
 		return this.tercetos.get(pos);
 	}
 	
+	public boolean esTercetoTripla(String t, TablaSimbolos ts) {
+		if(t.startsWith("[")) {
+			Terceto terceto = this.getTerceto(Integer.parseInt(t.substring(1,t.length()-1)));
+			String tipo = terceto.getTipo();
+			if(!ts.getAtributo(tipo, AccionSemantica.USO).equals("nombre de tipo tripla")) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void invertirCondicion(String terceto) {
+		if(terceto != null) {
+			Terceto t = this.getTerceto(Integer.parseInt(terceto.substring(1, terceto.length()-1)));
+			String operador = t.getOperador();
+			switch (operador) {
+			case "<": t.setOperador(">="); break;
+			case "<=": t.setOperador(">"); break;
+			case ">": t.setOperador("<="); break;
+			case ">=": t.setOperador("<"); break;
+			case "=": t.setOperador("!="); break;
+			case "!=": t.setOperador("="); break;
+			case "AND": t.setOperador("NAND"); break;
+			default:
+			}
+		}
+		
+	}
+	
 	public void checkTipoRetorno(String retorno, String funcion, TablaSimbolos ts, int linea) {
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
 		
 	    Matcher matcher = pattern.matcher(retorno);
-	    System.out.println("funcion checkretorno: " + funcion);
 	    if(matcher.find()) {
 	    	String tipo = this.getTerceto(Integer.parseInt(retorno.substring(1, retorno.length()-1))).getTipo();
 	    	if(!tipo.equals(ts.getAtributo(funcion, AccionSemantica.TIPO))) {
@@ -215,9 +244,6 @@ public class GeneradorCodigo {
 	    	ErrorHandler.addErrorSemantico("el parametro real " +expresion+ "  no esta al alcance", lineaActual);
 	    }
 	    
-	    System.out.println("tipo parametro real " + tipo);
-	    System.out.println("FUNCION ACTUAL:" + ambitoActual);
-	    System.out.println("tipo parametro formal " +ts.getAtributo(ts.getAtributo(ambitoActual , AccionSemantica.PARAMETRO), AccionSemantica.TIPO));
 	    
 	    
 	    if(!ts.getAtributo(ts.getAtributo(funcion , AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals(tipo)){ 
@@ -254,7 +280,7 @@ public class GeneradorCodigo {
 	    	declarado = false;
 	    }
 	    
-	    if(matchres) { // tengo terceto lado derecho
+	    if(matchres) { 
 	    	Terceto t = this.getTerceto(Integer.parseInt(matcher.group(1)));
 	    	if(t.getOperador().equals("ACCESOTRIPLE")) {
 	    		id_der = t.getOp1();
@@ -330,7 +356,7 @@ public class GeneradorCodigo {
 			    if (ts.estaEnTablaSimbolos(claveTs)) {
 			    	return claveTs;
 			    }
-			}System.out.println("ambito: "+ambito + " id: "+id);
+			}
 			ErrorHandler.addErrorSemantico("La variable " + id + " no esta al alcance o no fue declarada.",  lineaInicial);
 			return null;
 		}
@@ -371,7 +397,7 @@ public class GeneradorCodigo {
 	    	declarado = false;
 	    }
 	    
-	    if(matchres) { // tengo terceto lado derecho
+	    if(matchres) { 
 	    	id_der = op_der;
 	    	Terceto asig = this.getTerceto(Integer.parseInt(matcher.group(1)));
 	    	tipo_der = asig.getTipo();

@@ -40,7 +40,7 @@ public class AnalizadorLexico {
 		this.listaTokens = "Tokens: \n";
 		this.setConcatActual("");
 		this.tablaSimbolos = ts;
-		String camino = System.getProperty("user.dir")+ File.separator + "src\\codes" + File.separator + ruta +".txt";
+		String camino = System.getProperty("user.dir")+ File.separator + "\\codes" + File.separator + ruta +".txt";
 		this.archivo = new File(camino);
 		this.lineaInicial=0;
 		this.lineaInicialDevolver=1;
@@ -188,12 +188,12 @@ public class AnalizadorLexico {
 				if (!corta) {	
 					int estado_anterior = estado;
 					int col = getColumna();
-					//System.out.println(col);
 					estado = matTrans[estado][col];
 					matAcciones[estado_anterior][col].ejecutar(this);
 					if(col == 14) {
 						saltoLinea = false;
 					}
+					//System.out.println(col);
 				    //System.out.println("Voy leyendo: " + concatActual + "\n");
 					//System.out.println("Estado: " + estado_anterior + " pasa a: " + estado + "\n");
 					//System.out.println("Se ejecuta: " + matAcciones[estado_anterior][col].getClass().getName().split("\\$")[1]);
@@ -447,7 +447,6 @@ public class AnalizadorLexico {
 	}
 	
 	public void avanzarLinea() {
-		//chequeo errores
 		if(concatActual.equals("")) {
 			lineaInicial++;
 			lineaInicialDevolver=lineaInicial;

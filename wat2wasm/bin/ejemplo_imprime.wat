@@ -4,15 +4,8 @@
 (import "env" "console_log" (func $console_log_i32 (param i32)))
 (import "env" "console_log" (func $console_log_f64 (param f64)))
 (import "env" "exit" (func $exit))
-(global $globalAt3V1 (mut i32)(i32.const 0))
-(global $globalAt3V2 (mut i32)(i32.const 0))
-(global $globalAt3V3 (mut i32)(i32.const 0))
-(global $globalAt2V1 (mut i32)(i32.const 0))
-(global $globalAt2V2 (mut i32)(i32.const 0))
-(global $globalAt2V3 (mut i32)(i32.const 0))
-(global $globalAt1V1 (mut i32)(i32.const 0))
-(global $globalAt1V2 (mut i32)(i32.const 0))
-(global $globalAt1V3 (mut i32)(i32.const 0))
+(global $globalAd (mut f64)(f64.const 0))
+(global $globalAx (mut i32)(i32.const 0))
 (global $funcionLlamadora (mut i32) (i32.const 0))
 (global $AUXNEG (mut i32) (i32.const 0))
 (global $f64auxTripla (mut f64) (f64.const 0))
@@ -33,80 +26,55 @@
 (data (i32.const 243)"Error en ejecucion: indice fuera de rango.")
 (data (i32.const 288)"Error en ejecucion: se intenta realizar una conversion de flotante negativo a entero sin signo.")
 (data (i32.const 177)"Error en ejecucion: se realizo una recursion sobre una funcion.")
-(data (i32.const 386) " goooooood amimir ")
 
-	(global $accesoAsigglobalAt2 (mut i32) (i32.const 1))
-	(global $accesoglobalAt2 (mut i32) (i32.const 1))
+(global $globalAfuncion1Ak (mut i32) (i32.const 0))
 
-
-(func $main
-(local $comp2V1 i32)
-(local $comp2V2 i32)
-(local $comp2V3 i32)
-
+( func $globalAfuncion1 (param $globalAfuncion1Ak i32) (result i32)
+	(local $globalAfuncion1retorno i32)
+local.get $globalAfuncion1Ak
+global.set $globalAfuncion1Ak
 	i32.const 1
-	global.set $accesoAsigglobalAt2
-	global.get $accesoAsigglobalAt2
-	i32.const 1
+	global.get $funcionLlamadora
 	i32.eq
 	(if
 		(then
-			i32.const 1
-			global.set $globalAt2V1
-		)
-		(else
-			global.get $accesoAsigglobalAt2
-			i32.const 2
-			i32.eq
-			(if
-				(then
-					i32.const 1
-					global.set $globalAt2V2
-				)
-				(else
-					global.get $accesoAsigglobalAt2
-					i32.const 3
-					i32.eq
-					(if
-						(then
-							i32.const 1
-							global.set $globalAt2V3
-						)
-						(else
-							i32.const 243
-							i32.const 45
-							call $log
-							call $exit
-						)
-					)
-				)
-			)
+			i32.const 177
+			i32.const 66
+			call $log
+			call $exit
 		)
 	)
-global.get $globalAt1V1
-global.get $globalAt2V1
-i32.ge_u
-local.set $comp2V1
-global.get $globalAt1V2
-global.get $globalAt2V2
-i32.ge_u
-local.set $comp2V2
-global.get $globalAt1V3
-global.get $globalAt2V3
-i32.ge_u
-local.set $comp2V3
-local.get $comp2V3
-local.get $comp2V2
-i32.eq
-local.get $comp2V1
-i32.eq
-(if
-	(then
-		i32.const 386
-		i32.const 18
-		call $log
-	)
+	i32.const 0
+	local.set $globalAfuncion1retorno
+	global.get $globalAfuncion1Ak
+	local.set $globalAfuncion1retorno
+	local.get $globalAfuncion1retorno
+	return
+	local.get $globalAfuncion1retorno
 )
+
+
+(func $main
+
+	f64.const -2.4000000000000000e+00
+	global.set $globalAd
+	global.get $globalAd
+	f64.const 0
+	f64.lt
+	(if
+		(then
+			i32.const 288
+			i32.const 98
+			call $log
+			call $exit
+		)
+	)
+	global.get $globalAd
+	i32.trunc_f64_u
+	i32.const 0
+	global.set $funcionLlamadora
+	call $globalAfuncion1
+	global.set $globalAx
 )
 	(export "main" (func $main))
 )

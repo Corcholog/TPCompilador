@@ -49,29 +49,35 @@ public abstract class AccionSemantica {
 
 	        // Verificar si falta el exponente (caso: "2.0", "2.", "-2.0")
 	        if (!normalizedNumber.contains("e")) {
-	            analizador.addWarning("Falta exponente, se agregará 'e0'");
 	            normalizedNumber += "e0";
 	        }
 
 	        // Chequear el rango
 	        double value = Double.parseDouble(normalizedNumber);
+
+	        // Manejo específico para 0.0
+	        if (value == 0.0) {
+	            analizador.setConcatActual("0.0e0"); // Forzamos a ser exactamente 0.0
+	            return;
+	        }
+
+	        // Si está fuera de rango positivo o negativo
 	        if (value > MAX_DOUBLE) {
 	            analizador.addWarning("La constante Double está fuera de rango, es mayor a la representación; se truncó al máximo representable");
 	            value = MAX_DOUBLE;
-	            analizador.setConcatActual(String.format("%.16e", value));
 	        } else if (value < MIN_DOUBLE) {
 	            analizador.addWarning("La constante Double está fuera de rango, es menor a la representación; se truncó al mínimo representable");
 	            value = MIN_DOUBLE;
-	            analizador.setConcatActual(String.format("%.16e", value));
-	        } else {
-	            // Formateo al estilo WebAssembly (notación científica con 'e')
-	            analizador.setConcatActual(String.format("%.16e", value));
 	        }
+
+	        // Formateo al estilo WebAssembly (notación científica con 'e')
+	        analizador.setConcatActual(String.format("%.16e", value));
 
 	    } catch (NumberFormatException e) {
 	        analizador.addWarning("Número inválido para double");
 	    }
 	}
+
 
 	
 	public void checkOctal(AnalizadorLexico analizador) {

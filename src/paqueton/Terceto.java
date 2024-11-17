@@ -62,7 +62,7 @@ public class Terceto {
 	
 	@Override
 	public String toString() {
-		return "[" + this.getOperador() + ", " + this.getOp1() + ", " + this.getOp2() +"]";
+		return "[" + this.getOperador() + ", " + this.getOp1() + ", " + this.getOp2() +"]" + " tipo: " + this.getTipo();
 	}
 
 }

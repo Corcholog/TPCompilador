@@ -72,9 +72,12 @@ condicion	: '('  condicion_2 ')' { $$.sval = $2.sval;}
 		|  condicion_2 ')' { ErrorHandler.addErrorSintactico("Falta de paréntesis izquierdo en la condición", lex.getLineaInicial());}
 		;
 		
-condicion_2 	: expresion_matematica comparador expresion_matematica { 
+condicion_2 	: expresion_matematica comparador {
+				if(gc.esTercetoTripla($1.sval, this.ts)){gc.addTerceto("FINLADOIZQ", "-", "-");}
+				
+				} expresion_matematica { 
 				String op1 = gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
-				String op2 = gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
+				String op2 = gc.checkDeclaracion($4.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
 				if(op1 != null && op2 != null){
 					$$.sval = gc.addTerceto($2.sval, op1, op2);
 					gc.checkTipo(gc.getPosActual(), lex.getLineaInicial(), this.ts, this.ambitoActual, $2.sval);
@@ -94,16 +97,27 @@ condicion_2 	: expresion_matematica comparador expresion_matematica {
 patron_izq	: lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); this.cantPatronIzq++; $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 		;
 
-lista_patron_izq    : lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); this.cantPatronIzq++;$$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
+lista_patron_izq    : lista_patron_izq ',' expresion_matematica { 
+	if(gc.esTercetoTripla($3.sval, this.ts)){ErrorHandler.addErrorSemantico("No se permite utilizar operaciones entre triplas para un pattern matching.", lex.getLineaInicial());}
+
+this.iniciarPatron(); this.cantPatronIzq++;$$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 		| expresion_matematica {
+		if(gc.esTercetoTripla($1.sval, this.ts)){ErrorHandler.addErrorSemantico("No se permite utilizar operaciones entre triplas para un pattern matching.", lex.getLineaInicial());}
+				
+		
 		gc.addTerceto("PATRON", "-", "-");
 		this.iniciarPatron(); this.cantPatronIzq=1; $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 		;
-patron_der	: lista_patron_der ',' expresion_matematica { this.cantPatronDer++; posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
+patron_der	: lista_patron_der ',' expresion_matematica { 
+		if(gc.esTercetoTripla($3.sval, this.ts)){ErrorHandler.addErrorSemantico("No se permite utilizar operaciones entre triplas para un pattern matching.", lex.getLineaInicial());}
+
+this.cantPatronDer++; posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
 		;
 
 lista_patron_der    : lista_patron_der ',' expresion_matematica { this.cantPatronDer++;posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
-		| expresion_matematica { this.cantPatronDer = 1; posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
+		| expresion_matematica { 
+		if(gc.esTercetoTripla($1.sval, this.ts)){ErrorHandler.addErrorSemantico("No se permite utilizar operaciones entre triplas para un pattern matching.", lex.getLineaInicial());}
+this.cantPatronDer = 1; posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
 		;
 		
 seleccion 	: IF condicion_punto_control THEN cuerpo_control sinelse_punto_control {estructurasSintacticas("Se definió una sentencia de control sin else, en la linea: " + lex.getLineaInicial());}
@@ -128,6 +142,7 @@ sinelse_punto_control : END_IF {
 			;
 
 condicion_punto_control : condicion {
+			gc.addTerceto("inicioif", "-", "-");
 			gc.addTerceto("BF", $1.sval, ""); 
 			gc.push(gc.getPosActual());
 		}
@@ -268,7 +283,7 @@ triple_asig     : ID '{' expresion_matematica '}' {String tipo = gc.getTipoAcces
 								ErrorHandler.addErrorSemantico( "La tripla " + idTripla + " nunca fue declarada.", lex.getLineaInicial()) ; 
 								tipo = "error";
 						  	  }
-								$$.sval = $$.sval = gc.addTerceto("ASIGTRIPLA", idTripla, $3.sval, tipo);
+								$$.sval = gc.addTerceto("ASIGTRIPLA", idTripla, $3.sval, tipo);
 							}
 		;
 
@@ -358,14 +373,12 @@ invoc_fun	: ID '(' {idFuncion = gc.checkDeclaracion($1.sval,lex.getLineaInicial(
 							String tipo = "";	
 							String idFunc = gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts, this.ambitoActual);
 							if(idFunc != null){
-								System.out.println("F invocada es: " + idFunc + "y es de tipo: " + this.ts.getAtributo(idFunc, AccionSemantica.TIPO));
 								tipo = this.ts.getAtributo(idFunc, AccionSemantica.TIPO);
 							}
 							else {
 								ErrorHandler.addErrorSemantico("La funcion invocada " + $1.sval + " no existe.", lex.getLineaInicial());
 								tipo = "error";
 							}
-							System.out.println("El tipo de la funcion invocada es: " + tipo);
 							$$.sval = gc.addTerceto("INVOC_FUN",idFunc, gc.checkDeclaracion($4.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), tipo);//porque $4? :c
 		}
 		
@@ -401,7 +414,8 @@ for		: FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iter
 					ErrorHandler.addErrorSemantico("La constante de avance no es de tipo entero.", lex.getLineaInicial()); 
 					gc.addTerceto("+", gc.checkDeclaracion(var, lex.getLineaInicial(), this.ts, this.ambitoActual), String.valueOf($7.ival * Double.parseDouble($8.sval)));
 				} else {
-					gc.addTerceto("+", gc.checkDeclaracion(var, lex.getLineaInicial(), this.ts, this.ambitoActual), String.valueOf($7.ival * Integer.parseInt($8.sval)), "ulongint");
+					var = gc.checkDeclaracion(var, lex.getLineaInicial(), this.ts, this.ambitoActual);
+					gc.addTerceto(":=", var, gc.addTerceto("+", var, String.valueOf($7.ival * Integer.parseInt($8.sval)), "ulongint"), "ulongint");
 				}		
 				this.varFors.remove(this.varFors.size()-1);
 				if($5.sval != null){
@@ -426,6 +440,7 @@ for		: FOR '(' asignacion_for ';' condicion_for ';' foravanc CTE ')' cuerpo_iter
 
 
 condicion_for   : condicion { $$.sval = $1.sval;
+				gc.invertirCondicion($1.sval);
 				gc.addTerceto("BF", $1.sval, "");
 				gc.push(gc.getPosActual());
 			}
@@ -434,10 +449,10 @@ condicion_for   : condicion { $$.sval = $1.sval;
 asignacion_for  : ID ASIGN CTE {String varFor = gc.checkDeclaracion($1.sval,lex.getLineaInicial(),this.ts,ambitoActual);
 				if (varFor != null){
 					if(!this.ts.getAtributo(varFor, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La variable " + $1.sval + " no es de tipo entero.", lex.getLineaInicial());}
-					gc.addTerceto(":=",varFor, $3.sval);
+					gc.addTerceto(":=", varFor, $3.sval, this.ts.getAtributo($3.sval, AccionSemantica.TIPO));
 				}
 				else{
-					gc.addTerceto(":=", $1.sval, $3.sval);
+					gc.addTerceto(":=", $1.sval, $3.sval );
 				}
 				if(!this.ts.getAtributo($3.sval, AccionSemantica.TIPO).equals(AccionSemantica.ULONGINT)){ErrorHandler.addErrorSemantico("La constante " + $3.sval + " no es de tipo entero.", lex.getLineaInicial());}
 				this.varFors.add($1.sval);
@@ -646,15 +661,15 @@ public static String getNombreVariable(int numero) {
 
 public static void main(String[] args) {
     // Verificamos que el nombre de "prueba" sea pasado como argumento
-/*
+
     if (args.length < 1) {
         System.out.println("Por favor, proporciona el nombre de la prueba como argumento.");
         return;
     }
 
     // Tomamos el primer argumento como el valor de prueba
-    String prueba = args[0];*/
-    String prueba = "pruebaCodigoSemantica";
+    String prueba = args[0];
+    //String prueba = "pruebaCodigoSemantica";
     TablaSimbolos tb = new TablaSimbolos();
     GeneradorCodigo gc = new GeneradorCodigo();
     
@@ -669,7 +684,7 @@ public static void main(String[] args) {
     System.out.println("Contenido de la tabla de simbolos:  \n" + tb);
     System.out.println("Codigo intermedio en tercetos: " + gc);
     if(ErrorHandler.huboError() == 0){
-	p.gw = new GeneradorWasm(p.ts, p.gc, "salida");
+	p.gw = new GeneradorWasm(p.ts, p.gc, "assembly");
 	p.gw.traducir();
     }
     System.out.println(ErrorHandler.erroresTraduccion());
