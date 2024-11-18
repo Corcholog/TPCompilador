@@ -36,12 +36,31 @@
 (global $AUX2V1f64 (mut f64) (f64.const 0))
 (global $AUX2V2f64 (mut f64) (f64.const 0))
 (global $AUX2V3f64 (mut f64) (f64.const 0))
+(global $AUX3V1f64 (mut f64) (f64.const 0))
+(global $AUX3V2f64 (mut f64) (f64.const 0))
+(global $AUX3V3f64 (mut f64) (f64.const 0))
+(global $AUX3V1i32 (mut i32) (i32.const 0))
+(global $AUX3V2i32 (mut i32) (i32.const 0))
+(global $AUX3V3i32 (mut i32) (i32.const 0))
 (data (i32.const 101)"Error en ejecucion: El resultado de una operacion sin signo dio negativo.")
 (data (i32.const 177)"Error en ejecucion: El resultado de una suma de enteros genero overflow.")
 (data (i32.const 318)"Error en ejecucion: indice fuera de rango.")
 (data (i32.const 363)"Error en ejecucion: se intenta realizar una conversion de flotante negativo a entero sin signo.")
 (data (i32.const 252)"Error en ejecucion: se realizo una recursion sobre una funcion.")
-(data (i32.const 461) "else")
+(data (i32.const 461) "then, t2 + t2 - t2")
+(data (i32.const 486) "then, t1 + t1")
+(data (i32.const 506) "impresion t1 despues de t1{1}:= t1{1} + 1 y t1:= t1 + t1 * t1")
+(data (i32.const 574) " impresion t1 deespues de t1{t1{t1{3}}}  +t1{1} * t1{3}")
+(data (i32.const 636) "then, t3{1} + 1")
+(data (i32.const 658) "impresion t2 despues de t2{funcion1(funcion2(5))}:=t1{ funcion1(ulongint d)}")
+(data (i32.const 741) "impresion t2 despues de t2{3}")
+(data (i32.const 777) "pattern lado derecho:")
+(data (i32.const 805) "then, t1")
+(data (i32.const 820) "then, t2")
+(data (i32.const 835) "then, t1{1} + 2")
+(data (i32.const 857) "pattern lado izquierdo:")
+(data (i32.const 887) "impresion t1:")
+(data (i32.const 907) "else")
 
 (global $globalAfuncion2Aboca (mut i32) (i32.const 0))
 (global $globalAfuncion1Aboca (mut i32) (i32.const 0))
@@ -104,12 +123,15 @@ global.set $globalAfuncion1Aboca
 
 
 (func $main
-(local $comp25V1 i32)
-(local $comp25V2 i32)
-(local $comp25V3 i32)
-(local $comp25 i32)
-(local $comp28 i32)
-(local $comp34 i32)
+(local $comp45V1 i32)
+(local $comp45V2 i32)
+(local $comp45V3 i32)
+(local $comp45 i32)
+(local $comp48 i32)
+(local $comp49V1 i32)
+(local $comp49V2 i32)
+(local $comp49V3 i32)
+(local $comp49 i32)
 
 	f64.const 1.0000000000000000e+00
 	global.set $globalAd
@@ -230,6 +252,15 @@ global.set $globalAfuncion1Aboca
 			)
 		)
 	)
+	i32.const 887
+	i32.const 13
+	call $log
+	global.get $globalAt1V1
+	call $console_log_i32
+	global.get $globalAt1V2
+	call $console_log_i32
+	global.get $globalAt1V3
+	call $console_log_i32
 	i32.const 1
 	global.set $accesoAsigglobalAt1
 	i32.const 3
@@ -483,6 +514,15 @@ i32.eq
 		)
 	)
 )
+i32.const 574
+i32.const 55
+call $log
+global.get $globalAt1V1
+call $console_log_i32
+global.get $globalAt1V2
+call $console_log_i32
+global.get $globalAt1V3
+call $console_log_i32
 i32.const 5
 i32.const 0
 global.set $funcionLlamadora
@@ -582,34 +622,105 @@ i32.eq
 		)
 	)
 )
+i32.const 658
+i32.const 76
+call $log
 global.get $globalAt2V1
 call $console_log_i32
 global.get $globalAt2V2
 call $console_log_i32
 global.get $globalAt2V3
 call $console_log_i32
-global.get $globalAt1V1
+i32.const 3
+global.set $accesoAsigglobalAt2
+i32.const 3
+global.set $accesoglobalAt2
+global.get $accesoglobalAt2
+i32.const 1
+i32.eq
+(if
+	(then
+		global.get $globalAt2V1
+		global.set $i32auxTripla
+	)
+	(else
+		global.get $accesoglobalAt2
+		i32.const 2
+		i32.eq
+		(if
+			(then
+				global.get $globalAt2V2
+				global.set $i32auxTripla
+			)
+			(else
+				global.get $accesoglobalAt2
+				i32.const 3
+				i32.eq
+				(if
+					(then
+						global.get $globalAt2V3
+						global.set $i32auxTripla
+					)
+					(else
+						i32.const 318
+						i32.const 45
+						call $log
+						call $exit
+					)
+				)
+			)
+		)
+	)
+)
+global.get $accesoAsigglobalAt2
+i32.const 1
+i32.eq
+(if
+	(then
+		global.get $i32auxTripla
+		global.set $globalAt2V1
+	)
+	(else
+		global.get $accesoAsigglobalAt2
+		i32.const 2
+		i32.eq
+		(if
+			(then
+				global.get $i32auxTripla
+				global.set $globalAt2V2
+			)
+			(else
+				global.get $accesoAsigglobalAt2
+				i32.const 3
+				i32.eq
+				(if
+					(then
+						global.get $i32auxTripla
+						global.set $globalAt2V3
+					)
+					(else
+						i32.const 318
+						i32.const 45
+						call $log
+						call $exit
+					)
+				)
+			)
+		)
+	)
+)
+i32.const 741
+i32.const 29
+call $log
 global.get $globalAt2V1
-i32.gt_u
-local.set $comp25V1
-global.get $globalAt1V2
+call $console_log_i32
 global.get $globalAt2V2
-i32.gt_u
-local.set $comp25V2
-global.get $globalAt1V3
+call $console_log_i32
 global.get $globalAt2V3
-i32.gt_u
-local.set $comp25V3
-local.get $comp25V3
-local.get $comp25V2
-i32.eq
-local.get $comp25V1
-i32.eq
-local.set $comp25
-i32.const 1000
-i32.const 0
-global.set $funcionLlamadora
-call $globalAfuncion1
+call $console_log_i32
+i32.const 1
+global.set $accesoAsigglobalAt1
+i32.const 1
 global.set $accesoglobalAt1
 global.get $accesoglobalAt1
 i32.const 1
@@ -650,89 +761,46 @@ i32.eq
 )
 global.get $i32auxTripla
 i32.const 1
-global.set $accesoglobalAt1
-global.get $accesoglobalAt1
-i32.const 1
-i32.eq
-(if
-	(then
-		global.get $globalAt1V1
-		global.set $i32auxTripla
-	)
-	(else
-		global.get $accesoglobalAt1
-		i32.const 2
-		i32.eq
-		(if
-			(then
-				global.get $globalAt1V2
-				global.set $i32auxTripla
-			)
-			(else
-				global.get $accesoglobalAt1
-				i32.const 3
-				i32.eq
-				(if
-					(then
-						global.get $globalAt1V3
-						global.set $i32auxTripla
-					)
-					(else
-						i32.const 318
-						i32.const 45
-						call $log
-						call $exit
-					)
-				)
-			)
-		)
-	)
-)
-global.get $i32auxTripla
-i32.const 1
-i32.sub
+i32.add
 global.set $AUXOVERFLOW
 global.get $AUXOVERFLOW
 i32.const 0
 i32.lt_s
 (if
 	(then
-		i32.const 101
-		i32.const 76
+		i32.const 177
+		i32.const 75
 		call $log
 		call $exit
 	)
 )
 global.get $AUXOVERFLOW
-i32.gt_u
-local.set $comp28
-i32.const 1
-global.set $accesoglobalAt1
-global.get $accesoglobalAt1
+global.set $i32auxTripla
+global.get $accesoAsigglobalAt1
 i32.const 1
 i32.eq
 (if
 	(then
-		global.get $globalAt1V1
-		global.set $i32auxTripla
+		global.get $i32auxTripla
+		global.set $globalAt1V1
 	)
 	(else
-		global.get $accesoglobalAt1
+		global.get $accesoAsigglobalAt1
 		i32.const 2
 		i32.eq
 		(if
 			(then
-				global.get $globalAt1V2
-				global.set $i32auxTripla
+				global.get $i32auxTripla
+				global.set $globalAt1V2
 			)
 			(else
-				global.get $accesoglobalAt1
+				global.get $accesoAsigglobalAt1
 				i32.const 3
 				i32.eq
 				(if
 					(then
-						global.get $globalAt1V3
-						global.set $i32auxTripla
+						global.get $i32auxTripla
+						global.set $globalAt1V3
 					)
 					(else
 						i32.const 318
@@ -745,88 +813,140 @@ i32.eq
 		)
 	)
 )
-global.get $i32auxTripla
-i32.const 5
+global.get $globalAt1V1
+global.get $globalAt1V1
 i32.mul
+global.set $AUX1V1i32
+global.get $globalAt1V2
+global.get $globalAt1V2
+i32.mul
+global.set $AUX1V2i32
+global.get $globalAt1V3
+global.get $globalAt1V3
+i32.mul
+global.set $AUX1V3i32
+global.get $AUX1V1i32
+global.get $globalAt1V1
+i32.add
+global.set $AUX1V1i32
+global.get $AUX1V2i32
+global.get $globalAt1V2
+i32.add
+global.set $AUX1V2i32
+global.get $AUX1V3i32
+global.get $globalAt1V3
+i32.add
+global.set $AUX1V3i32
+global.get $AUX1V1i32
+global.set $globalAt1V1
+global.get $AUX1V2i32
+global.set $globalAt1V2
+global.get $AUX1V3i32
+global.set $globalAt1V3
+i32.const 506
+i32.const 61
+call $log
+global.get $globalAt1V1
+call $console_log_i32
+global.get $globalAt1V2
+call $console_log_i32
+global.get $globalAt1V3
+call $console_log_i32
+global.get $globalAt1V1
+global.get $globalAt1V1
+i32.add
+global.set $AUX1V1i32
+global.get $globalAt1V2
+global.get $globalAt1V2
+i32.add
+global.set $AUX1V2i32
+global.get $globalAt1V3
+global.get $globalAt1V3
+i32.add
+global.set $AUX1V3i32
+global.get $globalAt2V1
+global.get $globalAt2V1
+i32.add
+global.set $AUX2V1i32
+global.get $globalAt2V2
+global.get $globalAt2V2
+i32.add
+global.set $AUX2V2i32
+global.get $globalAt2V3
+global.get $globalAt2V3
+i32.add
+global.set $AUX2V3i32
+global.get $AUX2V1i32
+global.get $globalAt2V1
+i32.sub
+global.set $AUX2V1i32
+global.get $AUX2V2i32
+global.get $globalAt2V2
+i32.sub
+global.set $AUX2V2i32
+global.get $AUX2V3i32
+global.get $globalAt2V3
+i32.sub
+global.set $AUX2V3i32
+global.get $AUX1V1i32
+global.get $AUX2V1i32
+i32.gt_u
+local.set $comp45V1
+global.get $AUX1V2i32
+global.get $AUX2V2i32
+i32.gt_u
+local.set $comp45V2
+global.get $AUX1V3i32
+global.get $AUX2V3i32
+i32.gt_u
+local.set $comp45V3
+local.get $comp45V3
+local.get $comp45V2
+i32.eq
+local.get $comp45V1
+i32.eq
+local.set $comp45
+i32.const 1
+global.set $accesoglobalAt1
+global.get $accesoglobalAt1
+i32.const 1
+i32.eq
+(if
+	(then
+		global.get $globalAt1V1
+		global.set $i32auxTripla
+	)
+	(else
+		global.get $accesoglobalAt1
+		i32.const 2
+		i32.eq
+		(if
+			(then
+				global.get $globalAt1V2
+				global.set $i32auxTripla
+			)
+			(else
+				global.get $accesoglobalAt1
+				i32.const 3
+				i32.eq
+				(if
+					(then
+						global.get $globalAt1V3
+						global.set $i32auxTripla
+					)
+					(else
+						i32.const 318
+						i32.const 45
+						call $log
+						call $exit
+					)
+				)
+			)
+		)
+	)
+)
+global.get $i32auxTripla
 i32.const 2
-global.set $accesoglobalAt1
-global.get $accesoglobalAt1
-i32.const 1
-i32.eq
-(if
-	(then
-		global.get $globalAt1V1
-		global.set $i32auxTripla
-	)
-	(else
-		global.get $accesoglobalAt1
-		i32.const 2
-		i32.eq
-		(if
-			(then
-				global.get $globalAt1V2
-				global.set $i32auxTripla
-			)
-			(else
-				global.get $accesoglobalAt1
-				i32.const 3
-				i32.eq
-				(if
-					(then
-						global.get $globalAt1V3
-						global.set $i32auxTripla
-					)
-					(else
-						i32.const 318
-						i32.const 45
-						call $log
-						call $exit
-					)
-				)
-			)
-		)
-	)
-)
-global.get $i32auxTripla
-global.set $accesoglobalAt1
-global.get $accesoglobalAt1
-i32.const 1
-i32.eq
-(if
-	(then
-		global.get $globalAt1V1
-		global.set $i32auxTripla
-	)
-	(else
-		global.get $accesoglobalAt1
-		i32.const 2
-		i32.eq
-		(if
-			(then
-				global.get $globalAt1V2
-				global.set $i32auxTripla
-			)
-			(else
-				global.get $accesoglobalAt1
-				i32.const 3
-				i32.eq
-				(if
-					(then
-						global.get $globalAt1V3
-						global.set $i32auxTripla
-					)
-					(else
-						i32.const 318
-						i32.const 45
-						call $log
-						call $exit
-					)
-				)
-			)
-		)
-	)
-)
-global.get $i32auxTripla
 i32.add
 global.set $AUXOVERFLOW
 global.get $AUXOVERFLOW
@@ -882,45 +1002,6 @@ i32.eq
 )
 global.get $i32auxTripla
 i32.const 1
-global.set $accesoglobalAt2
-global.get $accesoglobalAt2
-i32.const 1
-i32.eq
-(if
-	(then
-		global.get $globalAt2V1
-		global.set $i32auxTripla
-	)
-	(else
-		global.get $accesoglobalAt2
-		i32.const 2
-		i32.eq
-		(if
-			(then
-				global.get $globalAt2V2
-				global.set $i32auxTripla
-			)
-			(else
-				global.get $accesoglobalAt2
-				i32.const 3
-				i32.eq
-				(if
-					(then
-						global.get $globalAt2V3
-						global.set $i32auxTripla
-					)
-					(else
-						i32.const 318
-						i32.const 45
-						call $log
-						call $exit
-					)
-				)
-			)
-		)
-	)
-)
-global.get $i32auxTripla
 i32.add
 global.set $AUXOVERFLOW
 global.get $AUXOVERFLOW
@@ -936,26 +1017,234 @@ i32.lt_s
 )
 global.get $AUXOVERFLOW
 i32.gt_u
-local.set $comp34
-local.get $comp25
-local.get $comp28
+local.set $comp48
+global.get $globalAt1V1
+global.get $globalAt2V1
+i32.gt_u
+local.set $comp49V1
+global.get $globalAt1V2
+global.get $globalAt2V2
+i32.gt_u
+local.set $comp49V2
+global.get $globalAt1V3
+global.get $globalAt2V3
+i32.gt_u
+local.set $comp49V3
+local.get $comp49V3
+local.get $comp49V2
+i32.eq
+local.get $comp49V1
+i32.eq
+local.set $comp49
+local.get $comp45
+local.get $comp48
 i32.and
-local.get $comp34
+local.get $comp49
 i32.and
 (if
 	(then
-		global.get $globalAt1V1
-		call $console_log_i32
-		global.get $globalAt1V2
-		call $console_log_i32
-		global.get $globalAt1V3
-		call $console_log_i32
-	)
-	(else
-		i32.const 461
-		i32.const 4
+		i32.const 857
+		i32.const 23
 		call $log
+		i32.const 486
+		i32.const 13
+		call $log
+		global.get $globalAt1V1
+		global.get $globalAt1V1
+		i32.add
+		global.set $AUX1V1i32
+		global.get $globalAt1V2
+		global.get $globalAt1V2
+		i32.add
+		global.set $AUX1V2i32
+		global.get $globalAt1V3
+		global.get $globalAt1V3
+		i32.add
+		global.set $AUX1V3i32
+		global.get $AUX1V1i32
+		call $console_log_i32
+		global.get $AUX1V2i32
+		call $console_log_i32
+		global.get $AUX1V3i32
+		call $console_log_i32
+		i32.const 835
+		i32.const 15
+		call $log
+		i32.const 1
+		global.set $accesoglobalAt1
+		global.get $accesoglobalAt1
+		i32.const 1
+		i32.eq
+		(if
+			(then
+				global.get $globalAt1V1
+				global.set $i32auxTripla
+			)
+			(else
+				global.get $accesoglobalAt1
+				i32.const 2
+				i32.eq
+				(if
+					(then
+						global.get $globalAt1V2
+						global.set $i32auxTripla
+					)
+					(else
+						global.get $accesoglobalAt1
+						i32.const 3
+						i32.eq
+						(if
+							(then
+								global.get $globalAt1V3
+								global.set $i32auxTripla
+							)
+							(else
+								i32.const 318
+								i32.const 45
+								call $log
+								call $exit
+							)
+						)
+					)
+				)
+			)
+		)
+	global.get $i32auxTripla
+	i32.const 2
+	i32.add
+	global.set $AUXOVERFLOW
+	global.get $AUXOVERFLOW
+	i32.const 0
+	i32.lt_s
+	(if
+		(then
+			i32.const 177
+			i32.const 75
+			call $log
+			call $exit
+		)
 	)
+	global.get $AUXOVERFLOW
+	call $console_log_i32
+	i32.const 805
+	i32.const 8
+	call $log
+	global.get $globalAt1V1
+	call $console_log_i32
+	global.get $globalAt1V2
+	call $console_log_i32
+	global.get $globalAt1V3
+	call $console_log_i32
+	i32.const 777
+	i32.const 21
+	call $log
+	i32.const 461
+	i32.const 18
+	call $log
+	global.get $globalAt2V1
+	global.get $globalAt2V1
+	i32.add
+	global.set $AUX1V1i32
+	global.get $globalAt2V2
+	global.get $globalAt2V2
+	i32.add
+	global.set $AUX1V2i32
+	global.get $globalAt2V3
+	global.get $globalAt2V3
+	i32.add
+	global.set $AUX1V3i32
+	global.get $AUX1V1i32
+	global.get $globalAt2V1
+	i32.sub
+	global.set $AUX1V1i32
+	global.get $AUX1V2i32
+	global.get $globalAt2V2
+	i32.sub
+	global.set $AUX1V2i32
+	global.get $AUX1V3i32
+	global.get $globalAt2V3
+	i32.sub
+	global.set $AUX1V3i32
+	global.get $AUX1V1i32
+	call $console_log_i32
+	global.get $AUX1V2i32
+	call $console_log_i32
+	global.get $AUX1V3i32
+	call $console_log_i32
+	i32.const 636
+	i32.const 15
+	call $log
+	i32.const 1
+	global.set $accesoglobalAt3
+	global.get $accesoglobalAt3
+	i32.const 1
+	i32.eq
+	(if
+		(then
+			global.get $globalAt3V1
+			global.set $i32auxTripla
+		)
+		(else
+			global.get $accesoglobalAt3
+			i32.const 2
+			i32.eq
+			(if
+				(then
+					global.get $globalAt3V2
+					global.set $i32auxTripla
+				)
+				(else
+					global.get $accesoglobalAt3
+					i32.const 3
+					i32.eq
+					(if
+						(then
+							global.get $globalAt3V3
+							global.set $i32auxTripla
+						)
+						(else
+							i32.const 318
+							i32.const 45
+							call $log
+							call $exit
+						)
+					)
+				)
+			)
+		)
+	)
+global.get $i32auxTripla
+i32.const 1
+i32.add
+global.set $AUXOVERFLOW
+global.get $AUXOVERFLOW
+i32.const 0
+i32.lt_s
+(if
+	(then
+		i32.const 177
+		i32.const 75
+		call $log
+		call $exit
+	)
+)
+global.get $AUXOVERFLOW
+call $console_log_i32
+i32.const 820
+i32.const 8
+call $log
+global.get $globalAt2V1
+call $console_log_i32
+global.get $globalAt2V2
+call $console_log_i32
+global.get $globalAt2V3
+call $console_log_i32
+)
+(else
+	i32.const 907
+	i32.const 4
+	call $log
+)
 )
 )
 	(export "main" (func $main))

@@ -18,13 +18,38 @@ BEGIN
 	t1{1}:= 1;
 	t1{2}:= 2;
 	t1{3}:= 3;
+	outf([impresion t1:]);
+	outf(t1);
 	t1{1}:= t1{t1{t1{3}}}  +t1{1} * t1{3};
+	outf([ impresion t1 deespues de t1{t1{t1{3}}}  +t1{1} * t1{3}]);
+	outf(t1);
 	t2{funcion1(funcion2(5))}:=t1{ funcion1(ulongint d)};
+	outf([impresion t2 despues de t2{funcion1(funcion2(5))}:=t1{ funcion1(ulongint d)}]);
 	outf(t2);
-	if( (t1 , t1{funcion1(1000)} , t1{1} * 5 + t1{t1{2}}) > (t2,  t1{1} - 1 ,t3{1} + t2{1} ) )
+	t2{3}:= t2{3};
+	outf([impresion t2 despues de t2{3}]);
+	outf(t2);
+	t1{1}:= t1{1} + 1;
+	t1 := t1 + t1 * t1;
+	outf([impresion t1 despues de t1{1}:= t1{1} + 1 y t1:= t1 + t1 * t1]);
+	outf(t1);
+	if( ( t1 + t1, t1{1} + 2, t1) > ( t2 + t2 - t2, t3{1} + 1,t2 ) )
 	then
 	begin
+		outf([pattern lado izquierdo:]);
+		outf([then, t1 + t1]);
+		outf(t1 + t1);
+		outf([then, t1{1} + 2]);
+		outf(t1{1} + 2);
+		outf([then, t1]);
 		outf(t1);
+		outf([pattern lado derecho:]);
+		outf([then, t2 + t2 - t2]);
+		outf(t2 + t2 - t2);
+		outf([then, t3{1} + 1]);
+		outf(t3{1} + 1);
+		outf([then, t2]);
+		outf(t2);
 	end
 	else
 	begin

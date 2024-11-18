@@ -73,12 +73,9 @@ condicion	: '('  condicion_2 ')' { $$.sval = $2.sval;}
 		|  condicion_2 ')' { ErrorHandler.addErrorSintactico("Falta de paréntesis izquierdo en la condición", lex.getLineaInicial());}
 		;
 		
-condicion_2 	: expresion_matematica comparador {
-				if(gc.esTercetoTripla($1.sval, this.ts)){gc.addTerceto("FINLADOIZQ", "-", "-");}
-				
-				} expresion_matematica { 
+condicion_2 	: expresion_matematica comparador expresion_matematica { 
 				String op1 = gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
-				String op2 = gc.checkDeclaracion($4.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
+				String op2 = gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
 				if(op1 != null && op2 != null){
 					$$.sval = gc.addTerceto($2.sval, op1, op2);
 					gc.checkTipo(gc.getPosActual(), lex.getLineaInicial(), this.ts, this.ambitoActual, $2.sval);
@@ -98,26 +95,22 @@ condicion_2 	: expresion_matematica comparador {
 patron_izq	: lista_patron_izq ',' expresion_matematica { this.iniciarPatron(); this.cantPatronIzq++; $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 		;
 
-lista_patron_izq    : lista_patron_izq ',' expresion_matematica { 
-	if(gc.esTercetoTripla($3.sval, this.ts)){ErrorHandler.addErrorSemantico("No se permite utilizar operaciones entre triplas para un pattern matching.", lex.getLineaInicial());}
+lista_patron_izq    : lista_patron_izq ',' expresion_matematica {
 
 this.iniciarPatron(); this.cantPatronIzq++;$$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 		| expresion_matematica {
-		if(gc.esTercetoTripla($1.sval, this.ts)){ErrorHandler.addErrorSemantico("No se permite utilizar operaciones entre triplas para un pattern matching.", lex.getLineaInicial());}
 				
-		
 		gc.addTerceto("PATRON", "-", "-");
 		this.iniciarPatron(); this.cantPatronIzq=1; $$.sval = gc.addTerceto("COMP", gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");}
 		;
-patron_der	: lista_patron_der ',' expresion_matematica { 
-		if(gc.esTercetoTripla($3.sval, this.ts)){ErrorHandler.addErrorSemantico("No se permite utilizar operaciones entre triplas para un pattern matching.", lex.getLineaInicial());}
-
+patron_der	: lista_patron_der ',' expresion_matematica 
+		{
 this.cantPatronDer++; posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
 		;
 
 lista_patron_der    : lista_patron_der ',' expresion_matematica { this.cantPatronDer++;posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($3.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
-		| expresion_matematica { 
-		if(gc.esTercetoTripla($1.sval, this.ts)){ErrorHandler.addErrorSemantico("No se permite utilizar operaciones entre triplas para un pattern matching.", lex.getLineaInicial());}
+		| expresion_matematica 
+		{
 this.cantPatronDer = 1; posPatron = gc.updateAndCheckSize(this.posPatron, gc.checkDeclaracion($1.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), lex.getLineaInicial(), this.ts, this.ambitoActual); this.posPatron++;}
 		;
 		
@@ -662,7 +655,7 @@ public static String getNombreVariable(int numero) {
 
 public static void main(String[] args) {
     // Verificamos que el nombre de "prueba" sea pasado como argumento
-
+	/*
     if (args.length < 1) {
         System.out.println("Por favor, proporciona el nombre de la prueba como argumento.");
         return;
@@ -670,7 +663,8 @@ public static void main(String[] args) {
 
     // Tomamos el primer argumento como el valor de prueba
     String prueba = args[0];
-    //String prueba = "pruebaCodigoSemantica";
+*/
+    String prueba = "pruebaCodigoSemantica";
     TablaSimbolos tb = new TablaSimbolos();
     GeneradorCodigo gc = new GeneradorCodigo();
     

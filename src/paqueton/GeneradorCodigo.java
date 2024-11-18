@@ -73,6 +73,8 @@ public class GeneradorCodigo {
 		if(t.startsWith("[")) {
 			Terceto terceto = this.getTerceto(Integer.parseInt(t.substring(1,t.length()-1)));
 			String tipo = terceto.getTipo();
+			
+			System.out.println("que hago aca no"+tipo);
 			if(!ts.getAtributo(tipo, AccionSemantica.USO).equals("nombre de tipo tripla")) {
 				return false;
 			} else {
