@@ -373,7 +373,7 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
 			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
-			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
+			String tipo_basico = this.ts.getAtributo(t.getTipo(),"tipotripla");
 			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.lt_u":"f64.lt", "i32.eq", t.getOp1(), t.getOp2());
 		}
 	}
@@ -393,7 +393,7 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
 			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
-			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
+			String tipo_basico = this.ts.getAtributo(t.getTipo(),"tipotripla");
 			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.le_u":"f64.le", "i32.eq", t.getOp1(), t.getOp2());
 		}
 	}
@@ -413,7 +413,7 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
 			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
-			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
+			String tipo_basico = this.ts.getAtributo(t.getTipo(),"tipotripla");
 			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.gt_u":"f64.gt", "i32.eq", t.getOp1(), t.getOp2());
 		}
 	}
@@ -433,7 +433,7 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
 			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
-			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
+			String tipo_basico = this.ts.getAtributo(t.getTipo(),"tipotripla");
 			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.ge_u":"f64.ge", "i32.eq",t.getOp1(), t.getOp2());
 		}
 	}
@@ -453,7 +453,7 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
 			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
-			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
+			String tipo_basico = this.ts.getAtributo(t.getTipo(),"tipotripla");
 			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.eq":"f64.eq", "i32.eq", t.getOp1(), t.getOp2());
 		}
 
@@ -474,7 +474,7 @@ public class GeneradorWasm {
 			this.escribir(cuerpoActual,"local.set $comp"+this.posicionActual);
 			if(!this.hayPatternMatching)this.escribir(cuerpoActual,"local.get $comp"+this.posicionActual);
 		} else {
-			String tipo_basico = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO);
+			String tipo_basico = this.ts.getAtributo(t.getTipo(),"tipotripla");
 			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.ne":"f64.ne", "i32.eq", t.getOp1(), t.getOp2());
 		}
 	}
@@ -598,12 +598,21 @@ public class GeneradorWasm {
 		String op1 = t.getOp1();
 		String op2 = t.getOp2().replace(':', 'A');
 		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
-		
+		System.out.println(op1);
 	    Matcher matcher1 = pattern.matcher(op1);
 	    Matcher matcher2 = pattern.matcher(op2);
 	    boolean find1 = matcher1.find();
 	    boolean find2 = matcher2.find();
-	    String tipo = this.ts.getAtributo(op1, AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64";
+	    String tipo;
+	    if(!find1) {
+	    	tipo = this.ts.getAtributo(op1, AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64";
+	    	System.out.println(tipo);
+	    }else {
+	    	String tipoTripla = t.getTipo();
+	    	System.out.println(tipoTripla);
+	    	tipo = ts.getAtributo(tipoTripla,"tipotripla").equals("ulongint")?"i32":"f64";
+	    	System.out.println(tipo);
+	    }
 	    String operacion = tipo + sufijoOperacion;
 	    String aux = "";
 	    String aux2 = "";
@@ -734,9 +743,7 @@ public class GeneradorWasm {
 	}
 	
 	private void comparacionTripla(String comp, String eq, String op1, String op2) {
-		if(calculoLadoDerecho) {
-			this.calculoLadoDerecho = false;
-		}
+
 		String op1v1 = "";
 		String op1v2 = "";
 		String op1v3 = "";
@@ -754,7 +761,7 @@ public class GeneradorWasm {
 				aux="AUX2";
 			String indice = op1.substring(1, op1.length()-1);
 			String tipo = gc_main.getTerceto(Integer.parseInt(indice)).getTipo();
-			tipo = this.ts.getAtributo(tipo, AccionSemantica.TIPO_BASICO);
+			tipo = this.ts.getAtributo(tipo,"tipotripla");
 			tipo = tipo.equals("ulongint")?"i32":"f64";
 			op1v1 = aux+"V1"+tipo;
 			op1v2 = aux+"V2"+tipo;
@@ -775,7 +782,7 @@ public class GeneradorWasm {
 			String indice = op2.substring(1, op2.length()-1);
 			String tipo = gc_main.getTerceto(Integer.parseInt(indice)).getTipo();
 			if(!tipo.equals("double") && !tipo.equals("ulongint")) {
-				tipo = this.ts.getAtributo(tipo, AccionSemantica.TIPO_BASICO);
+				tipo = this.ts.getAtributo(tipo,"tipotripla");
 			}
 			tipo = tipo.equals("ulongint")?"i32":"f64";
 			op2v1 = aux2+"V1"+tipo;
@@ -824,12 +831,8 @@ public class GeneradorWasm {
 	}
 	
 
-	private void setAuxTripla(String tipo) {
-		
-	}
-	
 
-	
+	//ESTE NO VA , ES VIEJO
 	private void chequearDependenciaAccesos(Terceto t) {
 		String op1 = t.getOp1();
 		String op2 = t.getOp2();
@@ -1058,6 +1061,12 @@ public class GeneradorWasm {
 				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V2");
 				this.escribir(cuerpoActual, "global.get $"+aux+"V3"+tipo);
 				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V3");
+				if(aux.equals("AUX1")) {
+					this.aux1= new String("");
+				}else {
+					this.aux2= new String("");
+				}
+				
 			}else {
 				this.escribir(cuerpoActual, "global.get $" + op2.replace(':', 'A') + "V1");
 				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V1");
@@ -1074,12 +1083,16 @@ public class GeneradorWasm {
 				Terceto tOp2 = gc_main.getTerceto(Integer.parseInt(posicionTercetoOP2));
 				String operadorOp2 = tOp2.getOperador();
 				String tipoOp2 = tOp2.getTipo().equals("ulongint")?"i32":"f64";
+				if(aux1Tripla.equals(t.getOp2()))
+					AuxTripla="auxTripla";
+				else
+					AuxTripla="aux2Tripla";
 				if(operadorOp2.equals("ACCESOTRIPLE")) {
-					if(aux1Tripla.equals(t.getOp2()))
-						AuxTripla="auxTripla";
-					else
-						AuxTripla="aux2Tripla";
 					loQueAsigno = "global.get $"+tipoOp2+AuxTripla;
+				}
+				else {
+					loQueAsigno = "global.get $"+tipoOp2+AuxTripla;
+					this.escribir(cuerpoActual,"global.set $"+tipoOp2+AuxTripla);
 				}
 				
 			}else {
@@ -1239,7 +1252,7 @@ public class GeneradorWasm {
 		}
 		
 	}
-	
+	//VER OUTF
 	private void outf(Terceto t) {
 		String cadmul = t.getOp1();
 		if (cadmul.startsWith("CADMUL:")) {
