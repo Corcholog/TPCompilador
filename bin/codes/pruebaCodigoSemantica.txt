@@ -4,7 +4,17 @@ BEGIN
 	
 	TYPEDEF TRIPLE <ulongint> tripleta;
 	tripleta t1, t2, t3;
-	t1{3} := t1{2};
-	OUTF(t1);
-
+	t3{1}:= t3{1};
+	t3{1}:= 2;
+	t3{1}:= 3;
+	t1{1}:= 1;
+	t1{1}:= 1;
+	t1{1}:= 1;
+	if( t1 + t2 < t2 + t3 * t3)
+	then
+	begin
+		outf(t1);
+		outf(t3);
+	end
+	end_if;
 END
