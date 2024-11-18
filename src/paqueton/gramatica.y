@@ -296,7 +296,7 @@ triple		: ID '{' expresion_matematica '}' {String tipo = gc.getTipoAccesoTripla(
 								ErrorHandler.addErrorSemantico( "La tripla " + idTripla + " nunca fue declarada.", lex.getLineaInicial()) ; 
 								tipo = "error";
 						  	  }
-								$$.sval = $$.sval = gc.addTerceto("ACCESOTRIPLE", idTripla, $3.sval, tipo);
+							 $$.sval = gc.addTerceto("ACCESOTRIPLE", idTripla, $3.sval, tipo);
 							}
 		;
 

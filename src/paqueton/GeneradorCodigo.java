@@ -270,6 +270,7 @@ public class GeneradorCodigo {
 	    	id_izq = t.getOp1();
 		    id_izq = checkDeclaracion(id_izq, lineaActual, ts,ambitoActual); 
 	    	tipo_izq = ts.getAtributo(id_izq, AccionSemantica.TIPO_BASICO);
+	    	id_izq = id;
 	    } else {
 	    	id_izq = id;
 		    id_izq = checkDeclaracion(id_izq, lineaActual, ts,ambitoActual); 
@@ -285,6 +286,7 @@ public class GeneradorCodigo {
 	    	if(t.getOperador().equals("ACCESOTRIPLE")) {
 	    		id_der = t.getOp1();
 			    id_der = checkDeclaracion(id_der, lineaActual, ts,ambitoActual); 
+			    id_der = opAsig;
 	    		tipo_der = t.getTipo();
 	    	} else {
 	    		id_der = opAsig;

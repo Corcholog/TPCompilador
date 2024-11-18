@@ -9,9 +9,7 @@ public class ManejadorErroresEjecucion {
 
     public void agregarError(String clave, String mensaje) {
         MensajeError mensajeError = new MensajeError(direccionMemoriaActual, mensaje);
-        
         erroresEjecucion.put(clave, mensajeError);
-
         direccionMemoriaActual += mensaje.length(); 
     }
 

@@ -927,14 +927,14 @@ public static String getNombreVariable(int numero) {
 public static void main(String[] args) {
     // Verificamos que el nombre de "prueba" sea pasado como argumento
 
-    if (args.length < 1) {
+    /*if (args.length < 1) {
         System.out.println("Por favor, proporciona el nombre de la prueba como argumento.");
         return;
-    }
+    }*/
 
     // Tomamos el primer argumento como el valor de prueba
-    String prueba = args[0];
-    //String prueba = "pruebaCodigoSemantica";
+    //String prueba = args[0];
+    String prueba = "pruebaCodigoSemantica";
     TablaSimbolos tb = new TablaSimbolos();
     GeneradorCodigo gc = new GeneradorCodigo();
     
@@ -951,44 +951,13 @@ public static void main(String[] args) {
     if(ErrorHandler.huboError() == 0){
 	p.gw = new GeneradorWasm(p.ts, p.gc, "assembly");
 	p.gw.traducir();
-	
-        String filePath = Paths.get(System.getProperty("user.dir"))
-                .resolve("wat2wasm")
-                .resolve("bin")
-                .resolve("assembly" + ".wat")
-                .toString();
-
-        // Ruta de salida para el archivo .wasm
-        String outputFilePath = filePath.replace(".wat", ".wasm");
-
-        // Comando para ejecutar wat2wasm
-        String comando = "wat2wasm \"" + filePath + "\" -o \"" + outputFilePath + "\"";
-
-        try {
-            // Construcción del proceso
-            ProcessBuilder processBuilder = new ProcessBuilder();
-            processBuilder.command("cmd.exe", "/c", comando);
-
-            // Iniciar el proceso
-            Process process = processBuilder.start();
-
-            // Esperar a que termine el proceso
-            int exitCode = process.waitFor();
-            if (exitCode == 0) {
-                System.out.println("Conversión a wasm exitosa: " + outputFilePath);
-            } else {
-                System.err.println("Error al convertir el archivo WAT a WASM.");
-            }
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
     System.out.println(ErrorHandler.erroresTraduccion());
     
     if (valido == 0) {
         System.out.println("Se analizo todo el codigo fuente");
     } else {
         System.out.println("No se analizo completamente el codigo fuente, debido a uno o mas errores inesperados");
+    }
     }
 }
 //#line 923 "Parser.java"

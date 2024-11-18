@@ -1,51 +1,10 @@
 nombre
 BEGIN
-	ULONGINT fun funcion1(ulongint k)
-	BEGIN
-		RET(k);
-	END;
-	d := -2.4;
+	ulongint a, b;
 	
-	## se le pasa un parametro double y espera ulongint
-	x := funcion1(d);
-	
-	## redeclaracion de variable con tipo embebido
-	ulongint x;
-	
-	## el tipo del retorno es distinto al de la funcion
-	ULONGINT fun funcion2(double k)
-	BEGIN
-		ULONGINT fun funcion3(ulongint k)
-		BEGIN
-			RET(k);
-		END;
-		RET(k);
-	END;
-	
-	ULONGINT fun funcion4(ulongint a)
-	BEGIN
-		## intenta llamar a funcion que esta en el ambito del hermano.
-		RET(funcion3(a));
-	END;
-	
-	ulongint a;
-	a := funcion2(2.0);
-	
-	## redeclaracion de variable en el mismo ambito
-	ulongint a;
-	
-	## asignacion  de entero a un double
-	d := funcion1(2);
-	
-	## goto pero no hay declaracion de etiqueta
-	GOTO PEPE@;
-	
-	## se llama a funcion que no esta al alcance
-	x := funcion3(2);
-	
-	## se declara etiqueta arriba del goto, no se permite.
-	ADRIEL@;
-	
-	## como no se puede declarar arriba, esto genera el error de que el goto no tiene a donde ir de nuevo.
-	GOTO ADRIEL@;
+	TYPEDEF TRIPLE <ulongint> tripleta;
+	tripleta t1, t2, t3;
+	t1{3} := t1{2};
+	OUTF(t1);
+
 END

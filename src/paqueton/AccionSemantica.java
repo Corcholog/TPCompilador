@@ -1,8 +1,8 @@
 package paqueton;
 import java.math.BigInteger;
 public abstract class AccionSemantica {
-	public static final BigInteger MAX_INT = new BigInteger("4294967296");
-	public static final String MaxIntRepresentable = "4294967295";
+	public static final BigInteger MAX_INT = new BigInteger("2147483648");
+	public static final String MaxIntRepresentable = "2147483647";
     public static final double MIN_DOUBLE = 2.2250738585072015e-308;
     public static final double MAX_DOUBLE = 1.7976931348623156e+308;
     public static final String REPRESENTACION = "representacion";
