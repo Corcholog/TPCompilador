@@ -2,59 +2,7 @@ nombre
 BEGIN
 	ulongint a, b, c;
 	
-	ULONGINT FUN funcion1(double parametro)
-	BEGIN
-		ulongint pepe;
-		DOUBLE FUN funcion2(ulongint parametro2)
-		BEGIN
-			OUTF([SE EJECUTA FUNCION2 QUE ESTA DENTRO DE FUNCION1]);
-			RET (parametro);
-		END;
-		OUTF([EN FUNCION 1]);
-		RET (2);
-	END;
-
-	a := funcion1(double b);
-	b := funcion1(3.0);
 	
-	IF ( (a, b, c) <= ( 1, 2, 3 + 4 ) ) THEN
-	BEGIN
-		OUTF([El pattern matching dio true]);
-	END
-	ELSE
-	BEGIN
-		OUTF([El pattern matching dio false]);
-	END
-	END_IF;
-	
-	IF (d < 12.0) THEN
-	BEGIN
-		OUTF([se utiliza la variable d que es de tipo embebido, y es menor a 12]);
-		OUTF(d);
-		IF(d = 0.0) THEN
-		BEGIN
-			OUTF([d es igual a 0.0 por defecto, esto es un IF anidado]);
-		END
-		END_IF;
-	END
-	END_IF;
-	
-	IF (a < b) THEN
-	BEGIN
-		OUTF([a era menor a b]);
-	END
-	ELSE
-	BEGIN
-		OUTF([a era mayor o igual a b]);
-	END	
-	END_IF;
-
-	IF (b < a) THEN
-	BEGIN
-		b := a;
-		OUTF( [b era menor que a] );
-	END
-	END_IF;
 	
 
 	ulongint i;
@@ -109,7 +57,7 @@ BEGIN
 	END
 	END_IF;
 
-	
+	t2{2} := 10.0;
 	t1{1} := t2{3 - 1} * 2.d-23;
 	OUTF([MUL ACCTRIPLA t2{3 - 1} * 2.d-23 y se guarda en t1{1}]);
 	OUTF(t1{1});
@@ -165,5 +113,23 @@ BEGIN
 	u := 2.0 + u;
 	OUTF([SUMA DOUBLE 2.0 + u]);
 	OUTF(u);
+	
+	TYPEDEF TRIPLE <ulongint> tripoide;
+	tripoide t_1, t_2, t_3;
+	t_1{1}:= 1;
+	t_1{2}:= 2;
+	t_1{3}:= 3;
+	t_1{1}:= t_1{t_1{t_1{3}}}  +t_1{1} * t_1{3};
+	t_2{2}:=1;
+	if( (t_1 , t_1{1} , t_1{1} * 5 + t_1{t_1{2}}) > (t_2,  t_1{1} - 1 ,t_3{1} + t_2{1} ) )
+	then
+	begin
+		outf([Anduvo un espectaculo]);
+	end
+	else
+	begin
+		outf([Me la mande]);
+	end
+	end_if;
 	
 END

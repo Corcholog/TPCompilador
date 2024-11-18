@@ -71,7 +71,8 @@ public abstract class AccionSemantica {
 	        }
 
 	        // Formateo al estilo WebAssembly (notación científica con 'e')
-	        analizador.setConcatActual(String.format("%.16e", value));
+	        String devolver = String.format("%.16e", value).replace(',', '.');
+	        analizador.setConcatActual(devolver);
 
 	    } catch (NumberFormatException e) {
 	        analizador.addWarning("Número inválido para double");

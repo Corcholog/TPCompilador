@@ -1,21 +1,34 @@
 nombre
 BEGIN
 	ulongint a, b;
+	d:=1.0;
+	ulongint fun funcion1 (ulongint boca)
+	begin
+		outf(boca);
+		ret(1);
+	end;
+	
+	ulongint fun funcion2 (ulongint boca)
+	begin
+		ret(1);
+	end;
 	
 	TYPEDEF TRIPLE <ulongint> tripleta;
 	tripleta t1, t2, t3;
 	t1{1}:= 1;
-	t1{2}:= 1;
-	t1{3}:= t1{1}+t1{1};
-	outf(t1);
-	t1 := t1+t1+t1+t1*t3;
-	outf(t1);
-	if( t1 + t1 > t2 + t3 * t3)
+	t1{2}:= 2;
+	t1{3}:= 3;
+	t1{1}:= t1{t1{t1{3}}}  +t1{1} * t1{3};
+	t2{funcion1(funcion2(5))}:=t1{ funcion1(ulongint d)};
+	outf(t2);
+	if( (t1 , t1{funcion1(1000)} , t1{1} * 5 + t1{t1{2}}) > (t2,  t1{1} - 1 ,t3{1} + t2{1} ) )
 	then
 	begin
 		outf(t1);
-		outf(t3);
+	end
+	else
+	begin
+		outf([else]);
 	end
 	end_if;
-
 END
