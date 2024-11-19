@@ -1,0 +1,12 @@
+nombre
+BEGIN
+	ulongint a;
+	ULONGINT fun funcion1(double param)
+	BEGIN
+		a := funcion1(2.0);
+		RET(a);
+	END;
+	
+	a := funcion1(2.0);
+
+END

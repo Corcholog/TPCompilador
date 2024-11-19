@@ -12,9 +12,18 @@ BEGIN
 		RET (parametro);
 	END;
 
+
+
 	a := funcion1(ulongint b);
 	b := funcion1(a + 3);
 	
+	
+	TYPEDEF TRIPLE <double>triplaPar;
+	triplaPar t1,t2;
+	ulongint triplaPrueba;
+	triplaPrueba := funcion1(t1+t2);
+	triplaPrueba := funcion1(t1);
+	triplaPrueba := funcion(double t1);
 	IF (a < b) THEN
 	BEGIN
 		a := b;
