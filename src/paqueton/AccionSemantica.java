@@ -86,7 +86,7 @@ public abstract class AccionSemantica {
 		BigInteger actual = new BigInteger(number, 8);
 		if(actual.compareTo(MAX_INT) >= 0){
 			analizador.addWarning("Constante Ulongint base 8 fuera de rango, se trunco al maximo representable");
-	        BigInteger maxOctalInt = new BigInteger("4294967295");
+	        BigInteger maxOctalInt = new BigInteger("2147483648");
 	        String octalString = maxOctalInt.toString(8);
         	analizador.setConcatActual(maxOctalInt.toString());
 		}else {

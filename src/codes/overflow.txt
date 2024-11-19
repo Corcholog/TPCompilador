@@ -1,0 +1,4 @@
+nombre
+BEGIN
+	x := 2147483647 + 500;
+END

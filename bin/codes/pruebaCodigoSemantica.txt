@@ -2,6 +2,7 @@ nombre
 BEGIN
 	ulongint a, b;
 	d:=1.0;
+	
 	ulongint fun funcion1 (ulongint boca)
 	begin
 		outf(boca);

@@ -19,8 +19,8 @@ public class GeneradorWasm {
 	private String funcionActual;
 	private int posicionActual;
 	private String ident;
+	// Pilas que manejan anidaciones de flujos de control
 	private Stack<String> tipoFlujoActual = new Stack<String>();
-	private Stack<String> ifs;
 	private Stack<String> fors;
 	private Stack<String> bloquesGOTO;
 	private boolean hayPatternMatching = false;
@@ -31,11 +31,12 @@ public class GeneradorWasm {
 	private String aux1Tripla= new String(""); //guardo el dato de acceder a una tripla
 	private String aux2Tripla=new String("");
 	private String aux3Tripla=new String("");
-	///////
+	// Estructuras 
 	private Set<String> accesoTriplas = new HashSet<String>();
 	private Set<String> gotos = new HashSet<String>();
 	private Map<String, Integer> funcionesId= new HashMap<String,Integer>();
 	private ManejadorErroresEjecucion erroresEj = new ManejadorErroresEjecucion();
+	// Variables que arman partes del archivo .wta
 	private StringBuilder variablesGlobales = new StringBuilder();
 	private StringBuilder funciones = new StringBuilder();
 	private StringBuilder inicioMain = new StringBuilder();
@@ -47,9 +48,7 @@ public class GeneradorWasm {
         this.ts = ts;
         this.gc_main = gc;
         this.funcionActual = "";
-        this.ifs = new Stack<String>();
         this.bloquesGOTO = new Stack<String>();
-        this.ifs.add("IF1");
         this.fors = new Stack<String>();
         this.posicionActual = 0;
         this.ident = "";
@@ -67,6 +66,7 @@ public class GeneradorWasm {
         }
     }
 	
+	// Logica de identado
 	private void reducirIdentacion() {
 		int ultimoTabulador = this.ident.lastIndexOf("\t");
 		if (ultimoTabulador != -1) {
@@ -78,6 +78,118 @@ public class GeneradorWasm {
 		this.ident += "\t";
 	}
 	
+	// Carga de variables a webassembly
+	public void cargarErrores() {
+		erroresEj.agregarError("negativo", "\"Error en ejecucion: El resultado de una operacion sin signo dio negativo.\")");
+		erroresEj.agregarError("overflow", "\"Error en ejecucion: El resultado de una suma de enteros genero overflow.\")");
+		erroresEj.agregarError("recursion", "\"Error en ejecucion: se realizo una recursion sobre una funcion.\")");
+		erroresEj.agregarError("rango", "\"Error en ejecucion: indice fuera de rango.\")");
+		erroresEj.agregarError("conversionErronea", "\"Error en ejecucion: se intenta realizar una conversion de flotante negativo a entero sin signo.\")");
+		for (String error : erroresEj.getErrores().keySet()) {
+			this.escribir(this.variablesGlobales, "(data (i32.const " + erroresEj.getDir(error) + ")" +  erroresEj.getMsj(error));
+		}
+	}
+	
+	public void cargarCadmuls() {
+		Map<String, Integer> cadmuls = this.ts.getCadenas();
+		Integer dirMem = erroresEj.getDirMax();
+		for(String key : cadmuls.keySet()) {
+			this.escribir(this.variablesGlobales,"(data (i32.const " + dirMem + ") \"" + key.substring("CADMUL:".length()) + "\")");
+			this.ts.setPosicionMemoria(key, dirMem);
+			dirMem+= key.length();
+		}
+	}
+	
+	public void cargarVariables() {
+		Map<String, Map<String, String>> tabla = this.ts.getTabla();
+		for (Map.Entry<String, Map<String, String>> entry : tabla.entrySet()) {
+			String key = entry.getKey();
+			Map<String, String> val = entry.getValue();
+			if("nombre variable".equals(val.get(AccionSemantica.USO))) {
+				String tipoVar = val.get(AccionSemantica.TIPO);
+				switch(tipoVar) {
+				case "ulongint": tipoVar = "i32";break;
+				case "double": tipoVar = "f64";break;
+				default: tipoVar = val.get(AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64"; 
+					String key1 = key + "V1";
+					this.escribir(this.variablesGlobales,"(global $"+key1.replace(':', 'A')+" (mut " +tipoVar+")" + "(" + tipoVar + ".const 0))");
+					String key2 = key + "V2";
+					this.escribir(this.variablesGlobales,"(global $"+key2.replace(':', 'A')+" (mut " +tipoVar+")" + "(" + tipoVar + ".const 0))");
+					key = key + "V3";
+				break;
+				}
+				this.escribir(this.variablesGlobales,"(global $"+key.replace(':', 'A')+" (mut " +tipoVar+")" + "(" + tipoVar + ".const 0))");
+			}
+		}
+		this.escribir(this.variablesGlobales, "(global $funcionLlamadora (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUXOVERFLOW (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $f64auxTripla (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $i32auxTripla (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $f64aux2Tripla (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $i32aux2Tripla (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $f64aux3Tripla (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $i32aux3Tripla (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX1V1i32 (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX1V2i32 (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX1V3i32 (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX2V1i32 (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX2V2i32 (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX2V3i32 (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX1V1f64 (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX1V2f64 (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX1V3f64 (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX2V1f64 (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX2V2f64 (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX2V3f64 (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX3V1f64 (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX3V2f64 (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX3V3f64 (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX3V1i32 (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX3V2i32 (mut i32) (i32.const 0))");
+		this.escribir(this.variablesGlobales, "(global $AUX3V3i32 (mut i32) (i32.const 0))");
+	}
+	
+	// Bucle principal de la traduccion
+	
+	public void ejecutarTraduccion(Terceto t) {
+		String operador = t.getOperador().toLowerCase();
+		switch(operador) {
+			case "*": this.producto(t); break;
+			case "/": this.division(t); break;
+			case "+": this.suma(t); break;
+			case "-": this.resta(t); break;
+			case "<": this.menor(t); break;
+			case "<=": this.menorIgual(t); break;
+			case ">": this.mayor(t); break;
+			case ">=": this.mayorIgual(t); break;
+			case "=": this.igual(t); break;
+			case "!=": this.distinto(t); break;
+			case "and": this.hayPatternMatching = false; this.and(t);  break;
+			case "nand": this.hayPatternMatching = false; this.nand(t);  break;
+			case "bi": this.bifurcacionIncondicional(t); break;
+			case "bf": this.bifurcacionPorFalso(t); break;
+			case ":=": this.asignacion(t); break;
+			case "todouble": this.toDouble(t); break;
+			case "inicioif": this.tipoFlujoActual.push("IF"); break;
+			case "patron": this.hayPatternMatching = true; break;
+			case "toulongint": this.toUlongint(t); break;
+			case "invoc_fun": this.invocacionFuncion(t); break;
+			case "ret": this.retornoFuncion(t); break;
+			case "outf": this.outf(t); break;
+			case "accesotriple": this.accesoTriple(t);break;
+			case "asigtripla" : this.asigTripla(t); break;
+			case "goto": this.saltoIncondicional(t); break;
+			case "tag": this.generarTag(t); break;
+			
+			default: 
+				if (operador.matches("^label\\d*")) {
+					this.generarLabel(t);
+			    }
+			    break;
+		}
+		t.setHecho(true);
+	}
+		
 	public void traducir() {
 		this.escribir(this.variablesGlobales,"(module");
 		this.escribir(this.variablesGlobales,"(import \"console\" \"log\" (func $log (param i32 i32)))");
@@ -168,129 +280,8 @@ public class GeneradorWasm {
 		this.escribeArchivo();
 	}
 	
-	public void agregarBloquesGoto(StringBuilder sb) {
-	    while (!bloquesGOTO.isEmpty()) {
-	        sb.append(bloquesGOTO.pop()).append("\n");
-	    }
-	}
 
-	public void cargarErrores() {
-		erroresEj.agregarError("negativo", "\"Error en ejecucion: El resultado de una operacion sin signo dio negativo.\")");
-		erroresEj.agregarError("overflow", "\"Error en ejecucion: El resultado de una suma de enteros genero overflow.\")");
-		erroresEj.agregarError("recursion", "\"Error en ejecucion: se realizo una recursion sobre una funcion.\")");
-		erroresEj.agregarError("rango", "\"Error en ejecucion: indice fuera de rango.\")");
-		erroresEj.agregarError("conversionErronea", "\"Error en ejecucion: se intenta realizar una conversion de flotante negativo a entero sin signo.\")");
-		for (String error : erroresEj.getErrores().keySet()) {
-			this.escribir(this.variablesGlobales, "(data (i32.const " + erroresEj.getDir(error) + ")" +  erroresEj.getMsj(error));
-		}
-	}
-	
-	public void cargarCadmuls() {
-		Map<String, Integer> cadmuls = this.ts.getCadenas();
-		Integer dirMem = erroresEj.getDirMax();
-		for(String key : cadmuls.keySet()) {
-			this.escribir(this.variablesGlobales,"(data (i32.const " + dirMem + ") \"" + key.substring("CADMUL:".length()) + "\")");
-			this.ts.setPosicionMemoria(key, dirMem);
-			dirMem+= key.length();
-		}
-	}
-	
-	public void cargarVariables() {
-		Map<String, Map<String, String>> tabla = this.ts.getTabla();
-		for (Map.Entry<String, Map<String, String>> entry : tabla.entrySet()) {
-			String key = entry.getKey();
-			Map<String, String> val = entry.getValue();
-			if("nombre variable".equals(val.get(AccionSemantica.USO))) {
-				String tipoVar = val.get(AccionSemantica.TIPO);
-				switch(tipoVar) {
-				case "ulongint": tipoVar = "i32";break;
-				case "double": tipoVar = "f64";break;
-				default: tipoVar = val.get(AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64"; 
-					String key1 = key + "V1";
-					this.escribir(this.variablesGlobales,"(global $"+key1.replace(':', 'A')+" (mut " +tipoVar+")" + "(" + tipoVar + ".const 0))");
-					String key2 = key + "V2";
-					this.escribir(this.variablesGlobales,"(global $"+key2.replace(':', 'A')+" (mut " +tipoVar+")" + "(" + tipoVar + ".const 0))");
-					key = key + "V3";
-				break;
-				}
-				this.escribir(this.variablesGlobales,"(global $"+key.replace(':', 'A')+" (mut " +tipoVar+")" + "(" + tipoVar + ".const 0))");
-			}
-		}
-		this.escribir(this.variablesGlobales, "(global $funcionLlamadora (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUXOVERFLOW (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $f64auxTripla (mut f64) (f64.const 0))");
-		this.escribir(this.variablesGlobales, "(global $i32auxTripla (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $f64aux2Tripla (mut f64) (f64.const 0))");
-		this.escribir(this.variablesGlobales, "(global $i32aux2Tripla (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $f64aux3Tripla (mut f64) (f64.const 0))");
-		this.escribir(this.variablesGlobales, "(global $i32aux3Tripla (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX1V1i32 (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX1V2i32 (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX1V3i32 (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX2V1i32 (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX2V2i32 (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX2V3i32 (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX1V1f64 (mut f64) (f64.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX1V2f64 (mut f64) (f64.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX1V3f64 (mut f64) (f64.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX2V1f64 (mut f64) (f64.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX2V2f64 (mut f64) (f64.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX2V3f64 (mut f64) (f64.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX3V1f64 (mut f64) (f64.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX3V2f64 (mut f64) (f64.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX3V3f64 (mut f64) (f64.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX3V1i32 (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX3V2i32 (mut i32) (i32.const 0))");
-		this.escribir(this.variablesGlobales, "(global $AUX3V3i32 (mut i32) (i32.const 0))");
-	}
-	
-	public void ejecutarTraduccion(Terceto t) {
-		String operador = t.getOperador().toLowerCase();
-		switch(operador) {
-			case "*": this.producto(t); break;
-			case "/": this.division(t); break;
-			case "+": this.suma(t); break;
-			case "-": this.resta(t); break;
-			case "<": this.menor(t); break;
-			case "<=": this.menorIgual(t); break;
-			case ">": this.mayor(t); break;
-			case ">=": this.mayorIgual(t); break;
-			case "=": this.igual(t); break;
-			case "!=": this.distinto(t); break;
-			case "and": this.hayPatternMatching = false; this.and(t);  break;
-			case "nand": this.hayPatternMatching = false; this.nand(t);  break;
-			case "bi": this.bifurcacionIncondicional(t); break;
-			case "bf": this.bifurcacionPorFalso(t); break;
-			case ":=": this.asignacion(t); break;
-			case "todouble": this.toDouble(t); break;
-			case "inicioif": this.tipoFlujoActual.push("IF"); break;
-			case "patron": this.hayPatternMatching = true; break;
-			case "toulongint": this.toUlongint(t); break;
-			case "invoc_fun": this.invocacionFuncion(t); break;
-			case "ret": this.retornoFuncion(t); break;
-			case "outf": this.outf(t); break;
-			case "accesotriple": this.accesoTriple(t);break;
-			case "asigtripla" : this.asigTripla(t); break;
-			case "goto": this.saltoIncondicional(t); break;
-			case "tag": this.generarTag(t); break;
-			
-			default: 
-				if (operador.matches("^label\\d*")) {
-					this.generarLabel(t);
-			    }
-			    break;
-		}
-		t.setHecho(true);
-	}
-	
-	private void nand(Terceto t) {
-		this.obtenerComparaciones(t);
-		this.escribir(cuerpoActual,"i32.and");
-		this.escribir(cuerpoActual,"i32.eqz");
-		
-	}
-	
-	
+	// Obtencion de operandos para la pila de webAssembly
 	private void obtenerGets(Terceto t) {
 		this.obtenerGets(t, true);
 	}
@@ -384,16 +375,8 @@ public class GeneradorWasm {
 	    this.posicionActual = pos;
 	}
 
-	private void obtenerComparaciones(Terceto t) {
-		int comp1 = Integer.parseInt(t.getOp1().split("\\[|\\]")[1]);
-		int comp2 = Integer.parseInt(t.getOp2().split("\\[|\\]")[1]);
-		
-		if(!gc_main.getTerceto(this.posicionActual-1).getOperador().equals("AND")) 
-			this.escribir(cuerpoActual,"local.get $comp"+comp1);
-			
-		this.escribir(cuerpoActual,"local.get $comp"+comp2);
-	}
-	//Comparacions----------------------------------------------------------------------------------------
+
+	//Comparaciones----------------------------------------------------------------------------------------
  	private void menor(Terceto t) { 
 		String tipo = t.getTipo();
 		if(tipo.equals("double")) {
@@ -514,333 +497,19 @@ public class GeneradorWasm {
 			this.comparacionTripla(tipo_basico.equals("ulongint")? "i32.ne":"f64.ne", "i32.eq", t.getOp1(), t.getOp2());
 		}
 	}
-	//aritmeticos-----------------------------------------------------------------------
-	private void suma(Terceto t) {
-		String tipo = t.getTipo();
-		if(tipo.equals("double")) {
-			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"f64.add");
-		} else if(tipo.equals("ulongint")) {
-			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"i32.add");
-			this.escribir(cuerpoActual, "global.set $AUXOVERFLOW");
-			this.checkOverflow("global.get $AUXOVERFLOW", "overflow");
-			this.escribir(cuerpoActual, "global.get $AUXOVERFLOW");
-		} else {
-			this.aritmeticaTripla(t, ".add");
-		}
+	
+	private void and(Terceto t) {
+		this.obtenerComparaciones(t);
+		this.escribir(cuerpoActual,"i32.and");
 	}
 	
-	
-	private void checkOverflow(String get, String error) {
-		this.escribir(cuerpoActual, get);
-		this.escribir(cuerpoActual, "i32.const 0");
-		this.escribir(cuerpoActual, "i32.lt_s");
-		this.escribir(cuerpoActual,"(if");
-		this.aumentarIdentacion();
-		this.escribir(cuerpoActual,"(then");
-		this.aumentarIdentacion();
-		this.escribir(cuerpoActual, "i32.const "+erroresEj.getDir(error));
-		this.escribir(cuerpoActual, "i32.const "+erroresEj.getSizeMsj(error));
-		this.escribir(cuerpoActual, "call $log");
-		this.escribir(cuerpoActual, "call $exit");
-		this.reducirIdentacion();
-		this.escribir(cuerpoActual,")");
-		this.reducirIdentacion();
-		this.escribir(cuerpoActual,")");
-	}
-
-	private void resta(Terceto t) {
-		String tipo = t.getTipo();
-		if(tipo.equals("double")) {
-			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"f64.sub");
-		} else if(tipo.equals("ulongint")) {
-			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"i32.sub");
-			this.escribir(cuerpoActual, "global.set $AUXOVERFLOW");
-			this.checkOverflow("global.get $AUXOVERFLOW", "negativo");
-			this.escribir(cuerpoActual, "global.get $AUXOVERFLOW");
-		} else {
-			this.aritmeticaTripla(t, ".sub");
-		}
-	}
-
-	private void producto(Terceto t) {
-		String tipo = t.getTipo();
-		if(tipo.equals("double")) {
-			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"f64.mul");
-		} else if(tipo.equals("ulongint")) {
-			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"i32.mul");
-		} else {
-			this.aritmeticaTripla(t, ".mul");
-		}
-	}
-
-	private void division(Terceto t) {
-		String tipo = t.getTipo();
-		if(tipo.equals("double")) {
-			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"f64.div");
-		} else if(tipo.equals("ulongint")) {
-			this.obtenerGets(t);
-			this.escribir(cuerpoActual,"i32.div_u");
-		} else {
-			this.aritmeticaTripla(t, this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO).equals("ulongint")?".div_u":".div");
-		}
-	}
-	
-	private void asigTripla(Terceto t) {
-		String op1 = t.getOp1();
-		String op2 = t.getOp2();
-		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
-		
-		Matcher matcher1 = pattern.matcher(op2);
-		boolean find = matcher1.find();
-		if(!find) {
-			if(op2.matches("^[0-9].*")) {
-				this.escribir(cuerpoActual, "i32.const "+op2);
-			}else {
-				this.escribir(cuerpoActual,"global.get $"+op2.replace(':', 'A'));	
-			}
-		}
-		if(!this.accesoTriplas.contains(op1)) {
-			this.escribir(variablesGlobales, "(global $accesoAsig"+op1.replace(':', 'A')+ " (mut i32) (i32.const 1))");
-			this.escribir(variablesGlobales, "(global $acceso"+op1.replace(':', 'A')+  " (mut i32) (i32.const 1))");
-			this.accesoTriplas.add(op1);
-		}
-		this.escribir(cuerpoActual, "global.set $accesoAsig"+op1.replace(':', 'A'));
-	}
-	
-	private void aritmeticaTripla(Terceto t, String sufijoOperacion) {
-		String op1 = t.getOp1();
-		String op2 = t.getOp2().replace(':', 'A');
-		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
-		System.out.println(op1);
-	    Matcher matcher1 = pattern.matcher(op1);
-	    Matcher matcher2 = pattern.matcher(op2);
-	    boolean find1 = matcher1.find();
-	    boolean find2 = matcher2.find();
-	    int pos = this.posicionActual;
-	    String tipo;
-	    if(!find1) {
-	    	tipo = this.ts.getAtributo(op1, AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64";
-	    	System.out.println(tipo);
-	    }else {
-	    	String tipoTripla = t.getTipo();
-	    	System.out.println(tipoTripla);
-	    	tipo = ts.getAtributo(tipoTripla,"tipotripla").equals("ulongint")?"i32":"f64";
-	    	System.out.println(tipo);
-	    }
-	    String operacion = tipo + sufijoOperacion;
-	    String aux = "";
-	    String aux2 = "";
-	    op1 = op1.replace(':', 'A');
-	    
-	    
-
-    	if(find1 && !find2) {
-	    	int indiceTerceto = Integer.parseInt(matcher1.group(1)); //operando1
-	    	Terceto t_op1 = gc_main.getTerceto(indiceTerceto);
-    		if(this.posicionActual < indiceTerceto) {
-	    		this.posicionActual = indiceTerceto;
-	    		this.ejecutarTraduccion(t_op1);
-	    	}else if(this.posicionActual > indiceTerceto && !t_op1.isHecho()) {
-	    		this.posicionActual = indiceTerceto;
-	    		this.ejecutarTraduccion(t_op1);
-	    	}
-			this.posicionActual=pos;
-    		
-    		if(this.aux1.equals(t.getOp1()))
-    			aux="AUX1";
-    		else if(this.aux2.equals(t.getOp1()))
-    			aux="AUX2";
-    		else
-    			aux="AUX3";
-    		this.escribir(cuerpoActual, "global.get $"+aux+"V1"+tipo);
-    		this.escribir(cuerpoActual, "global.get $"+op2+"V1");
-    		this.escribir(cuerpoActual, operacion);
-    		
-    		this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
-    		
-    		this.escribir(cuerpoActual, "global.get $"+aux+"V2"+tipo);
-    		this.escribir(cuerpoActual, "global.get $"+op2+"V2");
-    		this.escribir(cuerpoActual, operacion);
-    		this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
-    		
-    		this.escribir(cuerpoActual, "global.get $"+aux+"V3"+tipo);
-    		this.escribir(cuerpoActual, "global.get $"+op2+"V3");
-    		this.escribir(cuerpoActual, operacion);
-    		this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
-    		System.out.println("caso antes 1 0 :"+aux);
-    		if(aux.equals("AUX1")) {
-    			this.aux1="["+this.posicionActual+"]";
-    		}else if(aux.equals("AUX2")){
-    			this.aux2="["+this.posicionActual+"]";
-    		}else {
-    			this.aux3="["+this.posicionActual+"]";
-    		}
-    		System.out.println("caso despues 1 0 :"+aux);
-    	} else if(find1 && find2) {
-    		int indiceTerceto = Integer.parseInt(matcher1.group(1)); //operando1
-	    	Terceto t_op1 = gc_main.getTerceto(indiceTerceto);
-    		if(this.posicionActual < indiceTerceto) {
-	    		this.posicionActual = indiceTerceto;
-	    		this.ejecutarTraduccion(t_op1);
-	    	}else if(this.posicionActual > indiceTerceto && !t_op1.isHecho()) {
-	    		this.posicionActual = indiceTerceto;
-	    		this.ejecutarTraduccion(t_op1);
-	    	}
-			this.posicionActual=pos;
-			
-			int indiceTerceto2 = Integer.parseInt(matcher2.group(1)); //operando2
-	    	Terceto t_op2 = gc_main.getTerceto(indiceTerceto2);
-    		if(this.posicionActual < indiceTerceto2) {
-	    		this.posicionActual = indiceTerceto2;
-	    		this.ejecutarTraduccion(t_op2);
-	    	}else if(this.posicionActual > indiceTerceto2 && !t_op2.isHecho()) {
-	    		this.posicionActual = indiceTerceto2;
-	    		this.ejecutarTraduccion(t_op2);
-	    	}
-			this.posicionActual=pos;
-			
-    		System.out.println("acaaaa aux1"+this.aux1+" aux2 "+this.aux2+" aux 3 "+this.aux3+ " posicion"+this.posicionActual);
-    		if(this.aux1.equals(t.getOp1()))
-    			aux="AUX1";
-    		if(this.aux2.equals(t.getOp1()))
-    			aux="AUX2";
-    		if(this.aux3.equals(t.getOp1()))
-    			aux="AUX3";
-    		if(this.aux1.equals(t.getOp2()))
-    			aux2="AUX1";
-    		if(this.aux2.equals(t.getOp2()))
-    			aux2="AUX2";
-    		if(this.aux3.equals(t.getOp2()))
-    			aux2="AUX3";
-    		this.escribir(cuerpoActual, "global.get $"+aux+"V1"+tipo);
-    		this.escribir(cuerpoActual, "global.get $"+aux2+"V1"+tipo);
-    		this.escribir(cuerpoActual, operacion);
-    		this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
-    		
-    		this.escribir(cuerpoActual, "global.get $"+aux+"V2"+tipo);
-    		this.escribir(cuerpoActual, "global.get $"+aux2+"V2"+tipo);
-    		this.escribir(cuerpoActual, operacion);
-    		this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
-    		
-    		this.escribir(cuerpoActual, "global.get $"+aux+"V3"+tipo);
-    		this.escribir(cuerpoActual, "global.get $"+aux2+"V3"+tipo);
-    		this.escribir(cuerpoActual, operacion);
-    		this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
-    		System.out.println("caso antes 1 1 :"+aux+" 2: "+aux2);
-    		if(aux.equals("AUX1"))
-    			this.aux1="["+this.posicionActual+"]";
-    		if(aux.equals("AUX2"))
-    			this.aux2="["+this.posicionActual+"]";
-    		if(aux.equals("AUX3"))
-    			this.aux3="["+this.posicionActual+"]";
-    		if(aux2.equals("AUX1"))
-    			this.aux1=new String("");
-    		if(aux2.equals("AUX2"))
-    			this.aux2=new String("");
-    		if(aux2.equals("AUX3"))
-    			this.aux3=new String("");
-    		System.out.println("caso despues 1 1 :"+aux+"2: "+aux2);
-    	} else if(!find1 && find2){
-    		
-    		int indiceTerceto2 = Integer.parseInt(matcher2.group(1)); //operando1
-	    	Terceto t_op2 = gc_main.getTerceto(indiceTerceto2);
-    		if(this.posicionActual < indiceTerceto2) {
-	    		this.posicionActual = indiceTerceto2;
-	    		this.ejecutarTraduccion(t_op2);
-	    	}else if(this.posicionActual > indiceTerceto2 && !t_op2.isHecho()) {
-	    		this.posicionActual = indiceTerceto2;
-	    		this.ejecutarTraduccion(t_op2);
-	    	}
-			this.posicionActual=pos;
-    		
-    		if(this.aux1.equals(t.getOp2()))
-    			aux="AUX1";
-    		else if(this.aux2.equals(t.getOp2()))
-    			aux="AUX2";
-    		else
-    			aux="AUX3";
-    		this.escribir(cuerpoActual, "global.get $"+aux+"V1"+tipo);
-    		this.escribir(cuerpoActual, "global.get $"+op1+"V1");
-    		this.escribir(cuerpoActual, operacion);
-    		
-    		this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
-    		
-    		this.escribir(cuerpoActual, "global.get $"+aux+"V2"+tipo);
-    		this.escribir(cuerpoActual, "global.get $"+op1+"V2");
-    		this.escribir(cuerpoActual, operacion);
-    		this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
-    		
-    		this.escribir(cuerpoActual, "global.get $"+aux+"V3"+tipo);
-    		this.escribir(cuerpoActual, "global.get $"+op1+"V3");
-    		this.escribir(cuerpoActual, operacion);
-    		this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
-    		System.out.println("caso antes 0 1 :"+aux);
-    		if(aux.equals("AUX1")) {
-    			this.aux1="["+this.posicionActual+"]";
-    		}else if(aux.equals("AUX2")){
-    			this.aux2="["+this.posicionActual+"]";
-    		}else {
-    			this.aux3="["+this.posicionActual+"]";
-    		}
-    		System.out.println("caso despues 0 1 :"+aux);
-    	} else {
-    		
-    		if(this.aux1.equals(new String("")) ) {
-    			aux = "AUX1";
-    		}else if(this.aux2.equals(new String("")) ) {
-    			aux = "AUX2";
-    		}else {
-    			aux = "AUX3";
-    		}
-    		System.out.println("seteo el aux :"+aux);
-    	
-    		this.escribir(cuerpoActual, "global.get $"+op1+"V1");
-    		this.escribir(cuerpoActual, "global.get $"+op2+"V1");
-    		this.escribir(cuerpoActual, operacion);
-    		this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
-    		
-    		this.escribir(cuerpoActual, "global.get $"+op1+"V2");
-    		this.escribir(cuerpoActual, "global.get $"+op2+"V2");
-    		this.escribir(cuerpoActual, operacion);
-    		this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
-    		
-    		this.escribir(cuerpoActual, "global.get $"+op1+"V3");
-    		this.escribir(cuerpoActual, "global.get $"+op2+"V3");
-    		this.escribir(cuerpoActual, operacion);
-    		this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
-    		System.out.println("guardo en el aux :"+aux);
-    		if(aux.equals("AUX1")) {
-    			this.aux1="["+this.posicionActual+"]";
-    		}else if(aux.equals("AUX2")){
-    			this.aux2="["+this.posicionActual+"]";
-    		}else {
-    			this.aux3="["+this.posicionActual+"]";
-    		}
-    	}
-    	if(tipo.equals("ulongint") ) {
-    		if(sufijoOperacion.equals("add")) {
-        		this.checkOverflow("global.get $"+aux+"V1"+tipo, "overflow");
-        		this.checkOverflow("global.get $"+aux+"V2"+tipo, "overflow");
-        		this.checkOverflow("global.get $"+aux+"V3"+tipo, "overflow");
-    		}else if(sufijoOperacion.equals("sub")) {
-    			this.checkOverflow("global.get $"+aux+"V1"+tipo, "negativo");
-        		this.checkOverflow("global.get $"+aux+"V2"+tipo, "negativo");
-        		this.checkOverflow("global.get $"+aux+"V3"+tipo, "negativo");
-    		}
-
-    	}
-	    
+	private void nand(Terceto t) {
+		this.obtenerComparaciones(t);
+		this.escribir(cuerpoActual,"i32.and");
+		this.escribir(cuerpoActual,"i32.eqz");
 	}
 	
 	private void comparacionTripla(String comp, String eq, String op1, String op2) {
-		
 		String op1v1 = "";
 		String op1v2 = "";
 		String op1v3 = "";
@@ -859,7 +528,6 @@ public class GeneradorWasm {
 	    	int indiceTerceto = Integer.parseInt(matcher1.group(1)); //operando1
 	    	Terceto t_op1 = gc_main.getTerceto(indiceTerceto);
 
-			//-------- si es despues de este
 			if(this.posicionActual < indiceTerceto) {
 	    		this.posicionActual = indiceTerceto;
 	    		this.ejecutarTraduccion(t_op1);
@@ -868,7 +536,6 @@ public class GeneradorWasm {
 	    		this.ejecutarTraduccion(t_op1);
 	    	}
 			this.posicionActual=pos;
-			//---
 			
 			if(this.aux1.equals(op1))
 				aux="AUX1";
@@ -876,7 +543,6 @@ public class GeneradorWasm {
 				aux="AUX2";
 			else
 				aux="AUX3";
-			System.out.println("auxiliar pa"+aux);
 			String tipo = t_op1.getTipo();
 			tipo = this.ts.getAtributo(tipo,"tipotripla");
 			tipo = tipo.equals("ulongint")?"i32":"f64";
@@ -891,12 +557,11 @@ public class GeneradorWasm {
 			op1v3 = op1+"V3";
 			
 		}
-		if(find2) { // no es siempre aux2 -> si primero no es terceto es aux1
+		if(find2) {
 			
 			int indiceTerceto = Integer.parseInt(matcher2.group(1)); //operando1
 	    	Terceto t_op2 = gc_main.getTerceto(indiceTerceto);
 
-			//-------- si es despues de este
 			if(this.posicionActual < indiceTerceto) {
 	    		this.posicionActual = indiceTerceto;
 	    		this.ejecutarTraduccion(t_op2);
@@ -905,7 +570,6 @@ public class GeneradorWasm {
 	    		this.ejecutarTraduccion(t_op2);
 	    	}
 			this.posicionActual=pos;
-			//---
 			
 			if(this.aux1.equals(op2))
 				aux2="AUX1";
@@ -913,7 +577,6 @@ public class GeneradorWasm {
 				aux2="AUX2";
 			else
 				aux2="AUX3";
-			System.out.println("auxiliar2 pa"+aux2);
 			String tipo = t_op2.getTipo();
 			if(!tipo.equals("double") && !tipo.equals("ulongint")) {
 				tipo = this.ts.getAtributo(tipo,"tipotripla");
@@ -967,11 +630,487 @@ public class GeneradorWasm {
 		
 	}
 	
+	private void obtenerComparaciones(Terceto t) {
+		int comp1 = Integer.parseInt(t.getOp1().split("\\[|\\]")[1]);
+		int comp2 = Integer.parseInt(t.getOp2().split("\\[|\\]")[1]);
+		
+		if(!gc_main.getTerceto(this.posicionActual-1).getOperador().equals("AND")) 
+			this.escribir(cuerpoActual,"local.get $comp"+comp1);
+			
+		this.escribir(cuerpoActual,"local.get $comp"+comp2);
+	}
+	
+	// Operaciones Aritmeticas------------------------------------------------------------
+	
+	private void checkOverflow(String get, String error) {
+		this.escribir(cuerpoActual, get);
+		this.escribir(cuerpoActual, "i32.const 0");
+		this.escribir(cuerpoActual, "i32.lt_s");
+		this.escribir(cuerpoActual,"(if");
+		this.aumentarIdentacion();
+		this.escribir(cuerpoActual,"(then");
+		this.aumentarIdentacion();
+		this.escribir(cuerpoActual, "i32.const "+erroresEj.getDir(error));
+		this.escribir(cuerpoActual, "i32.const "+erroresEj.getSizeMsj(error));
+		this.escribir(cuerpoActual, "call $log");
+		this.escribir(cuerpoActual, "call $exit");
+		this.reducirIdentacion();
+		this.escribir(cuerpoActual,")");
+		this.reducirIdentacion();
+		this.escribir(cuerpoActual,")");
+	}
 
+	private void suma(Terceto t) {
+		String tipo = t.getTipo();
+		if(tipo.equals("double")) {
+			this.obtenerGets(t);
+			this.escribir(cuerpoActual,"f64.add");
+		} else if(tipo.equals("ulongint")) {
+			this.obtenerGets(t);
+			this.escribir(cuerpoActual,"i32.add");
+			this.escribir(cuerpoActual, "global.set $AUXOVERFLOW");
+			this.checkOverflow("global.get $AUXOVERFLOW", "overflow");
+			this.escribir(cuerpoActual, "global.get $AUXOVERFLOW");
+		} else {
+			this.aritmeticaTripla(t, ".add");
+		}
+	}
+	
+	private void resta(Terceto t) {
+		String tipo = t.getTipo();
+		if(tipo.equals("double")) {
+			this.obtenerGets(t);
+			this.escribir(cuerpoActual,"f64.sub");
+		} else if(tipo.equals("ulongint")) {
+			this.obtenerGets(t);
+			this.escribir(cuerpoActual,"i32.sub");
+			this.escribir(cuerpoActual, "global.set $AUXOVERFLOW");
+			this.checkOverflow("global.get $AUXOVERFLOW", "negativo");
+			this.escribir(cuerpoActual, "global.get $AUXOVERFLOW");
+		} else {
+			this.aritmeticaTripla(t, ".sub");
+		}
+	}
 
+	private void producto(Terceto t) {
+		String tipo = t.getTipo();
+		if(tipo.equals("double")) {
+			this.obtenerGets(t);
+			this.escribir(cuerpoActual,"f64.mul");
+		} else if(tipo.equals("ulongint")) {
+			this.obtenerGets(t);
+			this.escribir(cuerpoActual,"i32.mul");
+		} else {
+			this.aritmeticaTripla(t, ".mul");
+		}
+	}
 
+	private void division(Terceto t) {
+		String tipo = t.getTipo();
+		if(tipo.equals("double")) {
+			this.obtenerGets(t);
+			this.escribir(cuerpoActual,"f64.div");
+		} else if(tipo.equals("ulongint")) {
+			this.obtenerGets(t);
+			this.escribir(cuerpoActual,"i32.div_u");
+		} else {
+			this.aritmeticaTripla(t, this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO).equals("ulongint")?".div_u":".div");
+		}
+	}
+	
+	private void aritmeticaTripla(Terceto t, String sufijoOperacion) {
+		String op1 = t.getOp1();
+		String op2 = t.getOp2().replace(':', 'A');
+		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+	    Matcher matcher1 = pattern.matcher(op1);
+	    Matcher matcher2 = pattern.matcher(op2);
+	    boolean find1 = matcher1.find();
+	    boolean find2 = matcher2.find();
+	    int pos = this.posicionActual;
+	    String tipo;
+	    if(!find1) {
+	    	tipo = this.ts.getAtributo(op1, AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64";
+	    }else {
+	    	String tipoTripla = t.getTipo();
+	    	tipo = ts.getAtributo(tipoTripla,"tipotripla").equals("ulongint")?"i32":"f64";
+	    }
+	    String operacion = tipo + sufijoOperacion;
+	    String aux = "";
+	    String aux2 = "";
+	    op1 = op1.replace(':', 'A');
+	    
+	    
 
+    	if(find1 && !find2) {
+	    	int indiceTerceto = Integer.parseInt(matcher1.group(1)); //operando1
+	    	Terceto t_op1 = gc_main.getTerceto(indiceTerceto);
+    		if(this.posicionActual < indiceTerceto) {
+	    		this.posicionActual = indiceTerceto;
+	    		this.ejecutarTraduccion(t_op1);
+	    	}else if(this.posicionActual > indiceTerceto && !t_op1.isHecho()) {
+	    		this.posicionActual = indiceTerceto;
+	    		this.ejecutarTraduccion(t_op1);
+	    	}
+			this.posicionActual=pos;
+    		
+    		if(this.aux1.equals(t.getOp1()))
+    			aux="AUX1";
+    		else if(this.aux2.equals(t.getOp1()))
+    			aux="AUX2";
+    		else
+    			aux="AUX3";
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V1"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+op2+"V1");
+    		this.escribir(cuerpoActual, operacion);
+    		
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V2"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+op2+"V2");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V3"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+op2+"V3");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
+    		if(aux.equals("AUX1")) {
+    			this.aux1="["+this.posicionActual+"]";
+    		}else if(aux.equals("AUX2")){
+    			this.aux2="["+this.posicionActual+"]";
+    		}else {
+    			this.aux3="["+this.posicionActual+"]";
+    		}
+    	} else if(find1 && find2) {
+    		int indiceTerceto = Integer.parseInt(matcher1.group(1)); //operando1
+	    	Terceto t_op1 = gc_main.getTerceto(indiceTerceto);
+    		if(this.posicionActual < indiceTerceto) {
+	    		this.posicionActual = indiceTerceto;
+	    		this.ejecutarTraduccion(t_op1);
+	    	}else if(this.posicionActual > indiceTerceto && !t_op1.isHecho()) {
+	    		this.posicionActual = indiceTerceto;
+	    		this.ejecutarTraduccion(t_op1);
+	    	}
+			this.posicionActual=pos;
+			
+			int indiceTerceto2 = Integer.parseInt(matcher2.group(1)); //operando2
+	    	Terceto t_op2 = gc_main.getTerceto(indiceTerceto2);
+    		if(this.posicionActual < indiceTerceto2) {
+	    		this.posicionActual = indiceTerceto2;
+	    		this.ejecutarTraduccion(t_op2);
+	    	}else if(this.posicionActual > indiceTerceto2 && !t_op2.isHecho()) {
+	    		this.posicionActual = indiceTerceto2;
+	    		this.ejecutarTraduccion(t_op2);
+	    	}
+			this.posicionActual=pos;
+			
+    		if(this.aux1.equals(t.getOp1()))
+    			aux="AUX1";
+    		if(this.aux2.equals(t.getOp1()))
+    			aux="AUX2";
+    		if(this.aux3.equals(t.getOp1()))
+    			aux="AUX3";
+    		if(this.aux1.equals(t.getOp2()))
+    			aux2="AUX1";
+    		if(this.aux2.equals(t.getOp2()))
+    			aux2="AUX2";
+    		if(this.aux3.equals(t.getOp2()))
+    			aux2="AUX3";
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V1"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+aux2+"V1"+tipo);
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V2"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+aux2+"V2"+tipo);
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V3"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+aux2+"V3"+tipo);
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
+    		if(aux.equals("AUX1"))
+    			this.aux1="["+this.posicionActual+"]";
+    		if(aux.equals("AUX2"))
+    			this.aux2="["+this.posicionActual+"]";
+    		if(aux.equals("AUX3"))
+    			this.aux3="["+this.posicionActual+"]";
+    		if(aux2.equals("AUX1"))
+    			this.aux1=new String("");
+    		if(aux2.equals("AUX2"))
+    			this.aux2=new String("");
+    		if(aux2.equals("AUX3"))
+    			this.aux3=new String("");
+    	} else if(!find1 && find2){
+    		
+    		int indiceTerceto2 = Integer.parseInt(matcher2.group(1)); //operando1
+	    	Terceto t_op2 = gc_main.getTerceto(indiceTerceto2);
+    		if(this.posicionActual < indiceTerceto2) {
+	    		this.posicionActual = indiceTerceto2;
+	    		this.ejecutarTraduccion(t_op2);
+	    	}else if(this.posicionActual > indiceTerceto2 && !t_op2.isHecho()) {
+	    		this.posicionActual = indiceTerceto2;
+	    		this.ejecutarTraduccion(t_op2);
+	    	}
+			this.posicionActual=pos;
+    		
+    		if(this.aux1.equals(t.getOp2()))
+    			aux="AUX1";
+    		else if(this.aux2.equals(t.getOp2()))
+    			aux="AUX2";
+    		else
+    			aux="AUX3";
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V1"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+op1+"V1");
+    		this.escribir(cuerpoActual, operacion);
+    		
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V2"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+op1+"V2");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+aux+"V3"+tipo);
+    		this.escribir(cuerpoActual, "global.get $"+op1+"V3");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
+    		if(aux.equals("AUX1")) {
+    			this.aux1="["+this.posicionActual+"]";
+    		}else if(aux.equals("AUX2")){
+    			this.aux2="["+this.posicionActual+"]";
+    		}else {
+    			this.aux3="["+this.posicionActual+"]";
+    		}
+    	} else {
+    		
+    		if(this.aux1.equals(new String("")) ) {
+    			aux = "AUX1";
+    		}else if(this.aux2.equals(new String("")) ) {
+    			aux = "AUX2";
+    		}else {
+    			aux = "AUX3";
+    		}
+    	
+    		this.escribir(cuerpoActual, "global.get $"+op1+"V1");
+    		this.escribir(cuerpoActual, "global.get $"+op2+"V1");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V1"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+op1+"V2");
+    		this.escribir(cuerpoActual, "global.get $"+op2+"V2");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V2"+tipo);
+    		
+    		this.escribir(cuerpoActual, "global.get $"+op1+"V3");
+    		this.escribir(cuerpoActual, "global.get $"+op2+"V3");
+    		this.escribir(cuerpoActual, operacion);
+    		this.escribir(cuerpoActual, "global.set $"+aux+"V3"+tipo);
+    		if(aux.equals("AUX1")) {
+    			this.aux1="["+this.posicionActual+"]";
+    		}else if(aux.equals("AUX2")){
+    			this.aux2="["+this.posicionActual+"]";
+    		}else {
+    			this.aux3="["+this.posicionActual+"]";
+    		}
+    	}
+    	if(tipo.equals("ulongint") ) {
+    		if(sufijoOperacion.equals("add")) {
+        		this.checkOverflow("global.get $"+aux+"V1"+tipo, "overflow");
+        		this.checkOverflow("global.get $"+aux+"V2"+tipo, "overflow");
+        		this.checkOverflow("global.get $"+aux+"V3"+tipo, "overflow");
+    		}else if(sufijoOperacion.equals("sub")) {
+    			this.checkOverflow("global.get $"+aux+"V1"+tipo, "negativo");
+        		this.checkOverflow("global.get $"+aux+"V2"+tipo, "negativo");
+        		this.checkOverflow("global.get $"+aux+"V3"+tipo, "negativo");
+    		}
 
+    	}
+	    
+	}
+	
+	//Asignaciones-----------------------------------------------------------------------
+
+	private void asigTripla(Terceto t) {
+		String op1 = t.getOp1();
+		String op2 = t.getOp2();
+		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+		
+		Matcher matcher1 = pattern.matcher(op2);
+		boolean find = matcher1.find();
+		if(!find) {
+			if(op2.matches("^[0-9].*")) {
+				this.escribir(cuerpoActual, "i32.const "+op2);
+			}else {
+				this.escribir(cuerpoActual,"global.get $"+op2.replace(':', 'A'));	
+			}
+		}
+		if(!this.accesoTriplas.contains(op1)) {
+			this.escribir(variablesGlobales, "(global $accesoAsig"+op1.replace(':', 'A')+ " (mut i32) (i32.const 1))");
+			this.escribir(variablesGlobales, "(global $acceso"+op1.replace(':', 'A')+  " (mut i32) (i32.const 1))");
+			this.accesoTriplas.add(op1);
+		}
+		this.escribir(cuerpoActual, "global.set $accesoAsig"+op1.replace(':', 'A'));
+	}
+
+	private void asignacion(Terceto t) {	    
+		String tipo = t.getTipo();
+		String op2 = t.getOp2();
+		String op1 = t.getOp1();
+		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+	    Matcher matcher2 = pattern.matcher(op2);
+	    Matcher matcher1 = pattern.matcher(op1);
+	    String aux="";
+	    boolean findOp2 = matcher2.find();
+	    boolean findOp1 = matcher1.find();
+		if(!tipo.equals("ulongint") && !tipo.equals("double")) {
+			tipo = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64";
+			if(findOp2) {
+				if(this.aux1.equals(op2))
+					aux="AUX1";
+				else
+					aux="AUX2";
+				this.escribir(cuerpoActual, "global.get $"+aux+"V1"+tipo);
+				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V1");
+				this.escribir(cuerpoActual, "global.get $"+aux+"V2"+tipo);
+				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V2");
+				this.escribir(cuerpoActual, "global.get $"+aux+"V3"+tipo);
+				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V3");
+				if(aux.equals("AUX1")) {
+					this.aux1= new String("");
+				}else {
+					this.aux2= new String("");
+				}
+				
+			}else {
+				this.escribir(cuerpoActual, "global.get $" + op2.replace(':', 'A') + "V1");
+				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V1");
+				this.escribir(cuerpoActual, "global.get $" + op2.replace(':', 'A') + "V2");
+				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V2");
+				this.escribir(cuerpoActual, "global.get $" + op2.replace(':', 'A') + "V3");
+				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V3");
+			}
+		}else {
+			String loQueAsigno = "";
+			String AuxTripla="";
+			if(findOp2) {
+				String  posicionTercetoOP2 = t.getOp2().substring(1,t.getOp2().length()-1);
+				Terceto tOp2 = gc_main.getTerceto(Integer.parseInt(posicionTercetoOP2));
+				String operadorOp2 = tOp2.getOperador();
+				String tipoOp2 = tOp2.getTipo().equals("ulongint")?"i32":"f64";
+				if(operadorOp2.equals("ACCESOTRIPLE")) {
+					if(aux1Tripla.equals(t.getOp2()))
+						AuxTripla="auxTripla";
+					else if(aux2Tripla.equals(t.getOp2()))
+						AuxTripla="aux2Tripla";
+					else
+						AuxTripla="aux3Tripla";
+					loQueAsigno = "global.get $"+tipoOp2+AuxTripla;
+				}
+				else if(findOp1) {
+					if(aux1Tripla.equals("")) {
+						AuxTripla="auxTripla";
+						aux1Tripla=t.getOp2();
+					}else if(aux2Tripla.equals("")) {
+						AuxTripla="aux2Tripla";
+						aux2Tripla=t.getOp2();
+					}else {
+						AuxTripla="aux3Tripla";
+						aux3Tripla=t.getOp2();
+					}
+					loQueAsigno = "global.get $"+tipoOp2+AuxTripla;
+					this.escribir(cuerpoActual,"global.set $"+tipoOp2+AuxTripla);
+				}
+			}else {
+				String tipoOp2 = this.ts.getAtributo(op2, AccionSemantica.TIPO).equals("ulongint")?"i32":"f64";
+				if(this.ts.getAtributo(op2, AccionSemantica.USO).equals("nombre variable")){
+					loQueAsigno = "global.get $"+op2.replace(':', 'A');
+				}else{
+					loQueAsigno =  tipoOp2+".const "+op2;
+				}
+			}
+			//lo asigno
+			if(findOp1) { //asignacion a tripla
+				String  posicionTerceto = t.getOp1().substring(1,t.getOp1().length()-1);
+				Terceto asignacion = gc_main.getTerceto(Integer.parseInt(posicionTerceto));
+				String IdAsignacion =asignacion.getOp1().replace(':', 'A');
+				this.escribir(cuerpoActual, "global.get $accesoAsig"+IdAsignacion);
+				this.escribir(cuerpoActual, "i32.const 1");
+				this.escribir(cuerpoActual, "i32.eq");
+				this.escribir(cuerpoActual, "(if");
+				this.aumentarIdentacion();
+				this.escribir(cuerpoActual, "(then");
+				this.aumentarIdentacion();
+				this.escribir(cuerpoActual, loQueAsigno);
+				this.escribir(cuerpoActual, "global.set $"+IdAsignacion+"V1");
+				this.reducirIdentacion();
+				this.escribir(cuerpoActual, ")");
+				this.escribir(cuerpoActual, "(else");
+				this.aumentarIdentacion();
+				this.escribir(cuerpoActual, "global.get $accesoAsig"+IdAsignacion);
+				this.escribir(cuerpoActual, "i32.const 2");
+				this.escribir(cuerpoActual, "i32.eq");
+				this.escribir(cuerpoActual, "(if");
+				this.aumentarIdentacion();
+				this.escribir(cuerpoActual, "(then");
+				this.aumentarIdentacion();
+				this.escribir(cuerpoActual, loQueAsigno);
+				this.escribir(cuerpoActual, "global.set $"+IdAsignacion+"V2");
+				this.reducirIdentacion();
+				this.escribir(cuerpoActual, ")");
+				this.escribir(cuerpoActual, "(else");
+				this.aumentarIdentacion();
+				this.escribir(cuerpoActual, "global.get $accesoAsig"+IdAsignacion);
+				this.escribir(cuerpoActual, "i32.const 3");
+				this.escribir(cuerpoActual, "i32.eq");
+				this.escribir(cuerpoActual, "(if");
+				this.aumentarIdentacion();
+				this.escribir(cuerpoActual, "(then");
+				this.aumentarIdentacion();
+				this.escribir(cuerpoActual, loQueAsigno);
+				this.escribir(cuerpoActual, "global.set $"+IdAsignacion+"V3");
+				this.reducirIdentacion();
+				this.escribir(cuerpoActual, ")");
+				this.escribir(cuerpoActual, "(else");
+				this.aumentarIdentacion();
+				this.escribir(cuerpoActual, "i32.const "+erroresEj.getDir("rango"));
+				this.escribir(cuerpoActual, "i32.const "+erroresEj.getSizeMsj("rango"));
+				this.escribir(cuerpoActual, "call $log");
+				this.escribir(cuerpoActual, "call $exit");
+				this.reducirIdentacion();
+				this.escribir(cuerpoActual, ")");
+				this.reducirIdentacion();
+				this.escribir(cuerpoActual, ")");
+				this.reducirIdentacion();
+				this.escribir(cuerpoActual, ")");
+				this.reducirIdentacion();
+				this.escribir(cuerpoActual, ")");
+				this.reducirIdentacion();
+				this.escribir(cuerpoActual, ")");
+				this.reducirIdentacion();
+				this.escribir(cuerpoActual, ")");
+				if(AuxTripla.equals("auxTripla"))
+					this.aux1Tripla="";
+				else if (AuxTripla.equals("aux2Tripla"))
+					this.aux2Tripla="";
+				else 
+					this.aux3Tripla="";
+			}else { //id
+				this.obtenerGets(t, false);
+				this.escribir(cuerpoActual,"global.set $" + t.getOp1().replace(':', 'A'));	
+			}
+			
+		}
+	}
+	
+	// Tags y saltos
+	public void agregarBloquesGoto(StringBuilder sb) {
+	    while (!bloquesGOTO.isEmpty()) {
+	        sb.append(bloquesGOTO.pop()).append("\n");
+	    }
+	}
+	
 	private void generarTag(Terceto t) {
 		String tag = t.getOp1();
 		if(!gotos.contains(tag)) {
@@ -985,6 +1124,60 @@ public class GeneradorWasm {
 		this.escribir(cuerpoActual,"br $"+t.getOp1().replace(':', 'A'));
 	}
 
+	private void generarLabel(Terceto t) {
+		String op1 = t.getOp1().replace(':', 'A');
+		switch(op1) {
+		case "else":break;
+		case "endif": this.tipoFlujoActual.pop();
+					this.reducirIdentacion();
+					this.escribir(cuerpoActual,")");
+					this.reducirIdentacion();
+					this.escribir(cuerpoActual,")");
+					break;
+		case "FIN_IF_SOLO" : this.reducirIdentacion();
+					this.escribir(cuerpoActual,")");
+					this.reducirIdentacion();
+					this.escribir(cuerpoActual,")"); 
+					break;
+		case "endfor": this.tipoFlujoActual.pop(); this.fors.pop(); break;
+		default: 
+			this.tipoFlujoActual.push("FOR");
+			this.escribir(cuerpoActual,"block $endforA"+ t.getOp1());
+			this.escribir(cuerpoActual,"loop $"+op1);
+			this.aumentarIdentacion();
+			this.fors.push(op1);
+			break;
+		}
+	}
+	
+	private void bifurcacionIncondicional(Terceto t) {
+		if(this.tipoFlujoActual.peek().equals("IF")) {
+			this.reducirIdentacion();
+			this.escribir(cuerpoActual,")");
+			this.escribir(cuerpoActual,"(else");
+			this.aumentarIdentacion();
+		}else if(this.tipoFlujoActual.peek().equals("FOR")) {
+			this.escribir(cuerpoActual,"br $"+ this.fors.peek());
+			this.reducirIdentacion();
+			this.escribir(cuerpoActual,"end");
+			this.escribir(cuerpoActual,"end");
+		}
+	}
+	
+	private void bifurcacionPorFalso(Terceto t) {
+		boolean esIf = tipoFlujoActual.peek().equals("IF");
+		if(esIf) {
+			this.escribir(cuerpoActual,"(if");
+			this.aumentarIdentacion();
+			this.escribir(cuerpoActual,"(then");
+			this.aumentarIdentacion();
+		}else {
+			this.escribir(cuerpoActual,"br_if $"+ "endforA"+this.fors.peek());
+		}
+		
+	}
+	
+	// Acceso a elemento de tripla
 	private void accesoTriple(Terceto t) {
 		
 		String op1 = t.getOp1();
@@ -1108,6 +1301,7 @@ public class GeneradorWasm {
 		this.reducirIdentacion();
 	}
 
+	// Escritura del .wat
 	private void escribir(StringBuilder builder, String code) {
         	builder.append(this.ident + code + "\n");
     }
@@ -1125,6 +1319,8 @@ public class GeneradorWasm {
             System.err.println("Error al escribir en el archivo: " + e.getMessage());
         }
     }
+	
+	// Conversiones 
 	
 	private void toDouble(Terceto t) {
 		this.obtenerGets(t);
@@ -1151,165 +1347,7 @@ public class GeneradorWasm {
 		this.escribir(cuerpoActual,"i32.trunc_f64_u");
 	}
 
-	private void asignacion(Terceto t) {	    
-		String tipo = t.getTipo();
-		String op2 = t.getOp2();
-		String op1 = t.getOp1();
-		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
-	    Matcher matcher2 = pattern.matcher(op2);
-	    Matcher matcher1 = pattern.matcher(op1);
-	    String aux="";
-	    boolean findOp2 = matcher2.find();
-	    boolean findOp1 = matcher1.find();
-		if(!tipo.equals("ulongint") && !tipo.equals("double")) {//caso triplas
-			tipo = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64";
-			if(findOp2) {
-				if(this.aux1.equals(op2))
-					aux="AUX1";
-				else
-					aux="AUX2";
-				this.escribir(cuerpoActual, "global.get $"+aux+"V1"+tipo);
-				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V1");
-				this.escribir(cuerpoActual, "global.get $"+aux+"V2"+tipo);
-				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V2");
-				this.escribir(cuerpoActual, "global.get $"+aux+"V3"+tipo);
-				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V3");
-				if(aux.equals("AUX1")) {
-					this.aux1= new String("");
-				}else {
-					this.aux2= new String("");
-				}
-				
-			}else {
-				this.escribir(cuerpoActual, "global.get $" + op2.replace(':', 'A') + "V1");
-				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V1");
-				this.escribir(cuerpoActual, "global.get $" + op2.replace(':', 'A') + "V2");
-				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V2");
-				this.escribir(cuerpoActual, "global.get $" + op2.replace(':', 'A') + "V3");
-				this.escribir(cuerpoActual, "global.set $" + op1.replace(':', 'A') + "V3");
-			}
-		}else {
-			String loQueAsigno = "";
-			String AuxTripla="";
-			if(findOp2) {
-				String  posicionTercetoOP2 = t.getOp2().substring(1,t.getOp2().length()-1);
-				Terceto tOp2 = gc_main.getTerceto(Integer.parseInt(posicionTercetoOP2));
-				String operadorOp2 = tOp2.getOperador();
-				String tipoOp2 = tOp2.getTipo().equals("ulongint")?"i32":"f64";
-				if(operadorOp2.equals("ACCESOTRIPLE")) {
-					if(aux1Tripla.equals(t.getOp2()))
-						AuxTripla="auxTripla";
-					else if(aux2Tripla.equals(t.getOp2()))
-						AuxTripla="aux2Tripla";
-					else
-						AuxTripla="aux3Tripla";
-					loQueAsigno = "global.get $"+tipoOp2+AuxTripla;
-				}
-				else if(findOp1) {
-					if(aux1Tripla.equals("")) {
-						AuxTripla="auxTripla";
-						aux1Tripla=t.getOp2();
-					}else if(aux2Tripla.equals("")) {
-						AuxTripla="aux2Tripla";
-						aux2Tripla=t.getOp2();
-					}else {
-						AuxTripla="aux3Tripla";
-						aux3Tripla=t.getOp2();
-					}
-					loQueAsigno = "global.get $"+tipoOp2+AuxTripla;
-					this.escribir(cuerpoActual,"global.set $"+tipoOp2+AuxTripla);
-				}
-			}else {
-				String tipoOp2 = this.ts.getAtributo(op2, AccionSemantica.TIPO).equals("ulongint")?"i32":"f64";
-				if(this.ts.getAtributo(op2, AccionSemantica.USO).equals("nombre variable")){
-					loQueAsigno = "global.get $"+op2.replace(':', 'A');
-				}else{
-					loQueAsigno =  tipoOp2+".const "+op2;
-				}
-				
-			}
-			//lo asigno
-			if(findOp1) { //asignacion a tripla
-				String  posicionTerceto = t.getOp1().substring(1,t.getOp1().length()-1);
-				Terceto asignacion = gc_main.getTerceto(Integer.parseInt(posicionTerceto));
-				String tipoOp1 = this.ts.getAtributo(asignacion.getOp1(), AccionSemantica.TIPO);
-				tipoOp1 = this.ts.getAtributo(t.getOp1(), AccionSemantica.TIPO_BASICO).equals("ulongint")?"i32":"f64";
-				String IdAsignacion =asignacion.getOp1().replace(':', 'A');
-				this.escribir(cuerpoActual, "global.get $accesoAsig"+IdAsignacion);
-				this.escribir(cuerpoActual, "i32.const 1");
-				this.escribir(cuerpoActual, "i32.eq");
-				this.escribir(cuerpoActual, "(if");
-				this.aumentarIdentacion();
-				this.escribir(cuerpoActual, "(then");
-				this.aumentarIdentacion();
-				this.escribir(cuerpoActual, loQueAsigno);
-				this.escribir(cuerpoActual, "global.set $"+IdAsignacion+"V1");
-				this.reducirIdentacion();
-				this.escribir(cuerpoActual, ")");
-				this.escribir(cuerpoActual, "(else");
-				this.aumentarIdentacion();
-				this.escribir(cuerpoActual, "global.get $accesoAsig"+IdAsignacion);
-				this.escribir(cuerpoActual, "i32.const 2");
-				this.escribir(cuerpoActual, "i32.eq");
-				this.escribir(cuerpoActual, "(if");
-				this.aumentarIdentacion();
-				this.escribir(cuerpoActual, "(then");
-				this.aumentarIdentacion();
-				this.escribir(cuerpoActual, loQueAsigno);
-				this.escribir(cuerpoActual, "global.set $"+IdAsignacion+"V2");
-				this.reducirIdentacion();
-				this.escribir(cuerpoActual, ")");
-				this.escribir(cuerpoActual, "(else");
-				this.aumentarIdentacion();
-				this.escribir(cuerpoActual, "global.get $accesoAsig"+IdAsignacion);
-				this.escribir(cuerpoActual, "i32.const 3");
-				this.escribir(cuerpoActual, "i32.eq");
-				this.escribir(cuerpoActual, "(if");
-				this.aumentarIdentacion();
-				this.escribir(cuerpoActual, "(then");
-				this.aumentarIdentacion();
-				this.escribir(cuerpoActual, loQueAsigno);
-				this.escribir(cuerpoActual, "global.set $"+IdAsignacion+"V3");
-				this.reducirIdentacion();
-				this.escribir(cuerpoActual, ")");
-				this.escribir(cuerpoActual, "(else");
-				this.aumentarIdentacion();
-				this.escribir(cuerpoActual, "i32.const "+erroresEj.getDir("rango"));
-				this.escribir(cuerpoActual, "i32.const "+erroresEj.getSizeMsj("rango"));
-				this.escribir(cuerpoActual, "call $log");
-				this.escribir(cuerpoActual, "call $exit");
-				this.reducirIdentacion();
-				this.escribir(cuerpoActual, ")");
-				this.reducirIdentacion();
-				this.escribir(cuerpoActual, ")");
-				this.reducirIdentacion();
-				this.escribir(cuerpoActual, ")");
-				this.reducirIdentacion();
-				this.escribir(cuerpoActual, ")");
-				this.reducirIdentacion();
-				this.escribir(cuerpoActual, ")");
-				this.reducirIdentacion();
-				this.escribir(cuerpoActual, ")");
-				if(AuxTripla.equals("auxTripla"))
-					this.aux1Tripla="";
-				else if (AuxTripla.equals("aux2Tripla"))
-					this.aux2Tripla="";
-				else 
-					this.aux3Tripla="";
-			}else { //id
-				this.obtenerGets(t, false);
-				this.escribir(cuerpoActual,"global.set $" + t.getOp1().replace(':', 'A'));
-				
-			}
-			
-		}
-	}
-	
-	private void and(Terceto t) {
-		this.obtenerComparaciones(t);
-		this.escribir(cuerpoActual,"i32.and");
-	}
-	
+	// Invocación de Funciones
 	private void invocacionFuncion(Terceto t) {
 		this.obtenerGets(t, false);
 		String funcion = t.getOp1();
@@ -1325,59 +1363,7 @@ public class GeneradorWasm {
 		this.escribir(cuerpoActual, "return");
 	}
 	
-	private void generarLabel(Terceto t) {
-		String op1 = t.getOp1().replace(':', 'A');
-		switch(op1) {
-		case "else":break;
-		case "endif": this.tipoFlujoActual.pop();
-					this.reducirIdentacion();
-					this.escribir(cuerpoActual,")");
-					this.reducirIdentacion();
-					this.escribir(cuerpoActual,")");
-					break;
-		case "FIN_IF_SOLO" : this.reducirIdentacion();
-					this.escribir(cuerpoActual,")");
-					this.reducirIdentacion();
-					this.escribir(cuerpoActual,")"); 
-					this.ifs.add("IF"+this.ifs.size());
-					break;
-		case "endfor": this.tipoFlujoActual.pop(); this.fors.pop(); break;
-		default: 
-			this.tipoFlujoActual.push("FOR");
-			this.escribir(cuerpoActual,"block $endforA"+ t.getOp1());
-			this.escribir(cuerpoActual,"loop $"+op1);
-			this.aumentarIdentacion();
-			this.fors.push(op1);
-			break;
-		}
-	}
-	
-	private void bifurcacionIncondicional(Terceto t) {
-		if(this.tipoFlujoActual.peek().equals("IF")) {
-			this.reducirIdentacion();
-			this.escribir(cuerpoActual,")");
-			this.escribir(cuerpoActual,"(else");
-			this.aumentarIdentacion();
-		}else if(this.tipoFlujoActual.peek().equals("FOR")) {
-			this.escribir(cuerpoActual,"br $"+ this.fors.peek());
-			this.reducirIdentacion();
-			this.escribir(cuerpoActual,"end");
-			this.escribir(cuerpoActual,"end");
-		}
-	}
-	
-	private void bifurcacionPorFalso(Terceto t) {
-		boolean esIf = tipoFlujoActual.peek().equals("IF");
-		if(esIf) {
-			this.escribir(cuerpoActual,"(if");
-			this.aumentarIdentacion();
-			this.escribir(cuerpoActual,"(then");
-			this.aumentarIdentacion();
-		}else {
-			this.escribir(cuerpoActual,"br_if $"+ "endforA"+this.fors.peek());
-		}
-		
-	}
+	// Impresiones por pantalla
 	
 	private void imprimirTriplas(String var, String tipo, String aux) { //para imprimir si es la id o una expresion
 		this.escribir(cuerpoActual, "global.get $"+var+"V1"+aux);
@@ -1392,7 +1378,6 @@ public class GeneradorWasm {
 		imprimirTriplas(var,tipo,"");
 	}
 	
-	//VER OUTF
 	private void outf(Terceto t) {
 		String cadmul = t.getOp1();
 		if (cadmul.startsWith("CADMUL:")) { //mensaje comun
@@ -1410,7 +1395,6 @@ public class GeneradorWasm {
 		    	String tipo = tercetoExpresion.getTipo().equals("ulongint")?"i32":"f64"; //tipo del terceto(si es un acceso a tripla) o constante comun
 		    	
 		    	if(tercetoExpresion.getOperador().equals("ACCESOTRIPLE")) { //es un acceso a tripla y tengo que hacer get al dato
-		    		//
 		    		String AuxTripla="";
 		    		if(aux1Tripla.equals(t.getOp1()))
 						AuxTripla="auxTripla";

@@ -1,0 +1,31 @@
+GUÍA DE EJECUCIÓN
+
+1) Se debe crear un servidor desde la carpeta TPCompilador/wat2wasm/bin, con el comando "python -m http.server" y luego abrir localhost:8000/assembly.html
+2) Para cada archivo que se quiera compilar, se debe abrir desde la ruta TPCompilador/ un CMD y ejecutar "java -jar Compilador.jar" y poner como parametro el nombre del archivo que se quiere compilar sin su extensión.
+A su vez, el archivo debe estar en la carpeta TPCompilador/src/codes/  y tener la extensión ".txt" (esta se añade dentro del compilador, no se debe pasar por parametro con el nombre)
+3) Luego, desde TPCompilador/wat2wasm/bin/ se debe abrir una consola y ejecutar "wat2wasm assembly.wat -o assembly.wasm"
+4) Ingresar a la direccion localhost:8000/assembly.html
+
+
+Ejemplo:
+Se abre el server.
+Se ejecuta el comando de compilación "java -jar Compilador.jar casosValidos"
+Se ejecuta el comando "wat2wasm assembly.wat -o assembly.wasm" desde TPCompilador/wat2wasm/bin/
+Se abre en el navegador "localhost:8000/assembly.html"
+
+
+CASOS DE PRUEBA
+Adjuntamos 7 casos de prueba. Se debe ingresar el nombre que se quiera compilar.
+
+## CASO VALIDO QUE COMPILA SIN ERRORES DE EJECUCION
+"casosValidos": comprende operaciones de todo tipo, asignaciones de todo tipo, condiciones normales y pattern matching, y flujos de control anidados.
+
+## CASO CON ERRORES QUE NO GENERA CODIGO ASSEMBLER, PERO TIENE ERRORES SEMANTICOS CONTEMPLADOS
+"errores": contiene los errores semánticos agregados en esta etapa, sobre declaración, alcance, tipos, etc.
+
+## ERRORES DE EJECUCIÓN
+"conversionErronea": contiene el error de ejecución que se realice una conversión de un double negativo a un entero sin signo.
+"indiceFueraDeRango": se muestra el error de ejecución de se quiera acceder con un indice fuera de rango a una tripla.
+"recursion" muestra el error de ejecución de una recursión de funciones.
+"resultadoNegativo": muestra el error de ejecución de una resta de enteros sin signo que da un resultado negativo.
+"overflow": se muestra el error de ejecución de una suma de enteros sin signo que produce un overflow al pasarse del rango representable en complemento a base dos.
