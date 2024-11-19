@@ -946,6 +946,27 @@ public class GeneradorWasm {
 				this.escribir(cuerpoActual,"global.get $"+op2.replace(':', 'A'));	
 			}
 		}
+		else {
+	    	String indiceTerceto = matcher1.group(1);
+	    	Terceto tercetoOp2 =gc_main.getTerceto(Integer.parseInt(indiceTerceto));
+			String tipoOp2 = tercetoOp2.getTipo().equals("ulongint")?"i32":"f64";
+	    	String AuxTripla;
+			if(tercetoOp2.getOperador().equals("ACCESOTRIPLE")) {
+				if(aux1Tripla.equals(t.getOp2()))
+					AuxTripla="auxTripla";
+				else if(aux2Tripla.equals(t.getOp2()))
+					AuxTripla="aux2Tripla";
+				else
+					AuxTripla="aux3Tripla";
+				this.escribir(cuerpoActual, "global.get $"+tipoOp2+AuxTripla);
+				if(AuxTripla.equals("auxTripla"))
+					this.aux1Tripla="";
+				else if (AuxTripla.equals("aux2Tripla"))
+					this.aux2Tripla="";
+				else 
+					this.aux3Tripla="";
+			}
+		}
 		if(!this.accesoTriplas.contains(op1)) {
 			this.escribir(variablesGlobales, "(global $accesoAsig"+op1.replace(':', 'A')+ " (mut i32) (i32.const 1))");
 			this.escribir(variablesGlobales, "(global $acceso"+op1.replace(':', 'A')+  " (mut i32) (i32.const 1))");

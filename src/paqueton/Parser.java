@@ -925,14 +925,16 @@ public static String getNombreVariable(int numero) {
 
 public static void main(String[] args) {
     // Verificamos que el nombre de "prueba" sea pasado como argumento
-    if (args.length < 1) {
+    /*
+	if (args.length < 1) {
         System.out.println("Ingrese el nombre del archivo sin extension. , el archivo debe estar en TPCompilador/src/codes");
         return;
     }
 
     // Tomamos el primer argumento como el valor de prueba
     String prueba = args[0];
-    //String prueba = "pruebaCodigoSemantica";
+    */
+    String prueba = "casosValidos";
     TablaSimbolos tb = new TablaSimbolos();
     GeneradorCodigo gc = new GeneradorCodigo();
     
