@@ -234,10 +234,16 @@ public class GeneradorCodigo {
 	    	String parametro = checkDeclaracion(expresion, lineaActual, ts, ambitoActual);
 	    	estaDeclarado = parametro != null;
 	    	tipo = ts.getAtributo(parametro, AccionSemantica.TIPO);
+	    	if ((!tipo.equals("ulongint")) && (!tipo.equals("double"))){
+	    		ErrorHandler.addErrorSemantico("no se puede pasar como parameto una tripla", lineaActual);
+	    	}
 	    } else {
 	    	Terceto tripla = this.getTerceto(Integer.parseInt(matcher.group(1)));
 	    	estaDeclarado = true;
 	    	tipo = tripla.getTipo();
+	    	if ((!tipo.equals("ulongint")) && (!tipo.equals("double"))){
+	    		ErrorHandler.addErrorSemantico("no se puede pasar una expresion de triplas", lineaActual);
+	    	}
 	    }
 	    
 	    if (!estaDeclarado) {
