@@ -1,0 +1,17 @@
+nombre
+BEGIN
+	ulongint a, b, c;
+	ulongint i;
+	outf([FOR CON SALTO EN PRIMER ITERACION]);
+	outf([-------------------------------------------------]);
+	FOR ( i := 1 ; (i < 10) ; UP 1 ) 
+	BEGIN	
+		OUTF([ en el for]);
+		outf(i);
+		if (i =5) then
+		  GOTO PEPE@;
+		end_if;
+	END;
+	OUTF([ESTO NO SE IMPRIME]);
+	PEPE@;
+END

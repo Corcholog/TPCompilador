@@ -1,0 +1,6 @@
+nombre
+BEGIN
+	TYPEDEF TRIPLE <double> tripleta;
+	tripleta t1, t2, t3;
+	t1{1} := 3.0 * 4.0;
+END

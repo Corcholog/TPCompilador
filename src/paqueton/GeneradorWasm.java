@@ -129,6 +129,11 @@ public class GeneradorWasm {
 		this.escribir(this.variablesGlobales, "(global $i32aux2Tripla (mut i32) (i32.const 0))");
 		this.escribir(this.variablesGlobales, "(global $f64aux3Tripla (mut f64) (f64.const 0))");
 		this.escribir(this.variablesGlobales, "(global $i32aux3Tripla (mut i32) (i32.const 0))");
+		
+		//no conmutativo
+		this.escribir(this.variablesGlobales, "(global $f64auxNoConmutativo (mut f64) (f64.const 0))");
+		this.escribir(this.variablesGlobales, "(global $i32auxNoConmutativo (mut i32) (i32.const 0))");
+		
 		this.escribir(this.variablesGlobales, "(global $AUX1V1i32 (mut i32) (i32.const 0))");
 		this.escribir(this.variablesGlobales, "(global $AUX1V2i32 (mut i32) (i32.const 0))");
 		this.escribir(this.variablesGlobales, "(global $AUX1V3i32 (mut i32) (i32.const 0))");
@@ -286,6 +291,19 @@ public class GeneradorWasm {
 		this.obtenerGets(t, true);
 	}
 	
+	private boolean operadorConmutativo(String operador) {
+		switch(operador) {
+		case "-": 
+		case "/":
+		case ">":
+		case ">=":
+		case "<": 
+		case "<=": return false;
+		default:
+			return true;
+		}
+	}
+	
 	private void obtenerGets(Terceto t, boolean quieroIzquierdo) {
 		int pos = this.posicionActual;
 		String op1 = t.getOp1();
@@ -295,6 +313,20 @@ public class GeneradorWasm {
 	    Matcher matcher2 = pattern.matcher(op2);
 	    boolean find1 = matcher1.find();
 	    boolean find2 = matcher2.find();
+	    boolean conmutativo = true;
+	    if ((find2) && (!hayPatternMatching)){
+	    	String operador = t.getOperador();
+	    	if(!operadorConmutativo(operador)) {
+	    		int indiceTerceto = Integer.parseInt(matcher2.group(1)); //el terceto posta
+		    	Terceto t_op2 = this.gc_main.getTerceto(indiceTerceto); 
+		    	if(!t_op2.getOperador().equals("ACCESOTRIPLE")) {
+		    		conmutativo = false;
+		    		String tipoOp2 = t_op2.getTipo().equals("ulongint")?"i32":"f64";
+		    		this.escribir(cuerpoActual, "global.set $"+tipoOp2+"auxNoConmutativo");
+		    	}
+	    	}
+	    }
+	    
 	    
 	    if(quieroIzquierdo && !find1) {
 	    	if(!op1.equals("")) {
@@ -354,9 +386,9 @@ public class GeneradorWasm {
 	    		this.posicionActual = indiceTerceto;
 	    		this.ejecutarTraduccion(t_op2);
 	    	}
+	    	String tipoOp2 = t_op2.getTipo().equals("ulongint")?"i32":"f64";
 	    	if(t_op2.getOperador().equals("ACCESOTRIPLE")) {
 	    		String AuxTripla;
-	    		String tipoOp2 = t_op2.getTipo().equals("ulongint")?"i32":"f64";
 	    		if(aux1Tripla.equals(t.getOp2()))
 					AuxTripla="auxTripla";
 				else if(aux2Tripla.equals(t.getOp2()))
@@ -370,6 +402,11 @@ public class GeneradorWasm {
 					this.aux2Tripla="";
 				else 
 					this.aux3Tripla="";
+	    	}
+	    	else {
+	    		if (!conmutativo) {
+		    		this.escribir(cuerpoActual, "global.get $"+tipoOp2+"auxNoConmutativo");
+	    		}
 	    	}
 	    }
 	    this.posicionActual = pos;
@@ -1155,7 +1192,9 @@ public class GeneradorWasm {
 					this.reducirIdentacion();
 					this.escribir(cuerpoActual,")");
 					break;
-		case "FIN_IF_SOLO" : this.reducirIdentacion();
+		case "FIN_IF_SOLO" : 
+					this.tipoFlujoActual.pop();
+					this.reducirIdentacion();
 					this.escribir(cuerpoActual,")");
 					this.reducirIdentacion();
 					this.escribir(cuerpoActual,")"); 

@@ -1,0 +1,15 @@
+nombre
+BEGIN
+	ulongint a, b, c;
+	double ax, axe, axf;
+	TYPEDEF TRIPLE <double> tripleta;
+	tripleta t1, t2, t3;
+	
+	tYPEDEF TRIPLE <ULONGINT> tripleta;
+	TRIPLETA T4, T5;
+	
+	A := AX + 3.0;
+	
+	t1 := t2;
+	t4{1} := t1;
+end

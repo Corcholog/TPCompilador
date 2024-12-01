@@ -1,0 +1,11 @@
+nombre
+BEGIN
+	ulongint fun fun1 (ulongint boca)
+	begin
+		goto pepe@;
+		pepe@;
+		outf([hola]);
+		goto pepe@;	
+		ret(1);
+	end;
+end

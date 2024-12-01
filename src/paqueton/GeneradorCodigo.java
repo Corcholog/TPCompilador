@@ -477,6 +477,24 @@ public class GeneradorCodigo {
 		
 	}
 	
+	public String checkConversion(String parametroReal,int linea,TablaSimbolos ts,String ambito) {
+		Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+		Matcher matcher = pattern.matcher(parametroReal);
+		String tipo;
+		if(!matcher.find()) {	
+			String parReal = this.checkDeclaracion(parametroReal, linea, ts, ambito);
+			tipo =  ts.getAtributo(parReal, AccionSemantica.TIPO);
+		}
+		else {
+			Terceto t = this.getTerceto(Integer.parseInt(matcher.group(1)));
+			tipo = t.getTipo();
+		}
+		if ((!tipo.equals("ulongint")) && (!tipo.equals("double") && (!tipo.equals("")))){
+			ErrorHandler.addErrorSemantico("no se puede castear una tripla, ya que no se puede pasar como parametro", linea);
+		}
+		return tipo;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

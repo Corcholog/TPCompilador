@@ -20,9 +20,8 @@ cuerpo_error	: BEGIN sentencias ';' END
 		;
 
 cuerpo		: BEGIN sentencias ';' END
-
 		
-		| BEGIN sentencia END { ErrorHandler.addErrorSintactico("Falta punto y coma", lex.getLineaInicial());}
+		| BEGIN sentencias END { ErrorHandler.addErrorSintactico("Falta punto y coma prueba", lex.getLineaInicial());}
 		| BEGIN sentencias ';' { ErrorHandler.addErrorSintactico("Falta delimitador END del programa", lex.getLineaInicial());}
 		| sentencias ';' END { ErrorHandler.addErrorSintactico("Falta delimitador BEGIN del programa", lex.getLineaInicial());}
 		| sentencias ';' { ErrorHandler.addErrorSintactico("Falta delimitador BEGIN y END del programa", lex.getLineaInicial());}
@@ -385,16 +384,12 @@ lista_parametro_real : lista_parametro_real ',' param_real { $$.sval = $3.sval;E
 		;
 
 param_real	: expresion_matematica {$$.sval = $1.sval; gc.checkParamReal($1.sval, lex.getLineaInicial(), this.ts, ambitoActual,idFuncion);}
-		| tipo ID {
-			String id = gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual);
-			String tipoId = this.ts.getAtributo(id, AccionSemantica.TIPO);
-	    	if ((!tipoId.equals("ulongint")) && (!tipoId.equals("double"))){
-			ErrorHandler.addErrorSemantico("no se puede castear una tripla, ya que no se puede pasar como parametro", lex.getLineaInicial());
-		}
-		
-if(!tipoId.equals($1.sval)){$$.sval = gc.addTerceto("TO".concat($1.sval), gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");} else { ErrorHandler.addWarningSemantico("Se intenta realizar una conversion innecesaria. No se realizará.", lex.getLineaInicial()); $$.sval = $2.sval; gc.checkParamReal($2.sval, lex.getLineaInicial(), this.ts, ambitoActual,idFuncion);}
-
-if(!this.ts.getAtributo(this.ts.getAtributo(idFuncion, AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals($1.sval)){ ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lex.getLineaInicial());}}
+		| tipo expresion_matematica {
+			String tipoId = gc.checkConversion($2.sval,lex.getLineaInicial(),this.ts,ambitoActual);	
+			if (!tipoId.equals("")){
+				if(!tipoId.equals($1.sval)){$$.sval = gc.addTerceto("TO".concat($1.sval), gc.checkDeclaracion($2.sval, lex.getLineaInicial(), this.ts, this.ambitoActual), "");} else { ErrorHandler.addWarningSemantico("Se intenta realizar una conversion innecesaria. No se realizará.", lex.getLineaInicial()); $$.sval = $2.sval; gc.checkParamReal($2.sval, lex.getLineaInicial(), this.ts, ambitoActual,idFuncion);}
+				if(!this.ts.getAtributo(this.ts.getAtributo(idFuncion, AccionSemantica.PARAMETRO), AccionSemantica.TIPO).equals($1.sval)){ ErrorHandler.addErrorSemantico("El tipo del parametro real no coincide con el tipo del parametro formal.", lex.getLineaInicial());}}
+			}
 		;
 
 sald_mensaj	: OUTF '(' mensaje ')' {$$.sval = gc.addTerceto("OUTF", $3.sval, "");}

@@ -38,6 +38,8 @@
 (global $i32aux2Tripla (mut i32) (i32.const 0))
 (global $f64aux3Tripla (mut f64) (f64.const 0))
 (global $i32aux3Tripla (mut i32) (i32.const 0))
+(global $f64auxNoConmutativo (mut f64) (f64.const 0))
+(global $i32auxNoConmutativo (mut i32) (i32.const 0))
 (global $AUX1V1i32 (mut i32) (i32.const 0))
 (global $AUX1V2i32 (mut i32) (i32.const 0))
 (global $AUX1V3i32 (mut i32) (i32.const 0))
